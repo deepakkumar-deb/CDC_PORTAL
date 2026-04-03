@@ -15,15 +15,20 @@ class User extends Authenticatable
 
     protected $hidden = ['password_hash'];
 
-    // One user has one company
+    public function getAuthPassword()
+    {
+        return $this->password_hash;
+    }
+
     public function company()
     {
         return $this->hasOne(Company::class);
     }
 
-    // One user has many notifications
     public function notifications()
     {
         return $this->hasMany(Notification::class);
     }
+
+    protected $authPassword = 'password_hash';
 }
