@@ -8,6 +8,7 @@ import {
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import api from '@/lib/api';
+import PrintableJnf from '@/components/common/PrintableJnf';
 
 const statusColor: Record<string, any> = {
   draft: 'default',
@@ -228,6 +229,10 @@ export default function JnfDetailPage() {
           </Button>
         </Box>
       )}
+
+      <Box sx={{ mt: 3 }}>
+  <PrintableJnf form={jnf} />
+</Box>
     </DashboardLayout>
   );
 }

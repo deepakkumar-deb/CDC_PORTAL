@@ -5,6 +5,7 @@ import CssBaseline from '@mui/material/CssBaseline';
 import theme from '@/theme/theme';
 import SessionWrapper from '@/components/common/SessionWrapper';
 
+import './print.css';
 export const metadata: Metadata = {
   title: 'CDC Recruitment Portal | IIT (ISM) Dhanbad',
   description: 'Career Development Centre Recruitment Portal',
