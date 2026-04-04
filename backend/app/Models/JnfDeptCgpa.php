@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
@@ -6,8 +7,12 @@ use Illuminate\Database\Eloquent\Model;
 class JnfDeptCgpa extends Model
 {
     public $timestamps = false;
+    protected $table = 'jnf_dept_cgpa'; // ← add this line
+
     protected $fillable = [
-        'jnf_id', 'program_dept_map_id', 'min_cgpa',
+        'jnf_id',
+        'program_dept_map_id',
+        'min_cgpa',
     ];
 
     public function jnf()

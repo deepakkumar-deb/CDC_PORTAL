@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 class SelectionInfrastructure extends Model
 {
     public $timestamps = false;
+    protected $table = 'selection_infrastructure';
     protected $fillable = [
         'jnf_id', 'rooms_required', 'team_members_required',
         'psychometric_test', 'medical_test',

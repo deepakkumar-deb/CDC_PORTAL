@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
@@ -6,10 +7,12 @@ use Illuminate\Database\Eloquent\Model;
 class ProgramDeptMap extends Model
 {
     public $timestamps = false;
-
+    protected $table = 'program_dept_map';
     protected $fillable = [
-        'program_id', 'department_id',
-        'display_name', 'is_active',
+        'program_id',
+        'department_id',
+        'display_name',
+        'is_active',
     ];
 
     public function program()

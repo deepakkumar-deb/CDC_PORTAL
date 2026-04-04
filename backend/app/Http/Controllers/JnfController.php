@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
@@ -33,8 +34,14 @@ class JnfController extends Controller
         $jnfs = Jnf::where('company_id', $company->id)
             ->where('opportunity_type', 'job')
             ->orderBy('created_at', 'desc')
-            ->get(['id','jnf_code','designation','status',
-                   'recruitment_cycle','created_at']);
+            ->get([
+                'id',
+                'jnf_code',
+                'designation',
+                'status',
+                'recruitment_cycle',
+                'created_at'
+            ]);
 
         return response()->json([
             'success' => true,
@@ -46,14 +53,26 @@ class JnfController extends Controller
     public function show(Request $request, $id)
     {
         $company = $request->user()->company;
+
+        if (!$company) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Please complete your company profile first.',
+            ], 404);
+        }
         $jnf = Jnf::where('id', $id)
             ->where('company_id', $company->id)
             ->with([
-                'skills', 'attachments', 'eligibilityRule',
-                'salaryBreakdowns', 'allowedPrograms.programDeptMap.program',
+                'skills',
+                'attachments',
+                'eligibilityRule',
+                'salaryBreakdowns',
+                'allowedPrograms.programDeptMap.program',
                 'allowedPrograms.programDeptMap.department',
-                'allowedCategories.category', 'deptCgpa',
-                'selectionRounds', 'selectionInfrastructure',
+                'allowedCategories.category',
+                'deptCgpa',
+                'selectionRounds',
+                'selectionInfrastructure',
             ])
             ->first();
 
@@ -87,14 +106,14 @@ class JnfController extends Controller
             'opportunity_type' => 'job',
             'status'           => 'draft',
             'jnf_code'         => 'JNF-' . strtoupper(Str::random(8)),
-            'recruitment_cycle'=> $request->recruitment_cycle ?? date('Y') . '-' . (date('Y') + 1),
+            'recruitment_cycle' => $request->recruitment_cycle ?? date('Y') . '-' . (date('Y') + 1),
         ]);
 
         return response()->json([
             'success' => true,
             'message' => 'JNF created. Continue filling the form.',
             'jnf_id'  => $jnf->id,
-            'jnf_code'=> $jnf->jnf_code,
+            'jnf_code' => $jnf->jnf_code,
         ], 201);
     }
 
@@ -179,7 +198,7 @@ class JnfController extends Controller
             foreach ($request->program_dept_map_ids as $mapId) {
                 JnfAllowedProgram::create([
                     'jnf_id'             => $id,
-                    'program_dept_map_id'=> $mapId,
+                    'program_dept_map_id' => $mapId,
                 ]);
             }
         }

@@ -1,25 +1,41 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 import {
   Box, Card, CardContent, Typography, TextField,
-  Button, Grid, CircularProgress, Alert, Avatar,
+  Grid, Button, MenuItem, CircularProgress, Alert,
   Divider, Chip,
 } from '@mui/material';
-import BusinessIcon from '@mui/icons-material/Business';
-import EditIcon from '@mui/icons-material/Edit';
-import SaveIcon from '@mui/icons-material/Save';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import api from '@/lib/api';
 
+const companyTypes = ['startup', 'mnc', 'psu', 'private', 'ngo', 'other'];
+const contactTypes = ['head_hr', 'poc1', 'poc2'];
+const contactLabels: Record<string, string> = {
+  head_hr: 'Head HR',
+  poc1: 'Point of Contact 1',
+  poc2: 'Point of Contact 2',
+};
+
+const emptyContact = (type: string) => ({
+  contact_type: type,
+  contact_name: '',
+  designation: '',
+  email: '',
+  phone: '',
+  landline: '',
+});
+
 export default function CompanyProfilePage() {
-  const { status } = useSession();
+  const { data: session, status } = useSession();
+  const router = useRouter();
+
   const [loading, setLoading] = useState(true);
-  const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [isNew, setIsNew] = useState(true);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  const [hasProfile, setHasProfile] = useState(false);
 
   const [form, setForm] = useState({
     company_name: '',
@@ -27,57 +43,99 @@ export default function CompanyProfilePage() {
     industry: '',
     company_type: '',
     about_company: '',
+    headquarters_address: '',
     city: '',
     state: '',
     country: 'India',
+    postal_code: '',
     linkedin_url: '',
+    annual_turnover: '',
     no_of_employees: '',
+    mnc_hq_country: '',
+    mnc_hq_city: '',
   });
 
-  const [contacts, setContacts] = useState([
-    { contact_type: 'head_hr', contact_name: '', email: '', phone: '', designation: '' },
-    { contact_type: 'poc1', contact_name: '', email: '', phone: '', designation: '' },
-    { contact_type: 'poc2', contact_name: '', email: '', phone: '', designation: '' },
-  ]);
+  const [contacts, setContacts] = useState(
+    contactTypes.map(t => emptyContact(t))
+  );
+
+  const [industryTags, setIndustryTags] = useState<string[]>([]);
+  const [tagInput, setTagInput] = useState('');
 
   useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        const res = await api.get('/company');
-        setForm(res.data.company);
-        setContacts(res.data.company.contacts || contacts);
-        setHasProfile(true);
-      } catch {
-        setHasProfile(false);
-      } finally {
-        setLoading(false);
-      }
-    };
-    if (status === 'authenticated') fetchProfile();
+    if (status === 'unauthenticated') router.push('/auth/login');
   }, [status]);
 
-  const set = (k: string, v: string) => setForm(f => ({ ...f, [k]: v }));
+  useEffect(() => {
+    if (status !== 'authenticated') return;
+    api.get('/company')
+      .then(res => {
+        const c = res.data.company;
+        setForm({
+          company_name: c.company_name ?? '',
+          website: c.website ?? '',
+          industry: c.industry ?? '',
+          company_type: c.company_type ?? '',
+          about_company: c.about_company ?? '',
+          headquarters_address: c.headquarters_address ?? '',
+          city: c.city ?? '',
+          state: c.state ?? '',
+          country: c.country ?? 'India',
+          postal_code: c.postal_code ?? '',
+          linkedin_url: c.linkedin_url ?? '',
+          annual_turnover: c.annual_turnover ?? '',
+          no_of_employees: c.no_of_employees ?? '',
+          mnc_hq_country: c.mnc_hq_country ?? '',
+          mnc_hq_city: c.mnc_hq_city ?? '',
+        });
+        setIndustryTags(c.industry_tags ?? []);
+        if (c.contacts?.length) {
+          const merged = contactTypes.map(type => {
+            const found = c.contacts.find((x: any) => x.contact_type === type);
+            return found
+              ? { ...emptyContact(type), ...found }
+              : emptyContact(type);
+          });
+          setContacts(merged);
+        }
+        setIsNew(false);
+      })
+      .catch(() => setIsNew(true))
+      .finally(() => setLoading(false));
+  }, [status]);
 
-  const setContact = (idx: number, k: string, v: string) => {
-    setContacts(prev => prev.map((c, i) => i === idx ? { ...c, [k]: v } : c));
+  const setField = (k: string, v: string) =>
+    setForm(f => ({ ...f, [k]: v }));
+
+  const setContact = (i: number, k: string, v: string) =>
+    setContacts(prev => prev.map((c, idx) =>
+      idx === i ? { ...c, [k]: v } : c
+    ));
+
+  const addTag = () => {
+    const tag = tagInput.trim();
+    if (tag && !industryTags.includes(tag)) {
+      setIndustryTags(t => [...t, tag]);
+      setTagInput('');
+    }
   };
 
-  const handleSave = async () => {
+  const handleSubmit = async () => {
     setSaving(true);
     setError('');
     setSuccess('');
     try {
-      if (hasProfile) {
-        await api.post('/company/update', { ...form, contacts });
-        setSuccess('Company profile updated successfully.');
+      const payload = { ...form, contacts, industry_tags: industryTags };
+      if (isNew) {
+        await api.post('/company', payload);
+        setIsNew(false);
+        setSuccess('Company profile created successfully!');
       } else {
-        await api.post('/company', { ...form, contacts });
-        setSuccess('Company profile created successfully.');
-        setHasProfile(true);
+        await api.post('/company/update', payload);
+        setSuccess('Company profile updated successfully!');
       }
-      setEditing(false);
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to save profile.');
+      setError(err.response?.data?.message || 'Failed to save. Check all required fields.');
     } finally {
       setSaving(false);
     }
@@ -95,234 +153,206 @@ export default function CompanyProfilePage() {
 
   return (
     <DashboardLayout>
-      {/* Header */}
-      <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-          <Avatar sx={{ width: 56, height: 56, background: '#003366' }}>
-            <BusinessIcon sx={{ fontSize: 32 }} />
-          </Avatar>
-          <Box>
-            <Typography variant="h5" sx={{ fontWeight: 700, color: '#003366' }}>
-              Company Profile
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              {hasProfile ? 'Manage your company information' : 'Complete your profile to post jobs'}
-            </Typography>
-          </Box>
-        </Box>
-        {hasProfile && !editing && (
-          <Button
-            variant="outlined"
-            startIcon={<EditIcon />}
-            onClick={() => setEditing(true)}
-          >
-            Edit Profile
-          </Button>
-        )}
+      <Box sx={{ mb: 3 }}>
+        <Typography variant="h5" sx={{ fontWeight: 700, color: '#003366' }}>
+          Company Profile
+        </Typography>
+        <Typography variant="body2" color="text.secondary">
+          {isNew
+            ? 'Complete your company profile to start posting JNFs and INFs.'
+            : 'Update your company details here.'}
+        </Typography>
       </Box>
 
-      {/* Alerts */}
-      {error && <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError('')}>{error}</Alert>}
-      {success && <Alert severity="success" sx={{ mb: 2 }} onClose={() => setSuccess('')}>{success}</Alert>}
+      {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+      {success && <Alert severity="success" sx={{ mb: 2 }}>{success}</Alert>}
 
-      {/* Company Details Card */}
+      {/* Basic Info */}
       <Card sx={{ mb: 3 }}>
-        <CardContent sx={{ p: 4 }}>
+        <CardContent sx={{ p: { xs: 2, md: 4 } }}>
           <Typography variant="h6" sx={{ fontWeight: 600, mb: 3, color: '#003366' }}>
-            Company Information
+            Basic Information
           </Typography>
           <Grid container spacing={3}>
             <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                label="Company Name *"
+              <TextField fullWidth required label="Company Name"
                 value={form.company_name}
-                onChange={e => set('company_name', e.target.value)}
-                disabled={!editing && hasProfile}
-              />
+                onChange={e => setField('company_name', e.target.value)} />
             </Grid>
             <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                label="Website"
+              <TextField fullWidth label="Website"
                 value={form.website}
-                onChange={e => set('website', e.target.value)}
-                disabled={!editing && hasProfile}
-              />
+                onChange={e => setField('website', e.target.value)} />
             </Grid>
             <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                label="Industry"
+              <TextField fullWidth label="Industry"
                 value={form.industry}
-                onChange={e => set('industry', e.target.value)}
-                disabled={!editing && hasProfile}
-              />
+                onChange={e => setField('industry', e.target.value)} />
             </Grid>
             <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                label="Company Type"
+              <TextField fullWidth select label="Company Type"
                 value={form.company_type}
-                onChange={e => set('company_type', e.target.value)}
-                disabled={!editing && hasProfile}
-                placeholder="e.g., Startup, MNC, PSU"
-              />
+                onChange={e => setField('company_type', e.target.value)}>
+                {companyTypes.map(t => (
+                  <MenuItem key={t} value={t} sx={{ textTransform: 'capitalize' }}>
+                    {t.toUpperCase()}
+                  </MenuItem>
+                ))}
+              </TextField>
             </Grid>
             <Grid item xs={12}>
-              <TextField
-                fullWidth
-                multiline
-                rows={3}
-                label="About Company"
+              <TextField fullWidth multiline rows={3} label="About Company"
                 value={form.about_company}
-                onChange={e => set('about_company', e.target.value)}
-                disabled={!editing && hasProfile}
-              />
+                onChange={e => setField('about_company', e.target.value)} />
             </Grid>
-            <Grid item xs={12} md={4}>
-              <TextField
-                fullWidth
-                label="City"
-                value={form.city}
-                onChange={e => set('city', e.target.value)}
-                disabled={!editing && hasProfile}
-              />
-            </Grid>
-            <Grid item xs={12} md={4}>
-              <TextField
-                fullWidth
-                label="State"
-                value={form.state}
-                onChange={e => set('state', e.target.value)}
-                disabled={!editing && hasProfile}
-              />
-            </Grid>
-            <Grid item xs={12} md={4}>
-              <TextField
-                fullWidth
-                label="Country"
-                value={form.country}
-                onChange={e => set('country', e.target.value)}
-                disabled={!editing && hasProfile}
-              />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                label="LinkedIn URL"
+            <Grid item xs={12}>
+              <TextField fullWidth label="LinkedIn URL"
                 value={form.linkedin_url}
-                onChange={e => set('linkedin_url', e.target.value)}
-                disabled={!editing && hasProfile}
-              />
+                onChange={e => setField('linkedin_url', e.target.value)} />
             </Grid>
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                label="Number of Employees"
-                value={form.no_of_employees}
-                onChange={e => set('no_of_employees', e.target.value)}
-                disabled={!editing && hasProfile}
-                placeholder="e.g., 100-500"
-              />
+            {/* Industry Tags */}
+            <Grid item xs={12}>
+              <Typography variant="body2" sx={{ fontWeight: 600, mb: 1 }}>
+                Industry Tags
+              </Typography>
+              <Box sx={{ display: 'flex', gap: 1, mb: 1.5 }}>
+                <TextField size="small" label="Add tag" value={tagInput}
+                  onChange={e => setTagInput(e.target.value)}
+                  onKeyDown={e => e.key === 'Enter' && addTag()}
+                  sx={{ flex: 1 }} />
+                <Button variant="outlined" onClick={addTag}>Add</Button>
+              </Box>
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                {industryTags.map(tag => (
+                  <Chip key={tag} label={tag} size="small"
+                    onDelete={() => setIndustryTags(t => t.filter(x => x !== tag))}
+                    sx={{ background: 'rgba(0,51,102,0.08)', color: '#003366' }} />
+                ))}
+              </Box>
             </Grid>
           </Grid>
         </CardContent>
       </Card>
 
-      {/* Contact Details Card */}
-      <Card>
-        <CardContent sx={{ p: 4 }}>
+      {/* Address */}
+      <Card sx={{ mb: 3 }}>
+        <CardContent sx={{ p: { xs: 2, md: 4 } }}>
           <Typography variant="h6" sx={{ fontWeight: 600, mb: 3, color: '#003366' }}>
-            Contact Details
+            Address & Size
           </Typography>
-          {contacts.map((contact, idx) => (
-            <Box key={idx} sx={{ mb: 4 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-                <Chip
-                  label={
-                    contact.contact_type === 'head_hr'
-                      ? 'Head HR'
-                      : contact.contact_type === 'poc1'
-                      ? 'Point of Contact 1'
-                      : 'Point of Contact 2'
-                  }
-                  color="primary"
-                  size="small"
-                />
-              </Box>
-              <Grid container spacing={2}>
+          <Grid container spacing={3}>
+            <Grid item xs={12}>
+              <TextField fullWidth label="Headquarters Address"
+                value={form.headquarters_address}
+                onChange={e => setField('headquarters_address', e.target.value)} />
+            </Grid>
+            <Grid item xs={12} md={4}>
+              <TextField fullWidth label="City"
+                value={form.city}
+                onChange={e => setField('city', e.target.value)} />
+            </Grid>
+            <Grid item xs={12} md={4}>
+              <TextField fullWidth label="State"
+                value={form.state}
+                onChange={e => setField('state', e.target.value)} />
+            </Grid>
+            <Grid item xs={12} md={4}>
+              <TextField fullWidth label="Country"
+                value={form.country}
+                onChange={e => setField('country', e.target.value)} />
+            </Grid>
+            <Grid item xs={12} md={4}>
+              <TextField fullWidth label="Postal Code"
+                value={form.postal_code}
+                onChange={e => setField('postal_code', e.target.value)} />
+            </Grid>
+            <Grid item xs={12} md={4}>
+              <TextField fullWidth label="No. of Employees (e.g. 500-1000)"
+                value={form.no_of_employees}
+                onChange={e => setField('no_of_employees', e.target.value)} />
+            </Grid>
+            <Grid item xs={12} md={4}>
+              <TextField fullWidth label="Annual Turnover"
+                value={form.annual_turnover}
+                onChange={e => setField('annual_turnover', e.target.value)} />
+            </Grid>
+            {form.company_type === 'mnc' && (
+              <>
                 <Grid item xs={12} md={6}>
-                  <TextField
-                    fullWidth
-                    size="small"
-                    label="Full Name *"
-                    value={contact.contact_name}
-                    onChange={e => setContact(idx, 'contact_name', e.target.value)}
-                    disabled={!editing && hasProfile}
-                  />
+                  <TextField fullWidth label="MNC HQ Country"
+                    value={form.mnc_hq_country}
+                    onChange={e => setField('mnc_hq_country', e.target.value)} />
                 </Grid>
                 <Grid item xs={12} md={6}>
-                  <TextField
-                    fullWidth
-                    size="small"
+                  <TextField fullWidth label="MNC HQ City"
+                    value={form.mnc_hq_city}
+                    onChange={e => setField('mnc_hq_city', e.target.value)} />
+                </Grid>
+              </>
+            )}
+          </Grid>
+        </CardContent>
+      </Card>
+
+      {/* Contacts */}
+      <Card sx={{ mb: 3 }}>
+        <CardContent sx={{ p: { xs: 2, md: 4 } }}>
+          <Typography variant="h6" sx={{ fontWeight: 600, mb: 3, color: '#003366' }}>
+            Contact Persons
+          </Typography>
+          {contacts.map((contact, i) => (
+            <Box key={contact.contact_type}>
+              <Typography variant="body1" sx={{ fontWeight: 600, mb: 2, color: '#C8922A' }}>
+                {contactLabels[contact.contact_type]}
+                {i === 0 && ' *'}
+              </Typography>
+              <Grid container spacing={2} sx={{ mb: 2 }}>
+                <Grid item xs={12} md={6}>
+                  <TextField fullWidth size="small"
+                    label="Full Name" required={i === 0}
+                    value={contact.contact_name}
+                    onChange={e => setContact(i, 'contact_name', e.target.value)} />
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <TextField fullWidth size="small"
                     label="Designation"
                     value={contact.designation}
-                    onChange={e => setContact(idx, 'designation', e.target.value)}
-                    disabled={!editing && hasProfile}
-                  />
+                    onChange={e => setContact(i, 'designation', e.target.value)} />
                 </Grid>
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    fullWidth
-                    size="small"
-                    label="Email *"
-                    type="email"
+                <Grid item xs={12} md={4}>
+                  <TextField fullWidth size="small"
+                    label="Email" required={i === 0}
                     value={contact.email}
-                    onChange={e => setContact(idx, 'email', e.target.value)}
-                    disabled={!editing && hasProfile}
-                  />
+                    onChange={e => setContact(i, 'email', e.target.value)} />
                 </Grid>
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    fullWidth
-                    size="small"
-                    label="Phone"
+                <Grid item xs={12} md={4}>
+                  <TextField fullWidth size="small"
+                    label="Mobile"
                     value={contact.phone}
-                    onChange={e => setContact(idx, 'phone', e.target.value)}
-                    disabled={!editing && hasProfile}
-                  />
+                    onChange={e => setContact(i, 'phone', e.target.value)} />
+                </Grid>
+                <Grid item xs={12} md={4}>
+                  <TextField fullWidth size="small"
+                    label="Landline"
+                    value={contact.landline}
+                    onChange={e => setContact(i, 'landline', e.target.value)} />
                 </Grid>
               </Grid>
-              {idx < contacts.length - 1 && <Divider sx={{ mt: 3 }} />}
+              {i < contacts.length - 1 && <Divider sx={{ mb: 3 }} />}
             </Box>
           ))}
         </CardContent>
       </Card>
 
-      {/* Save Button */}
-      {(editing || !hasProfile) && (
-        <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, mt: 3 }}>
-          {editing && (
-            <Button
-              variant="outlined"
-              onClick={() => setEditing(false)}
-              disabled={saving}
-            >
-              Cancel
-            </Button>
-          )}
-          <Button
-            variant="contained"
-            size="large"
-            startIcon={<SaveIcon />}
-            onClick={handleSave}
-            disabled={saving}
-          >
-            {saving ? <CircularProgress size={22} color="inherit" /> : 'Save Profile'}
-          </Button>
-        </Box>
-      )}
+      <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+        <Button variant="contained" size="large"
+          onClick={handleSubmit} disabled={saving}
+          sx={{ px: 5 }}>
+          {saving
+            ? <CircularProgress size={22} color="inherit" />
+            : isNew ? 'Create Company Profile' : 'Update Profile'}
+        </Button>
+      </Box>
     </DashboardLayout>
   );
 }
