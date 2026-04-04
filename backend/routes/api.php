@@ -5,6 +5,8 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\JnfController;
 use App\Http\Controllers\InfController;
+use App\Http\Controllers\AdminController;
+use App\Http\Middleware\AdminMiddleware;
 
 // ── Public routes (no login needed) ──────────────────────────
 Route::prefix('auth')->group(function () {
@@ -46,4 +48,14 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/inf/{id}/stipend',          [InfController::class, 'saveStipend']);
     Route::post('/inf/{id}/selection',        [InfController::class, 'saveSelection']);
     Route::post('/inf/{id}/submit',           [InfController::class, 'submit']);
+});
+
+
+//Admin Routes
+Route::middleware(['auth:sanctum', AdminMiddleware::class])->prefix('admin')->group(function () {
+    Route::get('/stats',          [AdminController::class, 'stats']);
+    Route::get('/forms',          [AdminController::class, 'listForms']);
+    Route::get('/forms/{id}',     [AdminController::class, 'showForm']);
+    Route::post('/forms/{id}/approve', [AdminController::class, 'approve']);
+    Route::post('/forms/{id}/reject',  [AdminController::class, 'reject']);
 });
