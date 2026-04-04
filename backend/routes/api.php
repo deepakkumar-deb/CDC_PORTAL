@@ -58,4 +58,5 @@ Route::middleware(['auth:sanctum', AdminMiddleware::class])->prefix('admin')->gr
     Route::get('/forms/{id}',     [AdminController::class, 'showForm']);
     Route::post('/forms/{id}/approve', [AdminController::class, 'approve']);
     Route::post('/forms/{id}/reject',  [AdminController::class, 'reject']);
+    Route::post('/jnf/{id}/duplicate', [JnfController::class, 'duplicate']);
 });
