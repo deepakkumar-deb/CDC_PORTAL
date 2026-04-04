@@ -1,0 +1,224 @@
+'use client';
+import { useState } from 'react';
+import {
+  Box, TextField, Grid, MenuItem, Typography,
+  Button, Chip, CircularProgress, Switch, FormControlLabel,
+} from '@mui/material';
+
+const locationTypes   = ['onsite', 'remote', 'hybrid'];
+const internshipTypes = ['summer', 'winter', 'year-long'];
+
+export default function InternProfileTab({
+  saving, onSave,
+}: {
+  saving: boolean;
+  onSave: (data: any) => void;
+}) {
+  const [form, setForm] = useState({
+    internship_title: '', designation: '',
+    department_function: '', job_description: '',
+    location_type: 'onsite', location_text: '',
+    openings_count: '', min_openings: '',
+    internship_type: 'summer',
+    internship_duration_months: '',
+    expected_duration: '', ppo_offered: false,
+    ppo_ctc_expected: '', registration_link: '',
+    accommodation_provided: false, travel_allowance: false,
+    certificate_provided: true, work_from_home_allowed: false,
+    additional_info: '',
+  });
+
+  const [skills, setSkills]    = useState<string[]>([]);
+  const [skillInput, setSkill] = useState('');
+
+  const set = (k: string, v: any) => setForm(f => ({ ...f, [k]: v }));
+
+  const addSkill = () => {
+    if (skillInput.trim() && !skills.includes(skillInput.trim())) {
+      setSkills(s => [...s, skillInput.trim()]);
+      setSkill('');
+    }
+  };
+
+  const handleSave = () => {
+    onSave({ ...form, skills });
+  };
+
+  return (
+    <Box>
+      <Typography variant="h6" sx={{ fontWeight: 600, mb: 3, color: '#003366' }}>
+        Internship Profile Details
+      </Typography>
+
+      <Grid container spacing={3}>
+        <Grid item xs={12} md={6}>
+          <TextField
+            fullWidth label="Internship Title *"
+            value={form.internship_title}
+            onChange={e => set('internship_title', e.target.value)}
+          />
+        </Grid>
+        <Grid item xs={12} md={6}>
+          <TextField
+            fullWidth label="Job Designation (formal title)"
+            value={form.designation}
+            onChange={e => set('designation', e.target.value)}
+          />
+        </Grid>
+        <Grid item xs={12} md={4}>
+          <TextField
+            fullWidth select label="Internship Type"
+            value={form.internship_type}
+            onChange={e => set('internship_type', e.target.value)}
+          >
+            {internshipTypes.map(t => (
+              <MenuItem key={t} value={t} sx={{ textTransform: 'capitalize' }}>
+                {t}
+              </MenuItem>
+            ))}
+          </TextField>
+        </Grid>
+        <Grid item xs={12} md={4}>
+          <TextField
+            fullWidth label="Duration (months)" type="number"
+            value={form.internship_duration_months}
+            onChange={e => set('internship_duration_months', e.target.value)}
+          />
+        </Grid>
+        <Grid item xs={12} md={4}>
+          <TextField
+            fullWidth label="Expected Duration (e.g. 2 months)"
+            value={form.expected_duration}
+            onChange={e => set('expected_duration', e.target.value)}
+          />
+        </Grid>
+        <Grid item xs={12}>
+          <TextField
+            fullWidth multiline rows={4}
+            label="Internship Description *"
+            value={form.job_description}
+            onChange={e => set('job_description', e.target.value)}
+          />
+        </Grid>
+        <Grid item xs={12} md={4}>
+          <TextField
+            fullWidth select label="Work Location Mode"
+            value={form.location_type}
+            onChange={e => set('location_type', e.target.value)}
+          >
+            {locationTypes.map(t => (
+              <MenuItem key={t} value={t} sx={{ textTransform: 'capitalize' }}>
+                {t}
+              </MenuItem>
+            ))}
+          </TextField>
+        </Grid>
+        <Grid item xs={12} md={4}>
+          <TextField
+            fullWidth label="Location (City)"
+            value={form.location_text}
+            onChange={e => set('location_text', e.target.value)}
+          />
+        </Grid>
+        <Grid item xs={12} md={4}>
+          <TextField
+            fullWidth label="Expected Hires *" type="number"
+            value={form.openings_count}
+            onChange={e => set('openings_count', e.target.value)}
+          />
+        </Grid>
+
+        {/* Skills */}
+        <Grid item xs={12}>
+          <Typography variant="body2" sx={{ mb: 1, fontWeight: 600 }}>
+            Required Skills
+          </Typography>
+          <Box sx={{ display: 'flex', gap: 1, mb: 1.5 }}>
+            <TextField
+              size="small" label="Add skill" value={skillInput}
+              onChange={e => setSkill(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && addSkill()}
+              sx={{ flex: 1 }}
+            />
+            <Button variant="outlined" onClick={addSkill}>Add</Button>
+          </Box>
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+            {skills.map(skill => (
+              <Chip
+                key={skill} label={skill} size="small"
+                onDelete={() => setSkills(s => s.filter(x => x !== skill))}
+                sx={{ background: 'rgba(200,146,42,0.1)', color: '#8A6010' }}
+              />
+            ))}
+          </Box>
+        </Grid>
+
+        {/* PPO & Perks */}
+        <Grid item xs={12}>
+          <Typography variant="body2" sx={{ fontWeight: 600, mb: 1 }}>
+            Additional Benefits
+          </Typography>
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+            {[
+              { k: 'ppo_offered',            label: 'PPO on Performance' },
+              { k: 'accommodation_provided', label: 'Accommodation Provided' },
+              { k: 'travel_allowance',       label: 'Travel Allowance' },
+              { k: 'certificate_provided',   label: 'Certificate Provided' },
+              { k: 'work_from_home_allowed', label: 'WFH Allowed' },
+            ].map(item => (
+              <FormControlLabel
+                key={item.k}
+                control={
+                  <Switch
+                    size="small"
+                    checked={form[item.k as keyof typeof form] as boolean}
+                    onChange={e => set(item.k, e.target.checked)}
+                  />
+                }
+                label={item.label}
+              />
+            ))}
+          </Box>
+        </Grid>
+
+        {form.ppo_offered && (
+          <Grid item xs={12} md={4}>
+            <TextField
+              fullWidth label="Expected PPO CTC (Annual)"
+              type="number" value={form.ppo_ctc_expected}
+              onChange={e => set('ppo_ctc_expected', e.target.value)}
+            />
+          </Grid>
+        )}
+
+        <Grid item xs={12}>
+          <TextField
+            fullWidth label="Registration Link (optional)"
+            value={form.registration_link}
+            onChange={e => set('registration_link', e.target.value)}
+          />
+        </Grid>
+        <Grid item xs={12}>
+          <TextField
+            fullWidth multiline rows={2}
+            label="Additional Information"
+            value={form.additional_info}
+            onChange={e => set('additional_info', e.target.value)}
+            inputProps={{ maxLength: 1000 }}
+            helperText={`${form.additional_info.length}/1000`}
+          />
+        </Grid>
+      </Grid>
+
+      <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 4 }}>
+        <Button
+          variant="contained" size="large"
+          onClick={handleSave} disabled={saving}
+          sx={{ background: '#C8922A', '&:hover': { background: '#A0721A' } }}
+        >
+          {saving ? <CircularProgress size={22} color="inherit" /> : 'Save & Continue'}
+        </Button>
+      </Box>
+    </Box>
+  );
+}
