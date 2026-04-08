@@ -142,6 +142,7 @@ class JnfController extends Controller
             'tentative_joining_date' => $request->tentative_joining_date,
             'registration_link'      => $request->registration_link,
             'additional_info'        => $request->additional_info,
+            'onboarding_procedure'   => $request->onboarding_procedure,
             'slp_requirements'       => $request->slp_requirements,
         ]);
 
@@ -220,9 +221,10 @@ class JnfController extends Controller
             JnfDeptCgpa::where('jnf_id', $id)->delete();
             foreach ($request->dept_cgpa as $item) {
                 JnfDeptCgpa::create([
-                    'jnf_id'              => $id,
-                    'program_dept_map_id' => $item['program_dept_map_id'],
-                    'min_cgpa'            => $item['min_cgpa'],
+                    'jnf_id'                  => $id,
+                    'program_dept_map_id'     => $item['program_dept_map_id'],
+                    'min_cgpa'                => $item['min_cgpa'],
+                    'active_backlogs_allowed' => $item['active_backlogs_allowed'] ?? false,
                 ]);
             }
         }
@@ -265,6 +267,8 @@ class JnfController extends Controller
                 'bond_details'         => $row['bond_details'] ?? null,
                 'deductions_text'      => $row['deductions_text'] ?? null,
                 'ctc_breakup_notes'    => $row['ctc_breakup_notes'] ?? null,
+                'variable_performance_bonus' => $row['variable_performance_bonus'] ?? null,
+                'stocks_options'       => $row['stocks_options'] ?? null,
             ]);
         }
 
@@ -498,6 +502,7 @@ public function duplicate(Request $request, $id)
         'ppo_offered'               => $original->ppo_offered,
         'registration_link'         => $original->registration_link,
         'additional_info'           => $original->additional_info,
+        'onboarding_procedure'      => $original->onboarding_procedure,
         'slp_requirements'          => $original->slp_requirements,
     ]);
 
@@ -546,6 +551,8 @@ public function duplicate(Request $request, $id)
             'bond_details'         => $row->bond_details,
             'deductions_text'      => $row->deductions_text,
             'ctc_breakup_notes'    => $row->ctc_breakup_notes,
+            'variable_performance_bonus' => $row->variable_performance_bonus,
+            'stocks_options'       => $row->stocks_options,
         ]);
     }
 

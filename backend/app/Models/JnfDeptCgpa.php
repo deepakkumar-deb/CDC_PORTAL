@@ -13,6 +13,7 @@ class JnfDeptCgpa extends Model
         'jnf_id',
         'program_dept_map_id',
         'min_cgpa',
+        'active_backlogs_allowed',
     ];
 
     public function jnf()

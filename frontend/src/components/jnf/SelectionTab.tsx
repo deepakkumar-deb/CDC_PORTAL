@@ -21,10 +21,11 @@ const emptyRound = (order: number) => ({
 });
 
 export default function SelectionTab({
-  saving, onSave, initialData,
+  saving, onSave, onBack, initialData,
 }: {
   saving: boolean;
   onSave: (data: any) => void;
+  onBack?: () => void;
   initialData?: any;
 }) {
   const [rounds, setRounds] = useState([emptyRound(1)]);
@@ -257,7 +258,12 @@ export default function SelectionTab({
         </Grid>
       </Grid>
 
-      <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 4 }}>
+      <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 4, gap: 2 }}>
+        {onBack && (
+          <Button variant="outlined" size="large" onClick={onBack}>
+            Back
+          </Button>
+        )}
         <Button
           variant="contained" size="large"
           onClick={handleSave} disabled={saving}

@@ -13,7 +13,7 @@ class SalaryBreakdown extends Model
         'esop_value', 'vest_period', 'first_year_ctc',
         'stocks_options', 'bond_required', 'bond_amount',
         'bond_duration_months', 'bond_details',
-        'deductions_text', 'ctc_breakup_notes',
+        'deductions_text', 'ctc_breakup_notes', 'variable_performance_bonus'
     ];
 
     protected $casts = ['bond_required' => 'boolean'];

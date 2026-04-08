@@ -20,9 +20,12 @@ export default function JobDetailsTab({
     location_type: 'onsite', location_text: '',
     openings_count: '', min_openings: '',
     registration_link: '', additional_info: '',
+    onboarding_procedure: '',
   });
   const [skills, setSkills]    = useState<string[]>([]);
   const [skillInput, setSkill] = useState('');
+  const [locations, setLocations] = useState<string[]>([]);
+  const [locationInput, setLocationInput] = useState('');
   const [validationError, setValidationError] = useState('');
 
   // Pre-fill from initialData (e.g. from a duplicated JNF)
@@ -39,7 +42,11 @@ export default function JobDetailsTab({
       min_openings:       initialData.min_openings        ?? '',
       registration_link:  initialData.registration_link  || '',
       additional_info:    initialData.additional_info    || '',
+      onboarding_procedure:initialData.onboarding_procedure|| '',
     });
+    if (initialData.location_text) {
+      setLocations(initialData.location_text.split(',').map((l: string) => l.trim()).filter((l: string) => l));
+    }
     if (initialData.skills?.length) {
       setSkills(initialData.skills.map((s: any) => s.skill_name));
     }
@@ -54,13 +61,20 @@ export default function JobDetailsTab({
     }
   };
 
+  const addLocation = () => {
+    if (locationInput.trim() && !locations.includes(locationInput.trim())) {
+      setLocations(s => [...s, locationInput.trim()]);
+      setLocationInput('');
+    }
+  };
+
   const handleSave = () => {
     if (!form.designation.trim() || !form.job_description.trim() || !form.location_type || !String(form.openings_count).trim()) {
       setValidationError('Please fill out all required fields marked with *');
       return;
     }
     setValidationError('');
-    onSave({ ...form, skills });
+    onSave({ ...form, location_text: locations.join(', '), skills });
   };
 
 
@@ -116,11 +130,27 @@ export default function JobDetailsTab({
           </TextField>
         </Grid>
         <Grid item xs={12} md={8}>
-          <TextField
-            fullWidth label="Location (City / State)"
-            value={form.location_text}
-            onChange={e => set('location_text', e.target.value)}
-          />
+          <Typography variant="body2" sx={{ mb: 1, fontWeight: 600 }}>
+            Place of Posting / Job Location
+          </Typography>
+          <Box sx={{ display: 'flex', gap: 1, mb: 1.5 }}>
+            <TextField
+              size="small" label="Add location" value={locationInput}
+              onChange={e => setLocationInput(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && addLocation()}
+              sx={{ flex: 1 }}
+            />
+            <Button variant="outlined" onClick={addLocation}>Add</Button>
+          </Box>
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+            {locations.map(loc => (
+              <Chip
+                key={loc} label={loc} size="small"
+                onDelete={() => setLocations(s => s.filter(x => x !== loc))}
+                sx={{ background: 'rgba(0,51,102,0.08)', color: '#003366' }}
+              />
+            ))}
+          </Box>
         </Grid>
         <Grid item xs={12} md={6}>
           <TextField
@@ -176,7 +206,16 @@ export default function JobDetailsTab({
             value={form.additional_info}
             onChange={e => set('additional_info', e.target.value)}
             inputProps={{ maxLength: 1000 }}
-            helperText={`${form.additional_info.length}/1000`}
+            helperText={`${form.additional_info?.length || 0}/1000`}
+          />
+        </Grid>
+        <Grid item xs={12}>
+          <TextField
+            fullWidth multiline rows={3}
+            label="Onboarding / Joining Procedure"
+            value={form.onboarding_procedure}
+            onChange={e => set('onboarding_procedure', e.target.value)}
+            helperText="Provide details about the onboarding process"
           />
         </Grid>
       </Grid>

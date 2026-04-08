@@ -15,10 +15,11 @@ const declarations = [
 ];
 
 export default function DeclarationTab({
-  saving, onSubmit,
+  saving, onSubmit, onBack,
 }: {
   saving: boolean;
   onSubmit: () => void;
+  onBack?: () => void;
 }) {
   const [checked, setChecked] = useState<boolean[]>(
     new Array(declarations.length).fill(false)
@@ -95,7 +96,12 @@ export default function DeclarationTab({
         </Alert>
       )}
 
-      <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+      <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
+        {onBack && (
+          <Button variant="outlined" size="large" onClick={onBack}>
+            Back
+          </Button>
+        )}
         <Button
           variant="contained" size="large"
           onClick={onSubmit}

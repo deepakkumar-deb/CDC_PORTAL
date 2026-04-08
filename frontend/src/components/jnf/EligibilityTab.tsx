@@ -23,10 +23,11 @@ const programmes = [
 ];
 
 export default function EligibilityTab({
-  saving, onSave, initialData,
+  saving, onSave, onBack, initialData,
 }: {
   saving: boolean;
   onSave: (data: any) => void;
+  onBack?: () => void;
   initialData?: any;
 }) {
   const [form, setForm] = useState({
@@ -36,6 +37,8 @@ export default function EligibilityTab({
     allowed_gender: 'all', additional_text: '',
   });
   const [selectedPrograms, setSelectedPrograms] = useState<number[]>([]);
+  const [useBranchWise, setUseBranchWise] = useState(false);
+  const [branchWiseData, setBranchWiseData] = useState<Record<number, { min_cgpa: string, active_backlogs_allowed: boolean }>>({});
 
   // Pre-fill from initialData (duplicated JNF)
   useEffect(() => {
@@ -55,14 +58,26 @@ export default function EligibilityTab({
     if (initialData.allowed_programs?.length) {
       setSelectedPrograms(initialData.allowed_programs.map((p: any) => p.program_dept_map_id));
     }
+    if (initialData.dept_cgpa?.length) {
+      setUseBranchWise(true);
+      const m: Record<number, any> = {};
+      initialData.dept_cgpa.forEach((d: any) => {
+        m[d.program_dept_map_id] = { min_cgpa: d.min_cgpa, active_backlogs_allowed: d.active_backlogs_allowed };
+      });
+      setBranchWiseData(m);
+    }
   }, [initialData]);
 
   const set = (k: string, v: any) => setForm(f => ({ ...f, [k]: v }));
 
   const toggleProgram = (id: number) => {
-    setSelectedPrograms(prev =>
-      prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
-    );
+    setSelectedPrograms(prev => {
+      const selected = prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id];
+      if (!prev.includes(id) && !branchWiseData[id]) {
+        setBranchWiseData(d => ({ ...d, [id]: { min_cgpa: form.min_cgpa, active_backlogs_allowed: form.active_backlogs_allowed }}));
+      }
+      return selected;
+    });
   };
 
   const toggleAll = () => {
@@ -74,9 +89,16 @@ export default function EligibilityTab({
   };
 
   const handleSave = () => {
+    const dept_cgpa = useBranchWise ? selectedPrograms.map(id => ({
+      program_dept_map_id: id,
+      min_cgpa: branchWiseData[id]?.min_cgpa || form.min_cgpa || '0',
+      active_backlogs_allowed: branchWiseData[id]?.active_backlogs_allowed ?? form.active_backlogs_allowed
+    })) : [];
+
     onSave({
       ...form,
       program_dept_map_ids: selectedPrograms,
+      dept_cgpa,
     });
   };
 
@@ -180,6 +202,62 @@ export default function EligibilityTab({
               );
             })}
           </Grid>
+          
+          {selectedPrograms.length > 0 && (
+            <Box sx={{ mt: 3, p: 2, border: '1px solid #e0e0e0', borderRadius: 2 }}>
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={useBranchWise}
+                    onChange={e => setUseBranchWise(e.target.checked)}
+                    color="primary"
+                  />
+                }
+                label="Set Branch-wise Specific Criteria"
+              />
+              {useBranchWise && (
+                <Box sx={{ mt: 2 }}>
+                  {selectedPrograms.map(id => {
+                    const prog = programmes.find(p => p.id === id);
+                    if (!prog) return null;
+                    const bdata = branchWiseData[id] || { min_cgpa: form.min_cgpa, active_backlogs_allowed: form.active_backlogs_allowed };
+                    return (
+                      <Grid container spacing={2} key={id} sx={{ mb: 2, alignItems: 'center' }}>
+                        <Grid item xs={12} md={4}>
+                          <Typography variant="body2" sx={{ fontWeight: 600 }}>{prog.label}</Typography>
+                        </Grid>
+                        <Grid item xs={12} sm={6} md={4}>
+                          <TextField
+                            size="small" fullWidth label="Minimum CGPA"
+                            type="number"
+                            value={bdata.min_cgpa}
+                            onChange={e => setBranchWiseData(prev => ({
+                              ...prev,
+                              [id]: { ...bdata, min_cgpa: e.target.value }
+                            }))}
+                          />
+                        </Grid>
+                        <Grid item xs={12} sm={6} md={4}>
+                          <FormControlLabel
+                            control={
+                              <Switch
+                                checked={bdata.active_backlogs_allowed}
+                                onChange={e => setBranchWiseData(prev => ({
+                                  ...prev,
+                                  [id]: { ...bdata, active_backlogs_allowed: e.target.checked }
+                                }))}
+                              />
+                            }
+                            label="Active Backlogs Allowed?"
+                          />
+                        </Grid>
+                      </Grid>
+                    );
+                  })}
+                </Box>
+              )}
+            </Box>
+          )}
         </Grid>
 
         <Grid item xs={12}>
@@ -192,7 +270,12 @@ export default function EligibilityTab({
         </Grid>
       </Grid>
 
-      <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 4 }}>
+      <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 4, gap: 2 }}>
+        {onBack && (
+          <Button variant="outlined" size="large" onClick={onBack}>
+            Back
+          </Button>
+        )}
         <Button
           variant="contained" size="large"
           onClick={handleSave} disabled={saving}

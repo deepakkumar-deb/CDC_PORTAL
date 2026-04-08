@@ -107,7 +107,10 @@ export default function CompanyProfilePage() {
           mnc_hq_country: c.mnc_hq_country ?? "",
           mnc_hq_city: c.mnc_hq_city ?? "",
         });
-        if (c.logo_path) setLogoPreview(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/storage/${c.logo_path}`);
+        if (c.logo_path) {
+          const base = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000').replace(/\/api\/?$/, '');
+          setLogoPreview(`${base}/storage/${c.logo_path}?t=${Date.now()}`);
+        }
         setIndustryTags(c.industry_tags ?? []);
         if (c.contacts?.length) {
           const merged = contactTypes.map((type) => {
@@ -161,13 +164,22 @@ export default function CompanyProfilePage() {
       if (logoFile) formData.append("logo", logoFile);
       if (companyFile) formData.append("company_file", companyFile);
 
+      const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000').replace(/\/api\/?$/, '');
       if (isNew) {
-        await api.post("/company", formData, { headers: { "Content-Type": "multipart/form-data" } });
+        const res = await api.post("/company", formData, { headers: { "Content-Type": "multipart/form-data" } });
         setIsNew(false);
         setSuccess("Company profile created successfully!");
+        if (res.data?.company?.logo_path) {
+          setLogoPreview(`${baseUrl}/storage/${res.data.company.logo_path}?t=${Date.now()}`);
+          setLogoFile(null);
+        }
       } else {
-        await api.post("/company/update", formData, { headers: { "Content-Type": "multipart/form-data" } });
+        const res = await api.post("/company/update", formData, { headers: { "Content-Type": "multipart/form-data" } });
         setSuccess("Company profile updated successfully!");
+        if (res.data?.company?.logo_path) {
+          setLogoPreview(`${baseUrl}/storage/${res.data.company.logo_path}?t=${Date.now()}`);
+          setLogoFile(null);
+        }
       }
     } catch (err: any) {
       setError(err.response?.data?.message || "Failed to save. Check all required fields.");

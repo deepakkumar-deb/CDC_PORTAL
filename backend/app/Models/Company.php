@@ -19,6 +19,21 @@ class Company extends Model
     protected $casts = [
         'industry_tags' => 'array',
     ];
+    
+    protected $appends = [
+        'logo_url',
+        'company_file_url',
+    ];
+
+    public function getLogoUrlAttribute()
+    {
+        return $this->logo_path ? asset('storage/' . $this->logo_path) : null;
+    }
+
+    public function getCompanyFileUrlAttribute()
+    {
+        return $this->company_file_path ? asset('storage/' . $this->company_file_path) : null;
+    }
 
     // Company belongs to a user
     public function user()

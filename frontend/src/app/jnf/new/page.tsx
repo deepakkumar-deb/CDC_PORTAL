@@ -249,7 +249,7 @@ export default function NewJnfPage() {
             }} />
           </Button>
           <Button variant="outlined" size="small" onClick={() => router.push('/dashboard')}>
-            Back
+            Back to Dashboard
           </Button>
         </Box>
       </Box>
@@ -289,6 +289,7 @@ export default function NewJnfPage() {
                   saving={saving}
                   initialData={existingData}
                   onSave={(data) => handleTabSave(1, data, 'eligibility')}
+                  onBack={() => setActiveTab(0)}
                 />
               )}
               {activeTab === 2 && (
@@ -296,6 +297,7 @@ export default function NewJnfPage() {
                   saving={saving}
                   initialData={existingData}
                   onSave={(data) => handleTabSave(2, data, 'salary')}
+                  onBack={() => setActiveTab(1)}
                 />
               )}
               {activeTab === 3 && (
@@ -303,12 +305,14 @@ export default function NewJnfPage() {
                   saving={saving}
                   initialData={existingData}
                   onSave={(data) => handleTabSave(3, data, 'selection')}
+                  onBack={() => setActiveTab(2)}
                 />
               )}
               {activeTab === 4 && (
                 <DeclarationTab
                   saving={saving}
                   onSubmit={handleSubmit}
+                  onBack={() => setActiveTab(3)}
                 />
               )}
             </>

@@ -22,17 +22,20 @@ const currencies = ['INR', 'USD', 'EUR'];
 const emptyRow = (pt: string) => ({
   programme_type: pt, currency: 'INR',
   ctc_annual: '', base_fixed: '',
-  monthly_takehome: '', joining_bonus: '',
-  esop_value: '', bond_required: false,
-  bond_amount: '', bond_duration_months: '',
-  ctc_breakup_notes: '',
+  monthly_takehome: '', gross_salary: '', joining_bonus: '',
+  relocation_allowance: '', medical_allowance: '', retention_bonus: '',
+  first_year_ctc: '', variable_performance_bonus: '',
+  esop_value: '', vest_period: '', stocks_options: '',
+  bond_required: false, bond_amount: '', bond_duration_months: '', bond_details: '',
+  deductions_text: '', ctc_breakup_notes: '',
 });
 
 export default function SalaryTab({
-  saving, onSave, initialData,
+  saving, onSave, onBack, initialData,
 }: {
   saving: boolean;
   onSave: (data: any) => void;
+  onBack?: () => void;
   initialData?: any;
 }) {
   const [rows, setRows] = useState(
@@ -51,11 +54,21 @@ export default function SalaryTab({
         ctc_annual:       existing.ctc_annual        ?? '',
         base_fixed:       existing.base_fixed        ?? '',
         monthly_takehome: existing.monthly_takehome  ?? '',
+        gross_salary:     existing.gross_salary      ?? '',
         joining_bonus:    existing.joining_bonus     ?? '',
+        relocation_allowance: existing.relocation_allowance ?? '',
+        medical_allowance: existing.medical_allowance ?? '',
+        retention_bonus:  existing.retention_bonus   ?? '',
+        first_year_ctc:   existing.first_year_ctc    ?? '',
+        variable_performance_bonus: existing.variable_performance_bonus ?? '',
         esop_value:       existing.esop_value        ?? '',
+        vest_period:      existing.vest_period       ?? '',
+        stocks_options:   existing.stocks_options    ?? '',
         bond_required:    existing.bond_required     ?? false,
         bond_amount:      existing.bond_amount       ?? '',
         bond_duration_months: existing.bond_duration_months ?? '',
+        bond_details:     existing.bond_details      ?? '',
+        deductions_text:  existing.deductions_text   ?? '',
         ctc_breakup_notes:existing.ctc_breakup_notes || '',
       };
     }));
@@ -129,6 +142,13 @@ export default function SalaryTab({
             </Grid>
             <Grid item xs={12} sm={6} md={3}>
               <TextField
+                fullWidth size="small" label="Gross Salary"
+                type="number" value={row.gross_salary}
+                onChange={e => setRow(i, 'gross_salary', e.target.value)}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6} md={3}>
+              <TextField
                 fullWidth size="small" label="Joining Bonus"
                 type="number" value={row.joining_bonus}
                 onChange={e => setRow(i, 'joining_bonus', e.target.value)}
@@ -136,9 +156,58 @@ export default function SalaryTab({
             </Grid>
             <Grid item xs={12} sm={6} md={3}>
               <TextField
+                fullWidth size="small" label="Relocation Allowance"
+                type="number" value={row.relocation_allowance}
+                onChange={e => setRow(i, 'relocation_allowance', e.target.value)}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6} md={3}>
+              <TextField
+                fullWidth size="small" label="Medical Allowance"
+                type="number" value={row.medical_allowance}
+                onChange={e => setRow(i, 'medical_allowance', e.target.value)}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6} md={3}>
+              <TextField
+                fullWidth size="small" label="Retention Bonus"
+                type="number" value={row.retention_bonus}
+                onChange={e => setRow(i, 'retention_bonus', e.target.value)}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6} md={3}>
+              <TextField
+                fullWidth size="small" label="Variable / Perf. Bonus"
+                type="number" value={row.variable_performance_bonus}
+                onChange={e => setRow(i, 'variable_performance_bonus', e.target.value)}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6} md={3}>
+              <TextField
+                fullWidth size="small" label="First Year CTC"
+                type="number" value={row.first_year_ctc}
+                onChange={e => setRow(i, 'first_year_ctc', e.target.value)}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6} md={3}>
+              <TextField
                 fullWidth size="small" label="ESOP Value"
                 type="number" value={row.esop_value}
                 onChange={e => setRow(i, 'esop_value', e.target.value)}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6} md={3}>
+              <TextField
+                fullWidth size="small" label="Vest Period"
+                value={row.vest_period}
+                onChange={e => setRow(i, 'vest_period', e.target.value)}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6} md={3}>
+              <TextField
+                fullWidth size="small" label="Stocks/Options Details"
+                value={row.stocks_options}
+                onChange={e => setRow(i, 'stocks_options', e.target.value)}
               />
             </Grid>
             <Grid item xs={12} sm={6} md={3}>
@@ -155,7 +224,21 @@ export default function SalaryTab({
                 onChange={e => setRow(i, 'bond_duration_months', e.target.value)}
               />
             </Grid>
-            <Grid item xs={12} md={9}>
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth size="small" label="Bond Details"
+                value={row.bond_details}
+                onChange={e => setRow(i, 'bond_details', e.target.value)}
+              />
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth size="small" label="Deductions"
+                value={row.deductions_text}
+                onChange={e => setRow(i, 'deductions_text', e.target.value)}
+              />
+            </Grid>
+            <Grid item xs={12} md={12}>
               <TextField
                 fullWidth size="small" label="CTC Breakup Notes"
                 value={row.ctc_breakup_notes}
@@ -168,7 +251,12 @@ export default function SalaryTab({
         </Box>
       ))}
 
-      <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
+      <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2, gap: 2 }}>
+        {onBack && (
+          <Button variant="outlined" size="large" onClick={onBack}>
+            Back
+          </Button>
+        )}
         <Button
           variant="contained" size="large"
           onClick={handleSave} disabled={saving}

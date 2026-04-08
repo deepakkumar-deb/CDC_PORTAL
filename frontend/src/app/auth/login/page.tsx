@@ -10,10 +10,10 @@ import Link from 'next/link';
 
 export default function LoginPage() {
   const router = useRouter();
-  const [email, setEmail]       = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError]       = useState('');
-  const [loading, setLoading]   = useState(false);
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -60,10 +60,10 @@ export default function LoginPage() {
               ISM
             </Box>
             <Typography variant="h5" sx={{ fontWeight: 700, color: '#003366' }}>
-              Recruiter Login
+              CDC Portal Login
             </Typography>
             <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-              CDC Portal — IIT (ISM) Dhanbad
+              IIT (ISM) Dhanbad
             </Typography>
           </Box>
 
@@ -100,7 +100,7 @@ export default function LoginPage() {
           <Divider sx={{ my: 3 }} />
 
           <Typography variant="body2" textAlign="center" color="text.secondary">
-            New recruiter?{' '}
+            Don't have an account?{' '}
             <Link href="/auth/register"
               style={{ color: '#003366', fontWeight: 600 }}>
               Register here

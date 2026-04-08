@@ -144,24 +144,36 @@ class CompanyController extends Controller
         ]);
 
         // Handle new logo upload
+        $newLogoPath = null;
         if ($request->hasFile('logo')) {
             if ($company->logo_path) {
                 Storage::disk('public')->delete($company->logo_path);
             }
-            $company->logo_path = $request->file('logo')->store('logos', 'public');
+            $newLogoPath = $request->file('logo')->store('logos', 'public');
         }
 
         // Handle new company file upload
+        $newFilePath = null;
+        $newFileOrigName = null;
         if ($request->hasFile('company_file')) {
             if ($company->company_file_path) {
                 Storage::disk('public')->delete($company->company_file_path);
             }
             $file = $request->file('company_file');
-            $company->company_file_original_name = $file->getClientOriginalName();
-            $company->company_file_path = $file->store('company_files', 'public');
+            $newFileOrigName = $file->getClientOriginalName();
+            $newFilePath = $file->store('company_files', 'public');
         }
 
-        $company->update($request->except(['logo', 'company_file', 'contacts']));
+        $updateData = $request->except(['logo', 'company_file', 'contacts']);
+        if ($newLogoPath !== null) {
+            $updateData['logo_path'] = $newLogoPath;
+        }
+        if ($newFilePath !== null) {
+            $updateData['company_file_path'] = $newFilePath;
+            $updateData['company_file_original_name'] = $newFileOrigName;
+        }
+
+        $company->update($updateData);
 
         // Update contacts if provided
         if ($request->has('contacts')) {
