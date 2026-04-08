@@ -23,7 +23,7 @@ php artisan serve
 `http://localhost:8000/api`
 
 ## Admin Login
-Email: `admin@iitism.ac.in`
+Email: `deepakksingh209@gmail.com`
 Password: `admin@123`
 
 ## Team

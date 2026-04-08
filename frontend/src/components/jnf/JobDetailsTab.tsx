@@ -1,17 +1,18 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Box, TextField, Grid, MenuItem, Typography,
-  Button, Chip, CircularProgress,
+  Button, Chip, CircularProgress, Alert
 } from '@mui/material';
 
 const locationTypes = ['onsite', 'remote', 'hybrid'];
 
 export default function JobDetailsTab({
-  saving, onSave,
+  saving, onSave, initialData,
 }: {
   saving: boolean;
   onSave: (data: any) => void;
+  initialData?: any;
 }) {
   const [form, setForm] = useState({
     designation: '', department_function: '',
@@ -20,8 +21,29 @@ export default function JobDetailsTab({
     openings_count: '', min_openings: '',
     registration_link: '', additional_info: '',
   });
-  const [skills, setSkills]     = useState<string[]>([]);
-  const [skillInput, setSkill]  = useState('');
+  const [skills, setSkills]    = useState<string[]>([]);
+  const [skillInput, setSkill] = useState('');
+  const [validationError, setValidationError] = useState('');
+
+  // Pre-fill from initialData (e.g. from a duplicated JNF)
+  useEffect(() => {
+    if (!initialData) return;
+    setForm({
+      designation:        initialData.designation        || '',
+      department_function:initialData.department_function|| '',
+      job_description:    initialData.job_description    || '',
+      responsibilities:   initialData.responsibilities   || '',
+      location_type:      initialData.location_type      || 'onsite',
+      location_text:      initialData.location_text      || '',
+      openings_count:     initialData.openings_count     ?? '',
+      min_openings:       initialData.min_openings        ?? '',
+      registration_link:  initialData.registration_link  || '',
+      additional_info:    initialData.additional_info    || '',
+    });
+    if (initialData.skills?.length) {
+      setSkills(initialData.skills.map((s: any) => s.skill_name));
+    }
+  }, [initialData]);
 
   const set = (k: string, v: string) => setForm(f => ({ ...f, [k]: v }));
 
@@ -33,8 +55,14 @@ export default function JobDetailsTab({
   };
 
   const handleSave = () => {
+    if (!form.designation.trim() || !form.job_description.trim() || !form.location_type || !String(form.openings_count).trim()) {
+      setValidationError('Please fill out all required fields marked with *');
+      return;
+    }
+    setValidationError('');
     onSave({ ...form, skills });
   };
+
 
   return (
     <Box>
@@ -153,7 +181,14 @@ export default function JobDetailsTab({
         </Grid>
       </Grid>
 
-      <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 4 }}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 4 }}>
+        <Box sx={{ flex: 1, mr: 2 }}>
+          {validationError && (
+            <Alert severity="error" onClose={() => setValidationError('')}>
+              {validationError}
+            </Alert>
+          )}
+        </Box>
         <Button
           variant="contained" size="large"
           onClick={handleSave} disabled={saving}

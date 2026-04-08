@@ -4,8 +4,13 @@ import { useParams, useRouter } from 'next/navigation';
 import {
   Box, Card, CardContent, Typography, Chip, Button,
   CircularProgress, Alert, Grid, Divider,
+  Dialog, DialogTitle, DialogContent, DialogActions, TextField,
 } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
+import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined';
+import EditNoteIcon from '@mui/icons-material/EditNote';
+import DriveFileRenameOutlineIcon from '@mui/icons-material/DriveFileRenameOutline';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import api from '@/lib/api';
 import PrintableJnf from '@/components/common/PrintableJnf';
@@ -39,9 +44,21 @@ export default function AdminFormDetailPage() {
   const [form, setForm] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [actionMsg, setActionMsg] = useState('');
+  const [actionErr, setActionErr] = useState('');
 
-  useEffect(() => {
-    if (!id) return;
+  // Dialog state (approve/reject/allow-edit)
+  const [dialog, setDialog] = useState<'approve' | 'reject' | 'allow-edit' | null>(null);
+  const [notes, setNotes] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+
+  // Edit Fields state
+  const [editOpen, setEditOpen] = useState(false);
+  const [editFields, setEditFields] = useState<any>({});
+  const [editSaving, setEditSaving] = useState(false);
+  const [editNote, setEditNote] = useState('');
+
+  const loadForm = () => {
     api.get(`/admin/forms/${id}`)
       .then(res => setForm(res.data.form))
       .catch(err => {
@@ -49,7 +66,109 @@ export default function AdminFormDetailPage() {
         setError('Form not found or access denied.');
       })
       .finally(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    if (!id) return;
+    loadForm();
   }, [id]);
+
+  const handleAction = async () => {
+    if (!dialog) return;
+    setSubmitting(true);
+    setActionErr('');
+    try {
+      const payload: any = { admin_notes: notes };
+      if (dialog === 'reject') payload.rejection_reason = notes;
+      await api.post(`/admin/forms/${id}/${dialog}`, payload);
+      const msgs: Record<string, string> = {
+        approve: '✅ Form approved successfully.',
+        reject: '❌ Form rejected.',
+        'allow-edit': '✏️ Edit access granted. Recruiter can now update and resubmit.',
+      };
+      setActionMsg(msgs[dialog]);
+      setDialog(null);
+      setNotes('');
+      loadForm(); // refresh
+    } catch (err: any) {
+      setActionErr(err.response?.data?.message || 'Action failed.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  // Open edit dialog pre-populated with current form values
+  const openEditDialog = () => {
+    const isInf = form.opportunity_type === 'internship';
+    const salary = form.salary_breakdowns?.[0] ?? {};
+    const stipend = form.inf_stipend_breakdowns?.[0] ?? {};
+    setEditFields({
+      designation: form.designation || '',
+      internship_title: form.internship_title || '',
+      department_function: form.department_function || '',
+      job_description: form.job_description || '',
+      responsibilities: form.responsibilities || '',
+      location_type: form.location_type || 'onsite',
+      location_text: form.location_text || '',
+      openings_count: form.openings_count ?? '',
+      min_openings: form.min_openings ?? '',
+      additional_info: form.additional_info || '',
+      skills: (form.skills ?? []).map((s: any) => s.skill_name).join(', '),
+      ctc_annual: salary.ctc_annual ?? '',
+      base_fixed: salary.base_fixed ?? '',
+      joining_bonus: salary.joining_bonus ?? '',
+      base_stipend: stipend.base_stipend ?? '',
+      total_stipend: stipend.total_stipend ?? '',
+      _isInf: isInf,
+    });
+    setEditNote('');
+    setActionErr('');
+    setEditOpen(true);
+  };
+
+  const handleEditSave = async () => {
+    setEditSaving(true);
+    setActionErr('');
+    try {
+      const isInf = editFields._isInf;
+      const payload: any = {
+        edit_note: editNote,
+        designation: editFields.designation,
+        internship_title: editFields.internship_title,
+        department_function: editFields.department_function,
+        job_description: editFields.job_description,
+        responsibilities: editFields.responsibilities,
+        location_type: editFields.location_type,
+        location_text: editFields.location_text,
+        openings_count: editFields.openings_count || undefined,
+        min_openings: editFields.min_openings || undefined,
+        additional_info: editFields.additional_info,
+        skills: editFields.skills
+          ? editFields.skills.split(',').map((s: string) => s.trim()).filter(Boolean)
+          : undefined,
+      };
+      if (!isInf) {
+        payload.salary_patch = {
+          ctc_annual: editFields.ctc_annual || undefined,
+          base_fixed: editFields.base_fixed || undefined,
+          joining_bonus: editFields.joining_bonus || undefined,
+        };
+      } else {
+        payload.stipend_patch = {
+          base_stipend: editFields.base_stipend || undefined,
+          total_stipend: editFields.total_stipend || undefined,
+        };
+      }
+      await api.post(`/admin/forms/${id}/edit-fields`, payload);
+      setActionMsg('✅ Form fields updated. Recruiter has been notified.');
+      setEditOpen(false);
+      loadForm();
+    } catch (err: any) {
+      setActionErr(err.response?.data?.message || 'Failed to save changes.');
+    } finally {
+      setEditSaving(false);
+    }
+  };
 
   if (loading) return (
     <DashboardLayout>
@@ -105,6 +224,17 @@ export default function AdminFormDetailPage() {
       {form.status === 'rejected' && form.rejection_reason && (
         <Alert severity="error" sx={{ mb: 3 }}>
           <strong>Rejection Reason:</strong> {form.rejection_reason}
+        </Alert>
+      )}
+
+      {actionMsg && (
+        <Alert severity="success" sx={{ mb: 3 }} onClose={() => setActionMsg('')}>
+          {actionMsg}
+        </Alert>
+      )}
+      {actionErr && (
+        <Alert severity="error" sx={{ mb: 3 }} onClose={() => setActionErr('')}>
+          {actionErr}
         </Alert>
       )}
 
@@ -371,8 +501,295 @@ export default function AdminFormDetailPage() {
       )}
 
       <Box sx={{ mt: 3 }}>
-  <PrintableJnf form={form} />
-</Box>
+        <PrintableJnf form={form} />
+      </Box>
+
+      {/* Admin Action Buttons */}
+      <Card sx={{ mt: 3, border: '2px solid #003366', borderRadius: 3 }}>
+        <CardContent sx={{ p: { xs: 2, md: 3 } }}>
+          <Typography variant="h6" sx={{ fontWeight: 700, color: '#003366', mb: 2 }}>
+            Admin Actions
+          </Typography>
+          <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+
+            {/* Approve — only for submitted */}
+            <Button
+              id="btn-approve-form"
+              variant="contained"
+              color="success"
+              startIcon={<CheckCircleOutlineIcon />}
+              onClick={() => setDialog('approve')}
+              disabled={form.status !== 'submitted'}
+            >
+              Approve
+            </Button>
+
+            {/* Reject — only for submitted */}
+            <Button
+              id="btn-reject-form"
+              variant="contained"
+              color="error"
+              startIcon={<CancelOutlinedIcon />}
+              onClick={() => setDialog('reject')}
+              disabled={form.status !== 'submitted'}
+            >
+              Reject
+            </Button>
+
+            {/* Allow Edit — for all non-draft forms (accept edit request) */}
+            <Button
+              id="btn-allow-edit-form"
+              variant="outlined"
+              color="warning"
+              startIcon={<EditNoteIcon />}
+              onClick={() => setDialog('allow-edit')}
+              disabled={form.status === 'draft'}
+              sx={{ borderColor: '#e65100', color: '#e65100' }}
+            >
+              Allow Edit
+            </Button>
+
+            {/* Edit Fields — admin applies changes directly */}
+            <Button
+              id="btn-edit-fields-form"
+              variant="contained"
+              startIcon={<DriveFileRenameOutlineIcon />}
+              onClick={openEditDialog}
+              sx={{ background: '#5c35b5', '&:hover': { background: '#4527a0' } }}
+            >
+              Edit Fields Directly
+            </Button>
+
+          </Box>
+          {form.status === 'draft' && (
+            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1.5 }}>
+              This form is currently in draft — no actions needed.
+            </Typography>
+          )}
+          {form.status === 'approved' && (
+            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1.5 }}>
+              This form is approved. Use <strong>Allow Edit</strong> to let the recruiter make changes.
+            </Typography>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Action Confirmation Dialog */}
+      <Dialog
+        open={!!dialog}
+        onClose={() => { setDialog(null); setNotes(''); setActionErr(''); }}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle sx={{ fontWeight: 700, color:
+          dialog === 'approve' ? '#2e7d32' :
+          dialog === 'reject'  ? '#c62828' : '#e65100'
+        }}>
+          {dialog === 'approve' && '✅ Approve Form'}
+          {dialog === 'reject'  && '❌ Reject Form'}
+          {dialog === 'allow-edit' && '✏️ Allow Recruiter to Edit'}
+        </DialogTitle>
+        <DialogContent>
+          {actionErr && <Alert severity="error" sx={{ mb: 2 }}>{actionErr}</Alert>}
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+            {dialog === 'approve' && 'Add optional notes and confirm approval.'}
+            {dialog === 'reject'  && 'Provide a reason for rejection. The recruiter will be notified.'}
+            {dialog === 'allow-edit' && 'This will revert the form to draft. The recruiter will be notified and can edit and resubmit.'}
+          </Typography>
+          <TextField
+            label={dialog === 'reject' ? 'Rejection reason *' : 'Notes (optional)'}
+            multiline
+            rows={4}
+            fullWidth
+            value={notes}
+            onChange={e => setNotes(e.target.value)}
+            required={dialog === 'reject'}
+          />
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 3, gap: 1 }}>
+          <Button
+            onClick={() => { setDialog(null); setNotes(''); setActionErr(''); }}
+            disabled={submitting}
+          >
+            Cancel
+          </Button>
+          <Button
+            id="btn-confirm-action"
+            variant="contained"
+            color={dialog === 'approve' ? 'success' : dialog === 'reject' ? 'error' : 'warning'}
+            onClick={handleAction}
+            disabled={submitting || (dialog === 'reject' && !notes.trim())}
+            startIcon={submitting ? <CircularProgress size={16} /> : undefined}
+            sx={dialog === 'allow-edit' ? { background: '#e65100', '&:hover': { background: '#bf360c' } } : {}}
+          >
+            {submitting ? 'Processing...' :
+              dialog === 'approve' ? 'Confirm Approve' :
+              dialog === 'reject'  ? 'Confirm Reject' :
+              'Confirm — Allow Edit'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Edit Fields Dialog */}
+      <Dialog open={editOpen} onClose={() => setEditOpen(false)} maxWidth="md" fullWidth>
+        <DialogTitle sx={{ fontWeight: 700, color: '#5c35b5' }}>
+          ✏️ Edit Form Fields — {form.jnf_code}
+        </DialogTitle>
+        <DialogContent>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+            Apply changes requested by the recruiter. The form status will not change.
+            The recruiter will be notified after saving.
+          </Typography>
+          {actionErr && <Alert severity="error" sx={{ mb: 2 }}>{actionErr}</Alert>}
+
+          <Grid container spacing={2} sx={{ mt: 0.5 }}>
+
+            {/* Title */}
+            {!editFields._isInf ? (
+              <Grid item xs={12} md={6}>
+                <TextField label="Designation" fullWidth
+                  value={editFields.designation}
+                  onChange={e => setEditFields((p: any) => ({ ...p, designation: e.target.value }))}
+                />
+              </Grid>
+            ) : (
+              <Grid item xs={12} md={6}>
+                <TextField label="Internship Title" fullWidth
+                  value={editFields.internship_title}
+                  onChange={e => setEditFields((p: any) => ({ ...p, internship_title: e.target.value }))}
+                />
+              </Grid>
+            )}
+
+            <Grid item xs={12} md={6}>
+              <TextField label="Department / Function" fullWidth
+                value={editFields.department_function}
+                onChange={e => setEditFields((p: any) => ({ ...p, department_function: e.target.value }))}
+              />
+            </Grid>
+
+            <Grid item xs={12} md={4}>
+              <TextField label="Location Type" fullWidth select
+                value={editFields.location_type}
+                onChange={e => setEditFields((p: any) => ({ ...p, location_type: e.target.value }))}
+                SelectProps={{ native: true }}
+              >
+                <option value="onsite">Onsite</option>
+                <option value="remote">Remote</option>
+                <option value="hybrid">Hybrid</option>
+              </TextField>
+            </Grid>
+
+            <Grid item xs={12} md={4}>
+              <TextField label="Location" fullWidth
+                value={editFields.location_text}
+                onChange={e => setEditFields((p: any) => ({ ...p, location_text: e.target.value }))}
+              />
+            </Grid>
+
+            <Grid item xs={6} md={2}>
+              <TextField label="Openings" type="number" fullWidth
+                value={editFields.openings_count}
+                onChange={e => setEditFields((p: any) => ({ ...p, openings_count: e.target.value }))}
+              />
+            </Grid>
+
+            <Grid item xs={6} md={2}>
+              <TextField label="Min Hires" type="number" fullWidth
+                value={editFields.min_openings}
+                onChange={e => setEditFields((p: any) => ({ ...p, min_openings: e.target.value }))}
+              />
+            </Grid>
+
+            <Grid item xs={12}>
+              <TextField label="Job Description" fullWidth multiline rows={3}
+                value={editFields.job_description}
+                onChange={e => setEditFields((p: any) => ({ ...p, job_description: e.target.value }))}
+              />
+            </Grid>
+
+            <Grid item xs={12}>
+              <TextField label="Skills (comma-separated)" fullWidth
+                value={editFields.skills}
+                onChange={e => setEditFields((p: any) => ({ ...p, skills: e.target.value }))}
+                helperText="e.g. Python, React, SQL"
+              />
+            </Grid>
+
+            {/* Salary (JNF only) */}
+            {!editFields._isInf && (
+              <>
+                <Grid item xs={12}>
+                  <Divider><Typography variant="caption">Salary (first row)</Typography></Divider>
+                </Grid>
+                <Grid item xs={12} md={4}>
+                  <TextField label="CTC Annual (₹)" type="number" fullWidth
+                    value={editFields.ctc_annual}
+                    onChange={e => setEditFields((p: any) => ({ ...p, ctc_annual: e.target.value }))}
+                  />
+                </Grid>
+                <Grid item xs={12} md={4}>
+                  <TextField label="Base / Fixed (₹)" type="number" fullWidth
+                    value={editFields.base_fixed}
+                    onChange={e => setEditFields((p: any) => ({ ...p, base_fixed: e.target.value }))}
+                  />
+                </Grid>
+                <Grid item xs={12} md={4}>
+                  <TextField label="Joining Bonus (₹)" type="number" fullWidth
+                    value={editFields.joining_bonus}
+                    onChange={e => setEditFields((p: any) => ({ ...p, joining_bonus: e.target.value }))}
+                  />
+                </Grid>
+              </>
+            )}
+
+            {/* Stipend (INF only) */}
+            {editFields._isInf && (
+              <>
+                <Grid item xs={12}>
+                  <Divider><Typography variant="caption">Stipend (first row)</Typography></Divider>
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <TextField label="Base Stipend (₹/month)" type="number" fullWidth
+                    value={editFields.base_stipend}
+                    onChange={e => setEditFields((p: any) => ({ ...p, base_stipend: e.target.value }))}
+                  />
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <TextField label="Total Stipend (₹/month)" type="number" fullWidth
+                    value={editFields.total_stipend}
+                    onChange={e => setEditFields((p: any) => ({ ...p, total_stipend: e.target.value }))}
+                  />
+                </Grid>
+              </>
+            )}
+
+            {/* Admin note */}
+            <Grid item xs={12}>
+              <Divider sx={{ my: 1 }} />
+              <TextField label="Admin note (logged in history)" fullWidth multiline rows={2}
+                value={editNote}
+                onChange={e => setEditNote(e.target.value)}
+                placeholder="e.g. Applied CTC change from 12L to 14L as requested by recruiter via email."
+              />
+            </Grid>
+
+          </Grid>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 3, gap: 1 }}>
+          <Button onClick={() => setEditOpen(false)} disabled={editSaving}>Cancel</Button>
+          <Button
+            id="btn-save-edit-fields"
+            variant="contained"
+            onClick={handleEditSave}
+            disabled={editSaving}
+            startIcon={editSaving ? <CircularProgress size={16} /> : <DriveFileRenameOutlineIcon />}
+            sx={{ background: '#5c35b5', '&:hover': { background: '#4527a0' } }}
+          >
+            {editSaving ? 'Saving...' : 'Save Changes'}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </DashboardLayout>
   );
 }

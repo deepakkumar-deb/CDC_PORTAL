@@ -3,8 +3,11 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Box, Card, CardContent, Typography,
-  Button, Tab, Tabs, CircularProgress, Alert,
+  Button, CircularProgress, Alert, Stepper, Step, StepLabel,
+  StepConnector, stepConnectorClasses, StepIconProps,
 } from '@mui/material';
+import UploadFileIcon from '@mui/icons-material/UploadFile';
+import { styled } from '@mui/material/styles';
 import DashboardLayout   from '@/components/layout/DashboardLayout';
 import api               from '@/lib/api';
 import InternProfileTab  from '@/components/inf/InternProfileTab';
@@ -21,6 +24,66 @@ const tabs = [
   'Declaration & Submit',
 ];
 
+// Custom Stepper Styling
+const ColorlibConnector = styled(StepConnector)(() => ({
+  [`&.${stepConnectorClasses.alternativeLabel}`]: {
+    top: 22,
+  },
+  [`&.${stepConnectorClasses.active}`]: {
+    [`& .${stepConnectorClasses.line}`]: {
+      backgroundColor: '#008080', // Teal
+    },
+  },
+  [`&.${stepConnectorClasses.completed}`]: {
+    [`& .${stepConnectorClasses.line}`]: {
+      backgroundColor: '#008080', // Teal
+    },
+  },
+  [`& .${stepConnectorClasses.line}`]: {
+    height: 3,
+    border: 0,
+    backgroundColor: '#eaeaf0',
+    borderRadius: 1,
+  },
+}));
+
+const ColorlibStepIconRoot = styled('div')<{
+  ownerState: { completed?: boolean; active?: boolean };
+}>(({ ownerState }) => ({
+  backgroundColor: '#fff',
+  zIndex: 1,
+  color: '#ccc',
+  width: 45,
+  height: 45,
+  display: 'flex',
+  borderRadius: '50%',
+  justifyContent: 'center',
+  alignItems: 'center',
+  fontWeight: 'bold',
+  fontSize: '1.2rem',
+  border: '3px solid #ccc',
+  ...(ownerState.active && {
+    backgroundColor: '#d32f2f', // Red
+    color: '#fff',
+    border: 'none',
+    boxShadow: '0 4px 10px 0 rgba(0,0,0,.25)',
+  }),
+  ...(ownerState.completed && {
+    color: '#008080', // Teal
+    border: '3px solid #008080',
+    backgroundColor: '#fff',
+  }),
+}));
+
+function ColorlibStepIcon(props: StepIconProps) {
+  const { active, completed, className, icon } = props;
+  return (
+    <ColorlibStepIconRoot ownerState={{ completed, active }} className={className}>
+      {icon}
+    </ColorlibStepIconRoot>
+  );
+}
+
 export default function NewInfPage() {
   const router = useRouter();
   const [activeTab, setActiveTab]   = useState(0);
@@ -30,6 +93,8 @@ export default function NewInfPage() {
   const [error, setError]           = useState('');
   const [success, setSuccess]       = useState('');
   const [initialized, setInit]      = useState(false);
+  const [existingData, setExistingData] = useState<any>(null);
+  const [extracting, setExtracting] = useState(false);
 
   const initInf = async () => {
     if (initialized) return;
@@ -75,6 +140,53 @@ export default function NewInfPage() {
     }
   };
 
+  const handleAutofillPdf = async (file: File) => {
+    if (!file) return;
+    setExtracting(true);
+    setError('');
+    setSuccess('');
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('type', 'inf');
+      const res = await api.post('/extract-pdf', formData, { headers: { 'Content-Type': 'multipart/form-data' } });
+      const AI = res.data.data;
+      if (AI) {
+        setExistingData((prev: any) => ({
+          ...(prev || {}),
+          internship_title: AI.internship_title,
+          job_description: AI.job_description,
+          location_type: AI.location_type,
+          openings_count: AI.openings_count,
+          skills: AI.skills ? AI.skills.map((s: string) => ({ skill_name: s })) : [],
+          stipends: AI.stipend ? [{
+            stipend_type: 'monthly',
+            monthly_stipend: AI.stipend.monthly_stipend,
+            accommodation_provided: AI.stipend.accommodation_provided,
+            ppo_offered: AI.stipend.ppo_offered
+          }] : [],
+          eligibility_rule: AI.eligibility_rule ? {
+            min_cgpa: AI.eligibility_rule.min_cgpa,
+            max_backlogs_allowed: AI.eligibility_rule.max_backlogs_allowed,
+            min_class_10_percent: AI.eligibility_rule.min_class_10_percent,
+            min_class_12_percent: AI.eligibility_rule.min_class_12_percent
+          } : undefined,
+          selection_rounds: AI.selection_process?.rounds,
+          selection_infrastructure: AI.selection_process?.infrastructure ? {
+            rooms_required: AI.selection_process.infrastructure.rooms_required,
+            team_members_required: AI.selection_process.infrastructure.team_members_required,
+            other_screening: AI.selection_process.infrastructure.other_screening
+          } : undefined
+        }));
+        setSuccess('Successfully extracted details from the PDF. Please review the autofilled data carefully to ensure accuracy before submitting.');
+      }
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Failed to extract data.');
+    } finally {
+      setExtracting(false);
+    }
+  };
+
   return (
     <DashboardLayout>
       <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
@@ -88,33 +200,39 @@ export default function NewInfPage() {
             </Typography>
           )}
         </Box>
-        <Button variant="outlined" size="small" onClick={() => router.push('/dashboard')}>
-          Back to Dashboard
-        </Button>
+        <Box sx={{ display: 'flex', gap: 2 }}>
+          <Button
+            component="label"
+            variant="contained"
+            color="secondary"
+            startIcon={<UploadFileIcon />}
+            size="small"
+            disabled={extracting}
+            sx={{ background: '#C8922A', '&:hover': { background: '#A0721A' } }}
+          >
+            {extracting ? 'Extracting...' : 'Autofill from PDF'}
+            <input hidden accept="application/pdf" type="file" onChange={e => {
+              if (e.target.files && e.target.files[0]) handleAutofillPdf(e.target.files[0]);
+            }} />
+          </Button>
+          <Button variant="outlined" size="small" onClick={() => router.push('/dashboard')}>
+            Back
+          </Button>
+        </Box>
       </Box>
 
       {error   && <Alert severity="error"   sx={{ mb: 2 }} onClose={() => setError('')}>{error}</Alert>}
       {success && <Alert severity="success" sx={{ mb: 2 }} onClose={() => setSuccess('')}>{success}</Alert>}
 
       <Card>
-        <Box sx={{ borderBottom: 1, borderColor: 'divider', background: '#A0721A' }}>
-          <Tabs
-            value={activeTab}
-            onChange={(_, v) => setActiveTab(v)}
-            variant="scrollable"
-            sx={{
-              '& .MuiTab-root': {
-                color: 'rgba(255,255,255,0.6)', fontSize: '0.85rem',
-                textTransform: 'none',
-                '&.Mui-selected': { color: '#ffffff' },
-              },
-              '& .MuiTabs-indicator': { background: 'white', height: 3 },
-            }}
-          >
-            {tabs.map((tab, i) => (
-              <Tab key={tab} label={tab} disabled={!initialized && i > 0} />
+        <Box sx={{ p: 4, pb: 6, borderBottom: 1, borderColor: 'divider', background: '#FAFAFA' }}>
+          <Stepper alternativeLabel activeStep={activeTab} connector={<ColorlibConnector />}>
+            {tabs.map((label) => (
+              <Step key={label}>
+                <StepLabel StepIconComponent={ColorlibStepIcon}>{label}</StepLabel>
+              </Step>
             ))}
-          </Tabs>
+          </Stepper>
         </Box>
 
         <CardContent sx={{ p: { xs: 2, md: 4 } }}>
@@ -126,6 +244,7 @@ export default function NewInfPage() {
             <>
               {activeTab === 0 && (
                 <InternProfileTab saving={saving}
+                  initialData={existingData}
                   onSave={d => handleTabSave(0, d, 'intern-profile')} />
               )}
               {activeTab === 1 && (
@@ -134,6 +253,7 @@ export default function NewInfPage() {
               )}
               {activeTab === 2 && (
                 <StipendTab saving={saving}
+                  initialData={existingData}
                   onSave={d => handleTabSave(2, d, 'stipend')} />
               )}
               {activeTab === 3 && (

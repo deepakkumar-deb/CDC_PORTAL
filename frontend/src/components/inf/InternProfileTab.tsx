@@ -2,17 +2,18 @@
 import { useState } from 'react';
 import {
   Box, TextField, Grid, MenuItem, Typography,
-  Button, Chip, CircularProgress, Switch, FormControlLabel,
+  Button, Chip, CircularProgress, Switch, FormControlLabel, Alert
 } from '@mui/material';
 
 const locationTypes   = ['onsite', 'remote', 'hybrid'];
 const internshipTypes = ['summer', 'winter', 'year-long'];
 
 export default function InternProfileTab({
-  saving, onSave,
+  saving, onSave, initialData
 }: {
   saving: boolean;
   onSave: (data: any) => void;
+  initialData?: any;
 }) {
   const [form, setForm] = useState({
     internship_title: '', designation: '',
@@ -30,6 +31,22 @@ export default function InternProfileTab({
 
   const [skills, setSkills]    = useState<string[]>([]);
   const [skillInput, setSkill] = useState('');
+  const [validationError, setValidationError] = useState('');
+
+  // Pre-fill from initialData (e.g. from a PDF Autofill)
+  require('react').useEffect(() => {
+    if (!initialData) return;
+    setForm(f => ({
+      ...f,
+      internship_title: initialData.internship_title || f.internship_title,
+      job_description: initialData.job_description || f.job_description,
+      location_type: initialData.location_type || f.location_type,
+      openings_count: initialData.openings_count ?? f.openings_count,
+    }));
+    if (initialData.skills?.length) {
+      setSkills(initialData.skills.map((s: any) => s.skill_name));
+    }
+  }, [initialData]);
 
   const set = (k: string, v: any) => setForm(f => ({ ...f, [k]: v }));
 
@@ -41,6 +58,11 @@ export default function InternProfileTab({
   };
 
   const handleSave = () => {
+    if (!form.internship_title.trim() || !form.job_description.trim() || !String(form.openings_count).trim()) {
+      setValidationError('Please fill out all required fields marked with *');
+      return;
+    }
+    setValidationError('');
     onSave({ ...form, skills });
   };
 
@@ -210,7 +232,14 @@ export default function InternProfileTab({
         </Grid>
       </Grid>
 
-      <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 4 }}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 4 }}>
+        <Box sx={{ flex: 1, mr: 2 }}>
+          {validationError && (
+            <Alert severity="error" onClose={() => setValidationError('')}>
+              {validationError}
+            </Alert>
+          )}
+        </Box>
         <Button
           variant="contained" size="large"
           onClick={handleSave} disabled={saving}

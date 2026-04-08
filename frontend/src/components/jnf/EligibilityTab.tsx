@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Box, TextField, Grid, MenuItem, Typography,
   Button, CircularProgress, Switch, FormControlLabel,
@@ -23,10 +23,11 @@ const programmes = [
 ];
 
 export default function EligibilityTab({
-  saving, onSave,
+  saving, onSave, initialData,
 }: {
   saving: boolean;
   onSave: (data: any) => void;
+  initialData?: any;
 }) {
   const [form, setForm] = useState({
     min_cgpa: '', max_backlogs_allowed: '',
@@ -35,6 +36,26 @@ export default function EligibilityTab({
     allowed_gender: 'all', additional_text: '',
   });
   const [selectedPrograms, setSelectedPrograms] = useState<number[]>([]);
+
+  // Pre-fill from initialData (duplicated JNF)
+  useEffect(() => {
+    if (!initialData) return;
+    const rule = initialData.eligibility_rule;
+    if (rule) {
+      setForm({
+        min_cgpa:                rule.min_cgpa             ?? '',
+        max_backlogs_allowed:    rule.max_backlogs_allowed  ?? '',
+        active_backlogs_allowed: rule.active_backlogs_allowed ?? false,
+        min_class_10_percent:    rule.min_class_10_percent  ?? '',
+        min_class_12_percent:    rule.min_class_12_percent  ?? '',
+        allowed_gender:          rule.allowed_gender        || 'all',
+        additional_text:         rule.additional_text       || '',
+      });
+    }
+    if (initialData.allowed_programs?.length) {
+      setSelectedPrograms(initialData.allowed_programs.map((p: any) => p.program_dept_map_id));
+    }
+  }, [initialData]);
 
   const set = (k: string, v: any) => setForm(f => ({ ...f, [k]: v }));
 

@@ -8,7 +8,6 @@ import {
   Typography,
   Button,
   Chip,
-  IconButton,
   TextField,
   MenuItem,
   CircularProgress,
@@ -16,7 +15,6 @@ import {
 } from "@mui/material";
 import { DataGrid, GridColDef } from "@mui/x-data-grid";
 import AddIcon from "@mui/icons-material/Add";
-import VisibilityIcon from "@mui/icons-material/Visibility";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import api from "@/lib/api";
 
@@ -58,6 +56,17 @@ export default function MyInfsPage() {
       setFilteredInfs(infs.filter((i) => i.status === statusFilter));
     }
   }, [statusFilter, infs]);
+
+  const handleDelete = async (id: number) => {
+    if (!confirm('Are you sure you want to delete this INF? This cannot be undone.')) return;
+    try {
+      await api.delete(`/inf/${id}`);
+      setInfs(prev => prev.filter(i => i.id !== id));
+      setError('');
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Failed to delete INF.');
+    }
+  };
 
   const columns: GridColDef[] = [
     {
@@ -103,16 +112,30 @@ export default function MyInfsPage() {
     {
       field: "actions",
       headerName: "Actions",
-      width: 100,
+      width: 200,
       sortable: false,
       renderCell: (params) => (
-        <IconButton
-          size="small"
-          color="primary"
-          onClick={() => router.push(`/inf/${params.row.id}`)}
-        >
-          <VisibilityIcon fontSize="small" />
-        </IconButton>
+        <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+          <Button
+            size="small"
+            variant="contained"
+            onClick={() => router.push(`/inf/${params.row.id}`)}
+            sx={{ fontSize: '0.75rem', px: 1.5, minWidth: 60, background: '#C8922A', '&:hover': { background: '#A0721A' } }}
+          >
+            View
+          </Button>
+          {params.row.status === 'draft' && (
+            <Button
+              size="small"
+              variant="outlined"
+              color="error"
+              onClick={() => handleDelete(params.row.id)}
+              sx={{ fontSize: '0.75rem', px: 1.5, minWidth: 60 }}
+            >
+              Delete
+            </Button>
+          )}
+        </Box>
       ),
     },
   ];

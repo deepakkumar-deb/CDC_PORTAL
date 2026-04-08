@@ -6,6 +6,7 @@ use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\JnfController;
 use App\Http\Controllers\InfController;
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\ExtractionController;
 use App\Http\Middleware\AdminMiddleware;
 
 // ── Public routes (no login needed) ──────────────────────────
@@ -28,6 +29,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/company',        [CompanyController::class, 'store']);
     Route::post('/company/update', [CompanyController::class, 'update']);
 
+    // ── Extraction (PDF Autofill) ─────────────────────────────
+    Route::post('/extract-pdf',   [ExtractionController::class, 'extract']);
+
     // ── JNF ───────────────────────────────────────────────────
     Route::get('/jnf',                       [JnfController::class, 'index']);
     Route::post('/jnf',                       [JnfController::class, 'store']);
@@ -37,6 +41,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/jnf/{id}/salary',           [JnfController::class, 'saveSalary']);
     Route::post('/jnf/{id}/selection',        [JnfController::class, 'saveSelection']);
     Route::post('/jnf/{id}/submit',           [JnfController::class, 'submit']);
+    Route::post('/jnf/{id}/request-edit',     [JnfController::class, 'requestEdit']);
     Route::post('/jnf/{id}/duplicate', [JnfController::class, 'duplicate']);
     Route::delete('/jnf/{id}',                 [JnfController::class, 'destroy']);
 
@@ -49,6 +54,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/inf/{id}/stipend',          [InfController::class, 'saveStipend']);
     Route::post('/inf/{id}/selection',        [InfController::class, 'saveSelection']);
     Route::post('/inf/{id}/submit',           [InfController::class, 'submit']);
+    Route::post('/inf/{id}/request-edit',     [InfController::class, 'requestEdit']);
     // Route::post('/inf/{id}/duplicate', [JnfController::class, 'duplicate']);
 });
 
@@ -60,5 +66,7 @@ Route::middleware(['auth:sanctum', AdminMiddleware::class])->prefix('admin')->gr
     Route::get('/forms/{id}',     [AdminController::class, 'showForm']);
     Route::post('/forms/{id}/approve', [AdminController::class, 'approve']);
     Route::post('/forms/{id}/reject',  [AdminController::class, 'reject']);
+    Route::post('/forms/{id}/allow-edit', [AdminController::class, 'allowEdit']);
+    Route::post('/forms/{id}/edit-fields', [AdminController::class, 'adminEditFields']);
     Route::post('/jnf/{id}/duplicate', [JnfController::class, 'duplicate']);
 });

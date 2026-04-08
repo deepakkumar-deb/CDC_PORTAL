@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Box, TextField, Grid, Typography, Button,
   MenuItem, CircularProgress, IconButton,
@@ -21,10 +21,11 @@ const emptyRound = (order: number) => ({
 });
 
 export default function SelectionTab({
-  saving, onSave,
+  saving, onSave, initialData,
 }: {
   saving: boolean;
   onSave: (data: any) => void;
+  initialData?: any;
 }) {
   const [rounds, setRounds] = useState([emptyRound(1)]);
   const [infra, setInfra]   = useState({
@@ -32,6 +33,34 @@ export default function SelectionTab({
     psychometric_test: false, medical_test: false,
     proctoring_required: false, other_screening: '',
   });
+
+  // Pre-fill from initialData (duplicated JNF)
+  useEffect(() => {
+    if (!initialData) return;
+    if (initialData.selection_rounds?.length) {
+      setRounds(initialData.selection_rounds.map((r: any) => ({
+        round_order:          r.round_order,
+        round_type:           r.round_type           || 'resume',
+        mode:                 r.mode                 || 'offline',
+        test_type:            r.test_type            || '',
+        interview_mode:       r.interview_mode       || '',
+        duration_minutes:     r.duration_minutes     ?? '',
+        description:          r.description          || '',
+        is_elimination_round: r.is_elimination_round ?? false,
+      })));
+    }
+    const si = initialData.selection_infrastructure;
+    if (si) {
+      setInfra({
+        rooms_required:       si.rooms_required        ?? '',
+        team_members_required:si.team_members_required ?? '',
+        psychometric_test:    si.psychometric_test     ?? false,
+        medical_test:         si.medical_test          ?? false,
+        proctoring_required:  si.proctoring_required   ?? false,
+        other_screening:      si.other_screening       || '',
+      });
+    }
+  }, [initialData]);
 
   const addRound = () => {
     if (rounds.length >= 10) return;

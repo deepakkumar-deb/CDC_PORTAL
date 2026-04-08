@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Box, TextField, Grid, Typography, Button,
   MenuItem, CircularProgress, Divider,
@@ -29,14 +29,37 @@ const emptyRow = (pt: string) => ({
 });
 
 export default function SalaryTab({
-  saving, onSave,
+  saving, onSave, initialData,
 }: {
   saving: boolean;
   onSave: (data: any) => void;
+  initialData?: any;
 }) {
   const [rows, setRows] = useState(
     programmes.map(p => emptyRow(p))
   );
+
+  // Pre-fill from initialData (duplicated JNF)
+  useEffect(() => {
+    if (!initialData?.salary_breakdowns?.length) return;
+    setRows(programmes.map(pt => {
+      const existing = initialData.salary_breakdowns.find((r: any) => r.programme_type === pt);
+      if (!existing) return emptyRow(pt);
+      return {
+        programme_type:   existing.programme_type,
+        currency:         existing.currency         || 'INR',
+        ctc_annual:       existing.ctc_annual        ?? '',
+        base_fixed:       existing.base_fixed        ?? '',
+        monthly_takehome: existing.monthly_takehome  ?? '',
+        joining_bonus:    existing.joining_bonus     ?? '',
+        esop_value:       existing.esop_value        ?? '',
+        bond_required:    existing.bond_required     ?? false,
+        bond_amount:      existing.bond_amount       ?? '',
+        bond_duration_months: existing.bond_duration_months ?? '',
+        ctc_breakup_notes:existing.ctc_breakup_notes || '',
+      };
+    }));
+  }, [initialData]);
 
   const setRow = (index: number, key: string, value: any) => {
     setRows(prev => prev.map((r, i) =>

@@ -12,8 +12,14 @@ import {
   Alert,
   Grid,
   Divider,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  TextField,
 } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import EditNoteIcon from "@mui/icons-material/EditNote";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import api from "@/lib/api";
 import PrintableJnf from "@/components/common/PrintableJnf";
@@ -35,6 +41,13 @@ export default function JnfDetailPage() {
 
   const [duplicating, setDuplicating] = useState(false);
   const [dupSuccess, setDupSuccess] = useState("");
+
+  // Request Edit state
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [editReason, setEditReason] = useState("");
+  const [editSending, setEditSending] = useState(false);
+  const [editSuccess, setEditSuccess] = useState("");
+  const [editError, setEditError] = useState("");
 
   useEffect(() => {
     api
@@ -59,6 +72,22 @@ export default function JnfDetailPage() {
       setError(err.response?.data?.message || "Failed to duplicate.");
     } finally {
       setDuplicating(false);
+    }
+  };
+
+  const handleRequestEdit = async () => {
+    if (!editReason.trim()) return;
+    setEditSending(true);
+    setEditError("");
+    try {
+      await api.post(`/jnf/${id}/request-edit`, { reason: editReason });
+      setEditSuccess("Your edit request has been sent to the CDC admin!");
+      setEditModalOpen(false);
+      setEditReason("");
+    } catch (err: any) {
+      setEditError(err.response?.data?.message || "Failed to send request.");
+    } finally {
+      setEditSending(false);
     }
   };
 
@@ -115,6 +144,12 @@ export default function JnfDetailPage() {
       {dupSuccess && (
         <Alert severity="success" sx={{ mb: 2 }}>
           {dupSuccess}
+        </Alert>
+      )}
+
+      {editSuccess && (
+        <Alert severity="success" sx={{ mb: 2 }} onClose={() => setEditSuccess("")}>
+          {editSuccess}
         </Alert>
       )}
 
@@ -359,6 +394,19 @@ export default function JnfDetailPage() {
           {duplicating ? 'Duplicating...' : 'Duplicate this JNF'}
         </Button>
 
+        {/* Request Edit — for submitted / approved / rejected */}
+        {jnf.status !== 'draft' && (
+          <Button
+            variant="outlined"
+            color="warning"
+            startIcon={<EditNoteIcon />}
+            onClick={() => setEditModalOpen(true)}
+            sx={{ borderColor: '#e65100', color: '#e65100' }}
+          >
+            Request Edit
+          </Button>
+        )}
+
         {/* Continue editing — only for drafts */}
         {jnf.status === 'draft' && (
           <Button
@@ -370,6 +418,55 @@ export default function JnfDetailPage() {
           </Button>
         )}
       </Box>
+
+      {/* Request Edit Modal */}
+      <Dialog
+        open={editModalOpen}
+        onClose={() => setEditModalOpen(false)}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle sx={{ fontWeight: 700, color: '#003366' }}>
+          Request Edit for {jnf.jnf_code}
+        </DialogTitle>
+        <DialogContent>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+            Describe what you'd like to change. The CDC admin will be notified
+            by email and will contact you.
+          </Typography>
+          {editError && (
+            <Alert severity="error" sx={{ mb: 2 }}>{editError}</Alert>
+          )}
+          <TextField
+            label="Reason for edit"
+            multiline
+            rows={5}
+            fullWidth
+            value={editReason}
+            onChange={(e) => setEditReason(e.target.value)}
+            placeholder="e.g. Please update the CTC from 12 LPA to 14 LPA and add Python as a required skill."
+            inputProps={{ maxLength: 2000 }}
+            helperText={`${editReason.length}/2000`}
+          />
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 3, gap: 1 }}>
+          <Button
+            onClick={() => { setEditModalOpen(false); setEditError(''); }}
+            disabled={editSending}
+          >
+            Cancel
+          </Button>
+          <Button
+            variant="contained"
+            color="warning"
+            onClick={handleRequestEdit}
+            disabled={!editReason.trim() || editSending}
+            startIcon={editSending ? <CircularProgress size={16} /> : <EditNoteIcon />}
+          >
+            {editSending ? 'Sending...' : 'Send Request'}
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       <Box sx={{ mt: 3 }}>
         <PrintableJnf form={jnf} />

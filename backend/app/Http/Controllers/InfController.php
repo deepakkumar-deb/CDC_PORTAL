@@ -15,6 +15,7 @@ use App\Models\SelectionRound;
 use App\Models\SelectionInfrastructure;
 use App\Models\ApprovalHistory;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Mail;
 
 class InfController extends Controller
 {
@@ -276,31 +277,94 @@ class InfController extends Controller
 
     // ── Submit INF ────────────────────────────────────────────
     public function submit(Request $request, $id)
+{
+    $jnf = $this->getInf($request, $id);
+    if (!$jnf) return $this->notFound();
+
+    if ($jnf->status !== 'draft') {
+        return response()->json([
+            'success' => false,
+            'message' => 'INF already submitted.',
+        ], 409);
+    }
+
+    $jnf->update([
+        'status' => 'submitted',
+        'submitted_at' => now(),
+    ]);
+
+    ApprovalHistory::create([
+        'jnf_id' => $id,
+        'action_by_user_id' => $request->user()->id,
+        'old_status' => 'draft',
+        'new_status' => 'submitted',
+        'remarks' => 'INF submitted by recruiter.',
+    ]);
+
+    // ✅ SEND EMAIL TO ADMIN
+    $this->sendAdminNotification($jnf);
+
+    return $this->success('INF submitted. CDC will review it shortly.');
+}
+
+// ── Request Edit (recruiter emails admin to request changes) ─
+    public function requestEdit(Request $request, $id)
     {
         $jnf = $this->getInf($request, $id);
         if (!$jnf) return $this->notFound();
 
-        if ($jnf->status !== 'draft') {
-            return response()->json([
-                'success' => false,
-                'message' => 'INF already submitted.',
-            ], 409);
-        }
-
-        $jnf->update([
-            'status'       => 'submitted',
-            'submitted_at' => now(),
+        $request->validate([
+            'reason' => 'required|string|max:2000',
         ]);
 
-        ApprovalHistory::create([
-            'jnf_id'            => $id,
-            'action_by_user_id' => $request->user()->id,
-            'old_status'        => 'draft',
-            'new_status'        => 'submitted',
-            'remarks'           => 'INF submitted by recruiter.',
-        ]);
+        $adminEmail = env('ADMIN_EMAIL', 'deepakk51688@gmail.com');
+        $recruiter  = $request->user();
+        $company    = $jnf->company;
 
-        return $this->success('INF submitted. CDC will review it shortly.');
+        $subject = "[Edit Request] INF {$jnf->jnf_code} - {$company->company_name}";
+        $body  = "A recruiter has requested an edit to a submitted INF.\n\n";
+        $body .= str_repeat('-', 40) . "\n";
+        $body .= "INF Code         : {$jnf->jnf_code}\n";
+        $body .= "Company          : {$company->company_name}\n";
+        $body .= "Internship Title : {$jnf->internship_title}\n";
+        $body .= "Current Status   : {$jnf->status}\n";
+        $body .= str_repeat('-', 40) . "\n\n";
+        $body .= "Recruiter        : {$recruiter->name}\n";
+        $body .= "Recruiter Email  : {$recruiter->email}\n\n";
+        $body .= "Edit Reason:\n{$request->reason}\n\n";
+        $body .= "Admin Panel: " . env('APP_URL', 'http://localhost:3000') . "/admin";
+
+        Mail::raw($body, function ($mail) use ($adminEmail, $recruiter, $subject) {
+            $mail->to($adminEmail)
+                 ->replyTo($recruiter->email, $recruiter->name)
+                 ->subject($subject);
+        });
+
+        return $this->success('Your edit request has been sent to the CDC admin.');
+    }
+
+// ── Send admin notification on new INF submission ────────
+    private function sendAdminNotification($jnf)
+    {
+        $adminEmail = env('ADMIN_EMAIL', 'deepakk51688@gmail.com');
+        $company    = $jnf->company;
+
+        $subject = "[New INF] {$jnf->jnf_code} - {$company->company_name}";
+        $body  = "A new Internship Notification Form has been submitted for review.\n\n";
+        $body .= str_repeat('-', 40) . "\n";
+        $body .= "INF Code         : {$jnf->jnf_code}\n";
+        $body .= "Company          : {$company->company_name}\n";
+        $body .= "Internship Title : {$jnf->internship_title}\n";
+        $body .= "Recruitment Cycle: {$jnf->recruitment_cycle}\n";
+        $body .= "Submitted At     : {$jnf->submitted_at}\n";
+        $body .= str_repeat('-', 40) . "\n\n";
+        $body .= "Login to the admin panel to review:\n";
+        $body .= env('APP_URL', 'http://localhost:3000') . "/admin";
+
+        Mail::raw($body, function ($mail) use ($adminEmail, $subject) {
+            $mail->to($adminEmail)
+                 ->subject($subject);
+        });
     }
 
     // ── Helpers ───────────────────────────────────────────────

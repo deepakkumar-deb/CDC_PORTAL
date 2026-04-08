@@ -23,13 +23,14 @@ const emptyRow = (pt: string) => ({
 });
 
 export default function StipendTab({
-  saving, onSave,
+  saving, onSave, initialData
 }: {
   saving: boolean;
   onSave: (data: any) => void;
+  initialData?: any;
 }) {
   const [rows, setRows] = useState(programmes.map(p => emptyRow(p)));
-  const [perks, setPerks] = useState
+  const [perks, setPerks] = useState<
     { programme_type: string; perk_label: string; perk_value: string }[]
   >([]);
 

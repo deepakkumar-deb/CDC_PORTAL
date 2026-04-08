@@ -3,13 +3,11 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Box, Card, CardContent, Typography, Button,
-  Chip, IconButton, TextField, MenuItem,
+  Chip, TextField, MenuItem,
   CircularProgress, Alert,
 } from '@mui/material';
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
 import AddIcon from '@mui/icons-material/Add';
-import VisibilityIcon from '@mui/icons-material/Visibility';
-import DeleteIcon from '@mui/icons-material/Delete';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import api from '@/lib/api';
 
@@ -106,25 +104,28 @@ export default function MyJnfsPage() {
     {
       field: 'actions',
       headerName: 'Actions',
-      width: 140,
+      width: 200,
       sortable: false,
       renderCell: (params) => (
-        <Box sx={{ display: 'flex', gap: 0.5 }}>
-          <IconButton
+        <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+          <Button
             size="small"
-            color="primary"
+            variant="contained"
             onClick={() => router.push(`/jnf/${params.row.id}`)}
+            sx={{ fontSize: '0.75rem', px: 1.5, minWidth: 60 }}
           >
-            <VisibilityIcon fontSize="small" />
-          </IconButton>
+            View
+          </Button>
           {params.row.status === 'draft' && (
-            <IconButton
+            <Button
               size="small"
+              variant="outlined"
               color="error"
               onClick={() => handleDelete(params.row.id)}
+              sx={{ fontSize: '0.75rem', px: 1.5, minWidth: 60 }}
             >
-              <DeleteIcon fontSize="small" />
-            </IconButton>
+              Delete
+            </Button>
           )}
         </Box>
       ),

@@ -15,7 +15,11 @@ import {
   Alert,
   Divider,
   Chip,
+  Avatar,
+  IconButton,
 } from "@mui/material";
+import PhotoCamera from '@mui/icons-material/PhotoCamera';
+import UploadFileIcon from '@mui/icons-material/UploadFile';
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import api from "@/lib/api";
 
@@ -45,6 +49,11 @@ export default function CompanyProfilePage() {
   const [isNew, setIsNew] = useState(true);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [extracting, setExtracting] = useState(false);
+  
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [logoPreview, setLogoPreview] = useState<string>("");
+  const [companyFile, setCompanyFile] = useState<File | null>(null);
 
   const [form, setForm] = useState({
     company_name: "",
@@ -98,6 +107,7 @@ export default function CompanyProfilePage() {
           mnc_hq_country: c.mnc_hq_country ?? "",
           mnc_hq_city: c.mnc_hq_city ?? "",
         });
+        if (c.logo_path) setLogoPreview(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/storage/${c.logo_path}`);
         setIndustryTags(c.industry_tags ?? []);
         if (c.contacts?.length) {
           const merged = contactTypes.map((type) => {
@@ -142,22 +152,69 @@ export default function CompanyProfilePage() {
     setError("");
     setSuccess("");
     try {
-      const payload = { ...form, contacts, industry_tags: industryTags };
+      const formData = new FormData();
+      Object.entries(form).forEach(([k, v]) => formData.append(k, v));
+      industryTags.forEach((tag, i) => formData.append(`industry_tags[${i}]`, tag));
+      contacts.forEach((contact, i) => {
+        Object.entries(contact).forEach(([k, v]) => formData.append(`contacts[${i}][${k}]`, v));
+      });
+      if (logoFile) formData.append("logo", logoFile);
+      if (companyFile) formData.append("company_file", companyFile);
+
       if (isNew) {
-        await api.post("/company", payload);
+        await api.post("/company", formData, { headers: { "Content-Type": "multipart/form-data" } });
         setIsNew(false);
         setSuccess("Company profile created successfully!");
       } else {
-        await api.post("/company/update", payload);
+        await api.post("/company/update", formData, { headers: { "Content-Type": "multipart/form-data" } });
         setSuccess("Company profile updated successfully!");
       }
     } catch (err: any) {
-      setError(
-        err.response?.data?.message ||
-          "Failed to save. Check all required fields.",
-      );
+      setError(err.response?.data?.message || "Failed to save. Check all required fields.");
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setLogoFile(e.target.files[0]);
+      setLogoPreview(URL.createObjectURL(e.target.files[0]));
+    }
+  };
+
+  const handleAutofill = async () => {
+    if (!companyFile) return;
+    setExtracting(true);
+    setError("");
+    try {
+      const formData = new FormData();
+      formData.append("file", companyFile);
+      formData.append("type", "company");
+      const res = await api.post("/extract-pdf", formData, { headers: { "Content-Type": "multipart/form-data" } });
+      const data = res.data.data;
+      if (data) {
+        setForm(prev => ({
+          ...prev,
+          company_name: data.company_name || prev.company_name,
+          website: data.website || prev.website,
+          industry: data.industry || prev.industry,
+          company_type: data.company_type || prev.company_type,
+          about_company: data.about_company || prev.about_company,
+          headquarters_address: data.headquarters_address || prev.headquarters_address,
+          city: data.city || prev.city,
+          state: data.state || prev.state,
+          country: data.country || prev.country,
+          postal_code: data.postal_code || prev.postal_code,
+          no_of_employees: data.no_of_employees || prev.no_of_employees,
+          annual_turnover: data.annual_turnover || prev.annual_turnover,
+        }));
+        setSuccess("Successfully extracted details from the PDF. Please review the autofilled data carefully to ensure accuracy.");
+      }
+    } catch (err: any) {
+      setError(err.response?.data?.message || "PDF extraction failed");
+    } finally {
+      setExtracting(false);
     }
   };
 
@@ -204,6 +261,55 @@ export default function CompanyProfilePage() {
           >
             Basic Information
           </Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center', mb: 3, gap: 2 }}>
+            <Avatar 
+              src={logoPreview} 
+              sx={{ width: 80, height: 80, border: '2px solid #ccc' }} 
+            />
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+              <Button
+                component="label"
+                variant="outlined"
+                startIcon={<PhotoCamera />}
+                size="small"
+              >
+                Upload Logo
+                <input hidden accept="image/*" type="file" onChange={handleLogoChange} />
+              </Button>
+              <Typography variant="caption" color="text.secondary" sx={{ textAlign: 'center' }}>
+                Max size: 2MB
+              </Typography>
+            </Box>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+              <Button
+                component="label"
+                variant="outlined"
+                startIcon={<UploadFileIcon />}
+                size="small"
+                color={companyFile ? "success" : "primary"}
+              >
+                {companyFile ? "File Selected" : "Upload Company Profile (PDF)"}
+                <input hidden accept="application/pdf" type="file" onChange={e => {
+                  if (e.target.files && e.target.files[0]) setCompanyFile(e.target.files[0]);
+                }} />
+              </Button>
+              <Typography variant="caption" color="text.secondary" sx={{ textAlign: 'center' }}>
+                Max size: 5MB
+              </Typography>
+            </Box>
+            {companyFile && (
+              <Button
+                variant="contained"
+                size="small"
+                color="secondary"
+                onClick={handleAutofill}
+                disabled={extracting}
+                sx={{ background: '#C8922A', '&:hover': { background: '#A0721A' } }}
+              >
+                {extracting ? "Extracting..." : "Autofill from File"}
+              </Button>
+            )}
+          </Box>
           <Grid container spacing={3}>
             <Grid item xs={12} md={6}>
               <TextField
