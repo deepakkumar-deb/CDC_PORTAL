@@ -1,14 +1,14 @@
-import type { Metadata } from 'next';
-import { AppRouterCacheProvider } from '@mui/material-nextjs/v15-appRouter';
-import { ThemeProvider } from '@mui/material/styles';
-import CssBaseline from '@mui/material/CssBaseline';
-import theme from '@/theme/theme';
-import SessionWrapper from '@/components/common/SessionWrapper';
+import type { Metadata } from "next";
+import { AppRouterCacheProvider } from "@mui/material-nextjs/v15-appRouter";
+import { ThemeProvider } from "@mui/material/styles";
+import CssBaseline from "@mui/material/CssBaseline";
+import theme from "@/theme/theme";
+import SessionWrapper from "@/components/common/SessionWrapper";
 
-import './print.css';
+import "./print.css";
 export const metadata: Metadata = {
-  title: 'CDC Recruitment Portal | IIT (ISM) Dhanbad',
-  description: 'Career Development Centre Recruitment Portal',
+  title: "CDC Recruitment Portal | IIT (ISM) Dhanbad",
+  description: "Career Development Centre Recruitment Portal",
 };
 
 export default function RootLayout({
@@ -20,9 +20,13 @@ export default function RootLayout({
     <html lang="en">
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link
-          href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@400;500;600&display=swap"
+          rel="preconnect"
+          href="https://fonts.gstatic.com"
+          crossOrigin="anonymous"
+        />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap"
           rel="stylesheet"
         />
       </head>
@@ -30,9 +34,7 @@ export default function RootLayout({
         <AppRouterCacheProvider>
           <ThemeProvider theme={theme}>
             <CssBaseline />
-            <SessionWrapper>
-              {children}
-            </SessionWrapper>
+            <SessionWrapper>{children}</SessionWrapper>
           </ThemeProvider>
         </AppRouterCacheProvider>
       </body>

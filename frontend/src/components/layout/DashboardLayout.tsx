@@ -26,7 +26,7 @@ import MenuIcon from "@mui/icons-material/Menu";
 import LogoutIcon from "@mui/icons-material/Logout";
 import AdminPanelSettingsIcon from "@mui/icons-material/AdminPanelSettings";
 
-const DRAWER_WIDTH = 260;
+const DRAWER_WIDTH = 240;
 
 // Replace the navItems array with this:
 const navItems = [
@@ -288,13 +288,14 @@ export default function DashboardLayout({
 
       {/* Main content */}
       <Box
+        component="main"
         sx={{
-          flex: 1,
-          ml: { md: `${DRAWER_WIDTH}px` },
+          flexGrow: 1,
+          // ml: { md: `${DRAWER_WIDTH}px` },
           mt: { xs: "64px", md: 0 },
           background: "#F8F7F3",
           minHeight: "100vh",
-          p: { xs: 2, md: 4 },
+          p: { xs: 2, md: 6 },
         }}
       >
         {children}

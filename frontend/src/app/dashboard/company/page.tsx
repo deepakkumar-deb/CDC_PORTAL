@@ -1,30 +1,39 @@
-'use client';
-import { useEffect, useState } from 'react';
-import { useSession } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
+"use client";
+import { useEffect, useState } from "react";
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 import {
-  Box, Card, CardContent, Typography, TextField,
-  Grid, Button, MenuItem, CircularProgress, Alert,
-  Divider, Chip,
-} from '@mui/material';
-import DashboardLayout from '@/components/layout/DashboardLayout';
-import api from '@/lib/api';
+  Box,
+  Card,
+  CardContent,
+  Typography,
+  TextField,
+  Grid,
+  Button,
+  MenuItem,
+  CircularProgress,
+  Alert,
+  Divider,
+  Chip,
+} from "@mui/material";
+import DashboardLayout from "@/components/layout/DashboardLayout";
+import api from "@/lib/api";
 
-const companyTypes = ['startup', 'mnc', 'psu', 'private', 'ngo', 'other'];
-const contactTypes = ['head_hr', 'poc1', 'poc2'];
+const companyTypes = ["startup", "mnc", "psu", "private", "ngo", "other"];
+const contactTypes = ["head_hr", "poc1", "poc2"];
 const contactLabels: Record<string, string> = {
-  head_hr: 'Head HR',
-  poc1: 'Point of Contact 1',
-  poc2: 'Point of Contact 2',
+  head_hr: "Head HR",
+  poc1: "Point of Contact 1",
+  poc2: "Point of Contact 2",
 };
 
 const emptyContact = (type: string) => ({
   contact_type: type,
-  contact_name: '',
-  designation: '',
-  email: '',
-  phone: '',
-  landline: '',
+  contact_name: "",
+  designation: "",
+  email: "",
+  phone: "",
+  landline: "",
 });
 
 export default function CompanyProfilePage() {
@@ -34,67 +43,76 @@ export default function CompanyProfilePage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [isNew, setIsNew] = useState(true);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
 
   const [form, setForm] = useState({
-    company_name: '',
-    website: '',
-    industry: '',
-    company_type: '',
-    about_company: '',
-    headquarters_address: '',
-    city: '',
-    state: '',
-    country: 'India',
-    postal_code: '',
-    linkedin_url: '',
-    annual_turnover: '',
-    no_of_employees: '',
-    mnc_hq_country: '',
-    mnc_hq_city: '',
+    company_name: "",
+    website: "",
+    industry: "",
+    company_type: "",
+    about_company: "",
+    headquarters_address: "",
+    city: "",
+    state: "",
+    country: "India",
+    postal_code: "",
+    linkedin_url: "",
+    annual_turnover: "",
+    no_of_employees: "",
+    mnc_hq_country: "",
+    mnc_hq_city: "",
   });
 
   const [contacts, setContacts] = useState(
-    contactTypes.map(t => emptyContact(t))
+    contactTypes.map((t) => emptyContact(t)),
   );
 
   const [industryTags, setIndustryTags] = useState<string[]>([]);
-  const [tagInput, setTagInput] = useState('');
+  const [tagInput, setTagInput] = useState("");
 
   useEffect(() => {
-    if (status === 'unauthenticated') router.push('/auth/login');
+    if (status === "unauthenticated") router.push("/auth/login");
   }, [status]);
 
   useEffect(() => {
-    if (status !== 'authenticated') return;
-    api.get('/company')
-      .then(res => {
+    if (status !== "authenticated") return;
+    api
+      .get("/company")
+      .then((res) => {
         const c = res.data.company;
         setForm({
-          company_name: c.company_name ?? '',
-          website: c.website ?? '',
-          industry: c.industry ?? '',
-          company_type: c.company_type ?? '',
-          about_company: c.about_company ?? '',
-          headquarters_address: c.headquarters_address ?? '',
-          city: c.city ?? '',
-          state: c.state ?? '',
-          country: c.country ?? 'India',
-          postal_code: c.postal_code ?? '',
-          linkedin_url: c.linkedin_url ?? '',
-          annual_turnover: c.annual_turnover ?? '',
-          no_of_employees: c.no_of_employees ?? '',
-          mnc_hq_country: c.mnc_hq_country ?? '',
-          mnc_hq_city: c.mnc_hq_city ?? '',
+          company_name: c.company_name ?? "",
+          website: c.website ?? "",
+          industry: c.industry ?? "",
+          company_type: c.company_type ?? "",
+          about_company: c.about_company ?? "",
+          headquarters_address: c.headquarters_address ?? "",
+          city: c.city ?? "",
+          state: c.state ?? "",
+          country: c.country ?? "India",
+          postal_code: c.postal_code ?? "",
+          linkedin_url: c.linkedin_url ?? "",
+          annual_turnover: c.annual_turnover ?? "",
+          no_of_employees: c.no_of_employees ?? "",
+          mnc_hq_country: c.mnc_hq_country ?? "",
+          mnc_hq_city: c.mnc_hq_city ?? "",
         });
         setIndustryTags(c.industry_tags ?? []);
         if (c.contacts?.length) {
-          const merged = contactTypes.map(type => {
+          const merged = contactTypes.map((type) => {
             const found = c.contacts.find((x: any) => x.contact_type === type);
-            return found
-              ? { ...emptyContact(type), ...found }
-              : emptyContact(type);
+            if (found) {
+              return {
+                contact_type: found.contact_type ?? "",
+                contact_name: found.contact_name ?? "",
+                designation: found.designation ?? "",
+                email: found.email ?? "",
+                phone: found.phone ?? "",
+                landline: found.landline ?? "",
+              };
+            }
+            return emptyContact(type);
           });
           setContacts(merged);
         }
@@ -104,38 +122,40 @@ export default function CompanyProfilePage() {
       .finally(() => setLoading(false));
   }, [status]);
 
-  const setField = (k: string, v: string) =>
-    setForm(f => ({ ...f, [k]: v }));
+  const setField = (k: string, v: string) => setForm((f) => ({ ...f, [k]: v }));
 
   const setContact = (i: number, k: string, v: string) =>
-    setContacts(prev => prev.map((c, idx) =>
-      idx === i ? { ...c, [k]: v } : c
-    ));
+    setContacts((prev) =>
+      prev.map((c, idx) => (idx === i ? { ...c, [k]: v } : c)),
+    );
 
   const addTag = () => {
     const tag = tagInput.trim();
     if (tag && !industryTags.includes(tag)) {
-      setIndustryTags(t => [...t, tag]);
-      setTagInput('');
+      setIndustryTags((t) => [...t, tag]);
+      setTagInput("");
     }
   };
 
   const handleSubmit = async () => {
     setSaving(true);
-    setError('');
-    setSuccess('');
+    setError("");
+    setSuccess("");
     try {
       const payload = { ...form, contacts, industry_tags: industryTags };
       if (isNew) {
-        await api.post('/company', payload);
+        await api.post("/company", payload);
         setIsNew(false);
-        setSuccess('Company profile created successfully!');
+        setSuccess("Company profile created successfully!");
       } else {
-        await api.post('/company/update', payload);
-        setSuccess('Company profile updated successfully!');
+        await api.post("/company/update", payload);
+        setSuccess("Company profile updated successfully!");
       }
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to save. Check all required fields.');
+      setError(
+        err.response?.data?.message ||
+          "Failed to save. Check all required fields.",
+      );
     } finally {
       setSaving(false);
     }
@@ -144,7 +164,7 @@ export default function CompanyProfilePage() {
   if (loading) {
     return (
       <DashboardLayout>
-        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 10 }}>
+        <Box sx={{ display: "flex", justifyContent: "center", mt: 10 }}>
           <CircularProgress />
         </Box>
       </DashboardLayout>
@@ -154,79 +174,128 @@ export default function CompanyProfilePage() {
   return (
     <DashboardLayout>
       <Box sx={{ mb: 3 }}>
-        <Typography variant="h5" sx={{ fontWeight: 700, color: '#003366' }}>
+        <Typography variant="h5" sx={{ fontWeight: 700, color: "#003366" }}>
           Company Profile
         </Typography>
         <Typography variant="body2" color="text.secondary">
           {isNew
-            ? 'Complete your company profile to start posting JNFs and INFs.'
-            : 'Update your company details here.'}
+            ? "Complete your company profile to start posting JNFs and INFs."
+            : "Update your company details here."}
         </Typography>
       </Box>
 
-      {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
-      {success && <Alert severity="success" sx={{ mb: 2 }}>{success}</Alert>}
+      {error && (
+        <Alert severity="error" sx={{ mb: 2 }}>
+          {error}
+        </Alert>
+      )}
+      {success && (
+        <Alert severity="success" sx={{ mb: 2 }}>
+          {success}
+        </Alert>
+      )}
 
       {/* Basic Info */}
       <Card sx={{ mb: 3 }}>
         <CardContent sx={{ p: { xs: 2, md: 4 } }}>
-          <Typography variant="h6" sx={{ fontWeight: 600, mb: 3, color: '#003366' }}>
+          <Typography
+            variant="h6"
+            sx={{ fontWeight: 600, mb: 3, color: "#003366" }}
+          >
             Basic Information
           </Typography>
           <Grid container spacing={3}>
             <Grid item xs={12} md={6}>
-              <TextField fullWidth required label="Company Name"
+              <TextField
+                fullWidth
+                required
+                label="Company Name"
                 value={form.company_name}
-                onChange={e => setField('company_name', e.target.value)} />
+                onChange={(e) => setField("company_name", e.target.value)}
+              />
             </Grid>
             <Grid item xs={12} md={6}>
-              <TextField fullWidth label="Website"
+              <TextField
+                fullWidth
+                label="Website"
                 value={form.website}
-                onChange={e => setField('website', e.target.value)} />
+                onChange={(e) => setField("website", e.target.value)}
+              />
             </Grid>
             <Grid item xs={12} md={6}>
-              <TextField fullWidth label="Industry"
+              <TextField
+                fullWidth
+                label="Industry"
                 value={form.industry}
-                onChange={e => setField('industry', e.target.value)} />
+                onChange={(e) => setField("industry", e.target.value)}
+              />
             </Grid>
             <Grid item xs={12} md={6}>
-              <TextField fullWidth select label="Company Type"
+              <TextField
+                fullWidth
+                select
+                label="Company Type"
                 value={form.company_type}
-                onChange={e => setField('company_type', e.target.value)}>
-                {companyTypes.map(t => (
-                  <MenuItem key={t} value={t} sx={{ textTransform: 'capitalize' }}>
+                onChange={(e) => setField("company_type", e.target.value)}
+              >
+                {companyTypes.map((t) => (
+                  <MenuItem
+                    key={t}
+                    value={t}
+                    sx={{ textTransform: "capitalize" }}
+                  >
                     {t.toUpperCase()}
                   </MenuItem>
                 ))}
               </TextField>
             </Grid>
             <Grid item xs={12}>
-              <TextField fullWidth multiline rows={3} label="About Company"
+              <TextField
+                fullWidth
+                multiline
+                rows={3}
+                label="About Company"
                 value={form.about_company}
-                onChange={e => setField('about_company', e.target.value)} />
+                onChange={(e) => setField("about_company", e.target.value)}
+              />
             </Grid>
             <Grid item xs={12}>
-              <TextField fullWidth label="LinkedIn URL"
+              <TextField
+                fullWidth
+                label="LinkedIn URL"
                 value={form.linkedin_url}
-                onChange={e => setField('linkedin_url', e.target.value)} />
+                onChange={(e) => setField("linkedin_url", e.target.value)}
+              />
             </Grid>
             {/* Industry Tags */}
             <Grid item xs={12}>
               <Typography variant="body2" sx={{ fontWeight: 600, mb: 1 }}>
                 Industry Tags
               </Typography>
-              <Box sx={{ display: 'flex', gap: 1, mb: 1.5 }}>
-                <TextField size="small" label="Add tag" value={tagInput}
-                  onChange={e => setTagInput(e.target.value)}
-                  onKeyDown={e => e.key === 'Enter' && addTag()}
-                  sx={{ flex: 1 }} />
-                <Button variant="outlined" onClick={addTag}>Add</Button>
+              <Box sx={{ display: "flex", gap: 1, mb: 1.5 }}>
+                <TextField
+                  size="small"
+                  label="Add tag"
+                  value={tagInput}
+                  onChange={(e) => setTagInput(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && addTag()}
+                  sx={{ flex: 1 }}
+                />
+                <Button variant="outlined" onClick={addTag}>
+                  Add
+                </Button>
               </Box>
-              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                {industryTags.map(tag => (
-                  <Chip key={tag} label={tag} size="small"
-                    onDelete={() => setIndustryTags(t => t.filter(x => x !== tag))}
-                    sx={{ background: 'rgba(0,51,102,0.08)', color: '#003366' }} />
+              <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
+                {industryTags.map((tag) => (
+                  <Chip
+                    key={tag}
+                    label={tag}
+                    size="small"
+                    onDelete={() =>
+                      setIndustryTags((t) => t.filter((x) => x !== tag))
+                    }
+                    sx={{ background: "rgba(0,51,102,0.08)", color: "#003366" }}
+                  />
                 ))}
               </Box>
             </Grid>
@@ -237,56 +306,88 @@ export default function CompanyProfilePage() {
       {/* Address */}
       <Card sx={{ mb: 3 }}>
         <CardContent sx={{ p: { xs: 2, md: 4 } }}>
-          <Typography variant="h6" sx={{ fontWeight: 600, mb: 3, color: '#003366' }}>
+          <Typography
+            variant="h6"
+            sx={{ fontWeight: 600, mb: 3, color: "#003366" }}
+          >
             Address & Size
           </Typography>
           <Grid container spacing={3}>
             <Grid item xs={12}>
-              <TextField fullWidth label="Headquarters Address"
+              <TextField
+                fullWidth
+                label="Headquarters Address"
                 value={form.headquarters_address}
-                onChange={e => setField('headquarters_address', e.target.value)} />
+                onChange={(e) =>
+                  setField("headquarters_address", e.target.value)
+                }
+              />
             </Grid>
             <Grid item xs={12} md={4}>
-              <TextField fullWidth label="City"
+              <TextField
+                fullWidth
+                label="City"
                 value={form.city}
-                onChange={e => setField('city', e.target.value)} />
+                onChange={(e) => setField("city", e.target.value)}
+              />
             </Grid>
             <Grid item xs={12} md={4}>
-              <TextField fullWidth label="State"
+              <TextField
+                fullWidth
+                label="State"
                 value={form.state}
-                onChange={e => setField('state', e.target.value)} />
+                onChange={(e) => setField("state", e.target.value)}
+              />
             </Grid>
             <Grid item xs={12} md={4}>
-              <TextField fullWidth label="Country"
+              <TextField
+                fullWidth
+                label="Country"
                 value={form.country}
-                onChange={e => setField('country', e.target.value)} />
+                onChange={(e) => setField("country", e.target.value)}
+              />
             </Grid>
             <Grid item xs={12} md={4}>
-              <TextField fullWidth label="Postal Code"
+              <TextField
+                fullWidth
+                label="Postal Code"
                 value={form.postal_code}
-                onChange={e => setField('postal_code', e.target.value)} />
+                onChange={(e) => setField("postal_code", e.target.value)}
+              />
             </Grid>
             <Grid item xs={12} md={4}>
-              <TextField fullWidth label="No. of Employees (e.g. 500-1000)"
+              <TextField
+                fullWidth
+                label="No. of Employees (e.g. 500-1000)"
                 value={form.no_of_employees}
-                onChange={e => setField('no_of_employees', e.target.value)} />
+                onChange={(e) => setField("no_of_employees", e.target.value)}
+              />
             </Grid>
             <Grid item xs={12} md={4}>
-              <TextField fullWidth label="Annual Turnover"
+              <TextField
+                fullWidth
+                label="Annual Turnover"
                 value={form.annual_turnover}
-                onChange={e => setField('annual_turnover', e.target.value)} />
+                onChange={(e) => setField("annual_turnover", e.target.value)}
+              />
             </Grid>
-            {form.company_type === 'mnc' && (
+            {form.company_type === "mnc" && (
               <>
                 <Grid item xs={12} md={6}>
-                  <TextField fullWidth label="MNC HQ Country"
+                  <TextField
+                    fullWidth
+                    label="MNC HQ Country"
                     value={form.mnc_hq_country}
-                    onChange={e => setField('mnc_hq_country', e.target.value)} />
+                    onChange={(e) => setField("mnc_hq_country", e.target.value)}
+                  />
                 </Grid>
                 <Grid item xs={12} md={6}>
-                  <TextField fullWidth label="MNC HQ City"
+                  <TextField
+                    fullWidth
+                    label="MNC HQ City"
                     value={form.mnc_hq_city}
-                    onChange={e => setField('mnc_hq_city', e.target.value)} />
+                    onChange={(e) => setField("mnc_hq_city", e.target.value)}
+                  />
                 </Grid>
               </>
             )}
@@ -297,45 +398,72 @@ export default function CompanyProfilePage() {
       {/* Contacts */}
       <Card sx={{ mb: 3 }}>
         <CardContent sx={{ p: { xs: 2, md: 4 } }}>
-          <Typography variant="h6" sx={{ fontWeight: 600, mb: 3, color: '#003366' }}>
+          <Typography
+            variant="h6"
+            sx={{ fontWeight: 600, mb: 3, color: "#003366" }}
+          >
             Contact Persons
           </Typography>
           {contacts.map((contact, i) => (
             <Box key={contact.contact_type}>
-              <Typography variant="body1" sx={{ fontWeight: 600, mb: 2, color: '#C8922A' }}>
+              <Typography
+                variant="body1"
+                sx={{ fontWeight: 600, mb: 2, color: "#C8922A" }}
+              >
                 {contactLabels[contact.contact_type]}
-                {i === 0 && ' *'}
+                {i === 0 && " *"}
               </Typography>
               <Grid container spacing={2} sx={{ mb: 2 }}>
                 <Grid item xs={12} md={6}>
-                  <TextField fullWidth size="small"
-                    label="Full Name" required={i === 0}
+                  <TextField
+                    fullWidth
+                    size="small"
+                    label="Full Name"
+                    required={i === 0}
                     value={contact.contact_name}
-                    onChange={e => setContact(i, 'contact_name', e.target.value)} />
+                    onChange={(e) =>
+                      setContact(i, "contact_name", e.target.value)
+                    }
+                  />
                 </Grid>
                 <Grid item xs={12} md={6}>
-                  <TextField fullWidth size="small"
+                  <TextField
+                    fullWidth
+                    size="small"
                     label="Designation"
                     value={contact.designation}
-                    onChange={e => setContact(i, 'designation', e.target.value)} />
+                    onChange={(e) =>
+                      setContact(i, "designation", e.target.value)
+                    }
+                  />
                 </Grid>
                 <Grid item xs={12} md={4}>
-                  <TextField fullWidth size="small"
-                    label="Email" required={i === 0}
+                  <TextField
+                    fullWidth
+                    size="small"
+                    label="Email"
+                    required={i === 0}
                     value={contact.email}
-                    onChange={e => setContact(i, 'email', e.target.value)} />
+                    onChange={(e) => setContact(i, "email", e.target.value)}
+                  />
                 </Grid>
                 <Grid item xs={12} md={4}>
-                  <TextField fullWidth size="small"
+                  <TextField
+                    fullWidth
+                    size="small"
                     label="Mobile"
                     value={contact.phone}
-                    onChange={e => setContact(i, 'phone', e.target.value)} />
+                    onChange={(e) => setContact(i, "phone", e.target.value)}
+                  />
                 </Grid>
                 <Grid item xs={12} md={4}>
-                  <TextField fullWidth size="small"
+                  <TextField
+                    fullWidth
+                    size="small"
                     label="Landline"
                     value={contact.landline}
-                    onChange={e => setContact(i, 'landline', e.target.value)} />
+                    onChange={(e) => setContact(i, "landline", e.target.value)}
+                  />
                 </Grid>
               </Grid>
               {i < contacts.length - 1 && <Divider sx={{ mb: 3 }} />}
@@ -344,13 +472,21 @@ export default function CompanyProfilePage() {
         </CardContent>
       </Card>
 
-      <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-        <Button variant="contained" size="large"
-          onClick={handleSubmit} disabled={saving}
-          sx={{ px: 5 }}>
-          {saving
-            ? <CircularProgress size={22} color="inherit" />
-            : isNew ? 'Create Company Profile' : 'Update Profile'}
+      <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
+        <Button
+          variant="contained"
+          size="large"
+          onClick={handleSubmit}
+          disabled={saving}
+          sx={{ px: 5 }}
+        >
+          {saving ? (
+            <CircularProgress size={22} color="inherit" />
+          ) : isNew ? (
+            "Create Company Profile"
+          ) : (
+            "Update Profile"
+          )}
         </Button>
       </Box>
     </DashboardLayout>

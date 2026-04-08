@@ -37,6 +37,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/jnf/{id}/salary',           [JnfController::class, 'saveSalary']);
     Route::post('/jnf/{id}/selection',        [JnfController::class, 'saveSelection']);
     Route::post('/jnf/{id}/submit',           [JnfController::class, 'submit']);
+    Route::post('/jnf/{id}/duplicate', [JnfController::class, 'duplicate']);
     Route::delete('/jnf/{id}',                 [JnfController::class, 'destroy']);
 
     // ── INF ───────────────────────────────────────────────────
@@ -48,6 +49,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/inf/{id}/stipend',          [InfController::class, 'saveStipend']);
     Route::post('/inf/{id}/selection',        [InfController::class, 'saveSelection']);
     Route::post('/inf/{id}/submit',           [InfController::class, 'submit']);
+    // Route::post('/inf/{id}/duplicate', [JnfController::class, 'duplicate']);
 });
 
 

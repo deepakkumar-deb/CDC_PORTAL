@@ -19,6 +19,7 @@ import DashboardLayout from "@/components/layout/DashboardLayout";
 import api from "@/lib/api";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 
+
 const statusColor: Record<string, "default" | "warning" | "success" | "error"> =
   {
     draft: "default",
@@ -34,6 +35,7 @@ export default function DashboardPage() {
   const [jnfs, setJnfs] = useState<any[]>([]);
   const [infs, setInfs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [duplicatingId, setDuplicatingId] = useState<number | null>(null);
 
   useEffect(() => {
     if (status === "unauthenticated") router.push("/auth/login");
@@ -59,6 +61,7 @@ export default function DashboardPage() {
   }, [status]);
 
   const handleDuplicate = async (jnfId: number) => {
+    setDuplicatingId(jnfId);
     try {
       const res = await api.post(`/jnf/${jnfId}/duplicate`);
       alert(`Duplicated! New form: ${res.data.jnf_code}`);
@@ -71,6 +74,8 @@ export default function DashboardPage() {
       setInfs(infRes.data.infs ?? []);
     } catch {
       alert("Failed to duplicate.");
+    } finally {
+      setDuplicatingId(null);
     }
   };
 
@@ -295,6 +300,7 @@ export default function DashboardPage() {
                     {inf.jnf_code} · {inf.recruitment_cycle}
                   </Typography>
                 </Box>
+
                 <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                   <Chip
                     label={inf.status}
@@ -308,6 +314,22 @@ export default function DashboardPage() {
                     onClick={() => router.push(`/inf/${inf.id}`)}
                   >
                     View
+                  </Button>
+                  <Button
+                    size="small"
+                    variant="outlined"
+                    startIcon={
+                      duplicatingId === inf.id ? (
+                        <CircularProgress size={14} />
+                      ) : (
+                        <ContentCopyIcon />
+                      )
+                    }
+                    onClick={() => handleDuplicate(inf.id)}
+                    disabled={duplicatingId === inf.id}
+                    sx={{ borderColor: "#C8922A", color: "#C8922A" }}
+                  >
+                    {duplicatingId === inf.id ? "Duplicating..." : "Duplicate"}
                   </Button>
                 </Box>
               </Box>
