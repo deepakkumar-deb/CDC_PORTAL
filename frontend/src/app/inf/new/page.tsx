@@ -99,13 +99,16 @@ export default function NewInfPage() {
 
   const initInf = async () => {
     if (initialized) return;
+    console.log('Initializing INF...');
     try {
       const res = await api.post('/inf');
       setJnfId(res.data.jnf_id);
       setInfCode(res.data.inf_code);
+    } catch (err: any) {
+      console.error('INF Init Error:', err.response?.data || err.message);
+      setError(err.response?.data?.message || 'Failed to initialize INF. Make sure your company profile is complete.');
+    } finally {
       setInit(true);
-    } catch {
-      setError('Failed to initialize INF. Make sure your company profile is complete.');
     }
   };
 

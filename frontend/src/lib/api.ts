@@ -11,9 +11,13 @@ const api = axios.create({
 
 // Automatically attach Bearer token to every request
 api.interceptors.request.use(async (config) => {
-  const session = await getSession();
-  if (session?.token) {
-    config.headers.Authorization = `Bearer ${session.token}`;
+  try {
+    const session = await getSession();
+    if (session?.token) {
+      config.headers.Authorization = `Bearer ${session.token}`;
+    }
+  } catch (err) {
+    console.error('Session retrieval error in interceptor:', err);
   }
   return config;
 });

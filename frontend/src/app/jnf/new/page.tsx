@@ -109,30 +109,32 @@ export default function NewJnfPage() {
     let cancelled = false;
 
     const init = async () => {
+      console.log('Initializing JNF...');
       try {
         if (editId) {
-          // Load existing (duplicated) JNF data to pre-fill tabs
+          console.log('Duplicating JNF:', editId);
           const res = await api.get(`/jnf/${editId}`);
           if (!cancelled) {
             const jnf = res.data.jnf;
             setJnfId(jnf.id);
             setJnfCode(jnf.jnf_code);
             setExistingData(jnf);
-            setInit(true);
           }
         } else {
-          // Fresh form — create a new empty JNF record
+          console.log('Creating fresh JNF');
           const res = await api.post('/jnf');
           if (!cancelled) {
             setJnfId(res.data.jnf_id);
             setJnfCode(res.data.jnf_code);
-            setInit(true);
           }
         }
-      } catch {
+      } catch (err: any) {
+        console.error('JNF Init Error:', err.response?.data || err.message);
         if (!cancelled) {
-          setError('Failed to initialize JNF. Make sure your company profile is complete.');
+          setError(err.response?.data?.message || 'Failed to initialize JNF. Make sure your company profile is complete.');
         }
+      } finally {
+        if (!cancelled) setInit(true);
       }
     };
 

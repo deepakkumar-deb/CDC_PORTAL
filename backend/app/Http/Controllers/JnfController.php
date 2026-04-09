@@ -93,6 +93,7 @@ class JnfController extends Controller
     // ── Create new JNF (returns jnf_id for auto-save) ─────────
     public function store(Request $request)
     {
+        \Illuminate\Support\Facades\Log::info('JnfController.store hit');
         $company = $request->user()->company;
 
         if (!$company) {

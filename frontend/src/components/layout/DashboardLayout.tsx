@@ -224,7 +224,14 @@ export default function DashboardLayout({
           size="small"
           startIcon={<LogoutIcon />}
           onClick={handleLogout}
-          sx={{ borderColor: "rgba(0,0,0,0.15)", color: "text.secondary" }}
+          sx={{ 
+            borderColor: "rgba(211, 47, 47, 0.4)", 
+            color: "#d32f2f",
+            "&:hover": {
+              borderColor: "#d32f2f",
+              bgcolor: "rgba(211, 47, 47, 0.04)"
+            }
+          }}
         >
           Logout
         </Button>
