@@ -3,23 +3,80 @@ import { useState, useEffect } from 'react';
 import {
   Box, TextField, Grid, MenuItem, Typography,
   Button, CircularProgress, Switch, FormControlLabel,
+  Accordion, AccordionSummary, AccordionDetails, Checkbox as MuiCheckbox,
 } from '@mui/material';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 
 const genderOptions = ['all', 'male', 'female', 'other'];
 
 const programmes = [
-  { id: 1,  label: 'B.Tech — Computer Science & Engineering' },
-  { id: 2,  label: 'B.Tech — Electrical Engineering' },
-  { id: 3,  label: 'B.Tech — Electronics & Communication' },
-  { id: 4,  label: 'B.Tech — Mechanical Engineering' },
-  { id: 5,  label: 'B.Tech — Civil Engineering' },
-  { id: 6,  label: 'B.Tech — Chemical Engineering' },
-  { id: 7,  label: 'B.Tech — Mining Engineering' },
-  { id: 8,  label: 'B.Tech — Petroleum Engineering' },
-  { id: 9,  label: 'M.Tech — CSE' },
-  { id: 10, label: 'M.Tech — Data Analytics' },
-  { id: 11, label: 'MBA — Business Analytics' },
-  { id: 12, label: 'M.Sc — Mathematics & Computing' },
+  // B.Tech / Dual
+  { id: 1,  label: 'Chemical Engineering', degree: 'JEE Advanced: B.Tech / Dual Degree (4/5 Yr)' },
+  { id: 2,  label: 'Civil Engineering', degree: 'JEE Advanced: B.Tech / Dual Degree (4/5 Yr)' },
+  { id: 3,  label: 'Computer Science & Engineering', degree: 'JEE Advanced: B.Tech / Dual Degree (4/5 Yr)' },
+  { id: 4,  label: 'Electrical Engineering', degree: 'JEE Advanced: B.Tech / Dual Degree (4/5 Yr)' },
+  { id: 5,  label: 'Electronics & Communication Engineering', degree: 'JEE Advanced: B.Tech / Dual Degree (4/5 Yr)' },
+  { id: 6,  label: 'Engineering Physics', degree: 'JEE Advanced: B.Tech / Dual Degree (4/5 Yr)' },
+  { id: 7,  label: 'Environmental Engineering', degree: 'JEE Advanced: B.Tech / Dual Degree (4/5 Yr)' },
+  { id: 9,  label: 'Mechanical Engineering', degree: 'JEE Advanced: B.Tech / Dual Degree (4/5 Yr)' },
+  { id: 10, label: 'Mining Engineering', degree: 'JEE Advanced: B.Tech / Dual Degree (4/5 Yr)' },
+  { id: 11, label: 'Mining Machinery Engineering / Mech. Eng.', degree: 'JEE Advanced: B.Tech / Dual Degree (4/5 Yr)' },
+  { id: 12, label: 'Petroleum Engineering', degree: 'JEE Advanced: B.Tech / Dual Degree (4/5 Yr)' },
+  { id: 13, label: 'Mineral & Metallurgical Engineering', degree: 'JEE Advanced: B.Tech / Dual Degree (4/5 Yr)' },
+  { id: 8,  label: 'Mathematics & Computing', degree: 'JEE Advanced: B.Tech / Dual Degree (4/5 Yr)' },
+  
+  // Integrated M.Tech
+  { id: 52, label: 'Mathematics & Computing', degree: 'JEE Advanced: Integrated M.Tech (5 Yr)' },
+  { id: 31, label: 'Applied Geology', degree: 'JEE Advanced: Integrated M.Tech (5 Yr)' },
+  { id: 32, label: 'Applied Geophysics', degree: 'JEE Advanced: Integrated M.Tech (5 Yr)' },
+
+  // M.Tech (GATE)
+  { id: 33, label: 'Earthquake Science & Engineering (Applied Geophysics)', degree: 'GATE: M.Tech (2 Yr)' },
+  { id: 14, label: 'Chemical Engineering', degree: 'GATE: M.Tech (2 Yr)' },
+  { id: 34, label: 'Pharmaceutical Science and Engineering', degree: 'GATE: M.Tech (2 Yr)' },
+  { id: 15, label: 'Civil Engineering', degree: 'GATE: M.Tech (2 Yr)' },
+  { id: 16, label: 'Computer Science and Engineering', degree: 'GATE: M.Tech (2 Yr)' },
+  { id: 35, label: 'Power System Engineering (Electrical Engineering)', degree: 'GATE: M.Tech (2 Yr)' },
+  { id: 36, label: 'Power Electronics & Electrical Drives (Electrical Engineering)', degree: 'GATE: M.Tech (2 Yr)' },
+  { id: 37, label: 'Communication & Signal Processing (ECE)', degree: 'GATE: M.Tech (2 Yr)' },
+  { id: 38, label: 'Optical Communication & Integrated Photonics (ECE)', degree: 'GATE: M.Tech (2 Yr)' },
+  { id: 39, label: 'RF & Microwave Engineering (ECE)', degree: 'GATE: M.Tech (2 Yr)' },
+  { id: 40, label: 'VLSI Design (ECE)', degree: 'GATE: M.Tech (2 Yr)' },
+  { id: 19, label: 'Environmental Science & Engineering', degree: 'GATE: M.Tech (2 Yr)' },
+  { id: 41, label: 'Fuel and Energy Engineering', degree: 'GATE: M.Tech (2 Yr)' },
+  { id: 42, label: 'Mineral Engineering', degree: 'GATE: M.Tech (2 Yr)' },
+  { id: 43, label: 'Metallurgical Engineering', degree: 'GATE: M.Tech (2 Yr)' },
+  { id: 25, label: 'Industrial Engineering & Management', degree: 'GATE: M.Tech (2 Yr)' },
+  { id: 44, label: 'Data Analytics', degree: 'GATE: M.Tech (2 Yr)' },
+  { id: 45, label: 'Machine Design (Mechanical Engineering)', degree: 'GATE: M.Tech (2 Yr)' },
+  { id: 46, label: 'Manufacturing Engineering (Mechanical Engineering)', degree: 'GATE: M.Tech (2 Yr)' },
+  { id: 47, label: 'Thermal Engineering (Mechanical Engineering)', degree: 'GATE: M.Tech (2 Yr)' },
+  { id: 22, label: 'Mining Engineering', degree: 'GATE: M.Tech (2 Yr)' },
+  { id: 48, label: 'Geomatics (Mining Engineering)', degree: 'GATE: M.Tech (2 Yr)' },
+  { id: 49, label: 'Tunneling and Underground Space Technology (Mining)', degree: 'GATE: M.Tech (2 Yr)' },
+  { id: 24, label: 'Petroleum Engineering', degree: 'GATE: M.Tech (2 Yr)' },
+
+  // MSc Tech (JAM)
+  { id: 50, label: 'Applied Geology', degree: 'JAM: M.Sc. Tech (3 Yr)' },
+  { id: 51, label: 'Applied Geophysics', degree: 'JAM: M.Sc. Tech (3 Yr)' },
+
+  // MBA (CAT)
+  { id: 27, label: 'MBA - Business Analytics', degree: 'CAT: MBA (2 Yr)' },
+  { id: 26, label: 'MBA (Finance/Marketing/HR/Operations)', degree: 'CAT: MBA (2 Yr)' },
+
+  // M.Sc (JAM)
+  { id: 30, label: 'Physics', degree: 'JAM: M.Sc (2 Yr)' },
+  { id: 29, label: 'Chemistry', degree: 'JAM: M.Sc (2 Yr)' },
+  { id: 28, label: 'Mathematics & Computing', degree: 'JAM: M.Sc (2 Yr)' },
+];
+
+const degrees = [
+  'JEE Advanced: B.Tech / Dual Degree (4/5 Yr)',
+  'JEE Advanced: Integrated M.Tech (5 Yr)',
+  'GATE: M.Tech (2 Yr)',
+  'JAM: M.Sc. Tech (3 Yr)',
+  'CAT: MBA (2 Yr)',
+  'JAM: M.Sc (2 Yr)'
 ];
 
 export default function EligibilityTab({
@@ -35,6 +92,7 @@ export default function EligibilityTab({
     active_backlogs_allowed: false,
     min_class_10_percent: '', min_class_12_percent: '',
     allowed_gender: 'all', additional_text: '',
+    hiring_ma: false, hiring_phd: false, phd_departments: '',
   });
   const [selectedPrograms, setSelectedPrograms] = useState<number[]>([]);
   const [useBranchWise, setUseBranchWise] = useState(false);
@@ -45,15 +103,19 @@ export default function EligibilityTab({
     if (!initialData) return;
     const rule = initialData.eligibility_rule;
     if (rule) {
-      setForm({
-        min_cgpa:                rule.min_cgpa             ?? '',
-        max_backlogs_allowed:    rule.max_backlogs_allowed  ?? '',
-        active_backlogs_allowed: rule.active_backlogs_allowed ?? false,
-        min_class_10_percent:    rule.min_class_10_percent  ?? '',
-        min_class_12_percent:    rule.min_class_12_percent  ?? '',
-        allowed_gender:          rule.allowed_gender        || 'all',
-        additional_text:         rule.additional_text       || '',
-      });
+      setForm(f => ({
+        ...f,
+        min_cgpa:                rule.min_cgpa                ?? '',
+        max_backlogs_allowed:    rule.max_backlogs_allowed     ?? '',
+        active_backlogs_allowed: rule.active_backlogs_allowed  ?? false,
+        min_class_10_percent:    rule.min_class_10_percent     ?? '',
+        min_class_12_percent:    rule.min_class_12_percent     ?? '',
+        allowed_gender:          rule.allowed_gender           || 'all',
+        additional_text:         rule.additional_text          || '',
+        hiring_ma:               rule.hiring_ma                ?? false,
+        hiring_phd:              rule.hiring_phd               ?? false,
+        phd_departments:         rule.phd_departments          || '',
+      }));
     }
     if (initialData.allowed_programs?.length) {
       setSelectedPrograms(initialData.allowed_programs.map((p: any) => p.program_dept_map_id));
@@ -74,7 +136,7 @@ export default function EligibilityTab({
     setSelectedPrograms(prev => {
       const selected = prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id];
       if (!prev.includes(id) && !branchWiseData[id]) {
-        setBranchWiseData(d => ({ ...d, [id]: { min_cgpa: form.min_cgpa, active_backlogs_allowed: form.active_backlogs_allowed }}));
+        setBranchWiseData(d => ({ ...d, [id]: { min_cgpa: form.min_cgpa, active_backlogs_allowed: form.active_backlogs_allowed } }));
       }
       return selected;
     });
@@ -89,11 +151,11 @@ export default function EligibilityTab({
   };
 
   const handleSave = () => {
-    const dept_cgpa = useBranchWise ? selectedPrograms.map(id => ({
+    const dept_cgpa = selectedPrograms.map(id => ({
       program_dept_map_id: id,
       min_cgpa: branchWiseData[id]?.min_cgpa || form.min_cgpa || '0',
       active_backlogs_allowed: branchWiseData[id]?.active_backlogs_allowed ?? form.active_backlogs_allowed
-    })) : [];
+    }));
 
     onSave({
       ...form,
@@ -159,105 +221,174 @@ export default function EligibilityTab({
                 onChange={e => set('active_backlogs_allowed', e.target.checked)}
               />
             }
-            label="Active Backlogs Allowed?"
+            label="Active Backlogs Allowed"
           />
         </Grid>
 
         {/* Programme selection */}
         <Grid item xs={12}>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-            <Typography variant="body1" sx={{ fontWeight: 600 }}>
-              Eligible Programmes & Departments
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2, mt: 2 }}>
+            <Typography variant="body1" sx={{ fontWeight: 700, color: '#003366' }}>
+              Eligible Programmes & Branch-wise Criteria
             </Typography>
             <Button size="small" variant="outlined" onClick={toggleAll}>
               {selectedPrograms.length === programmes.length ? 'Deselect All' : 'Select All'}
             </Button>
           </Box>
-          <Grid container spacing={1}>
-            {programmes.map(prog => {
-              const selected = selectedPrograms.includes(prog.id);
-              return (
-                <Grid item xs={12} sm={6} md={4} key={prog.id}>
-                  <Box
-                    onClick={() => toggleProgram(prog.id)}
-                    sx={{
-                      p: 1.5, borderRadius: 2, cursor: 'pointer',
-                      border: selected
-                        ? '2px solid #003366'
-                        : '1px solid rgba(0,0,0,0.12)',
-                      background: selected ? 'rgba(0,51,102,0.07)' : 'white',
-                      transition: 'all 0.15s ease',
-                      '&:hover': { borderColor: '#003366' },
-                    }}
-                  >
-                    <Typography sx={{
-                      fontSize: '0.8rem',
-                      fontWeight: selected ? 600 : 400,
-                      color: selected ? '#003366' : 'text.primary',
-                    }}>
-                      {prog.label}
-                    </Typography>
-                  </Box>
-                </Grid>
-              );
-            })}
-          </Grid>
-          
-          {selectedPrograms.length > 0 && (
-            <Box sx={{ mt: 3, p: 2, border: '1px solid #e0e0e0', borderRadius: 2 }}>
-              <FormControlLabel
-                control={
-                  <Switch
-                    checked={useBranchWise}
-                    onChange={e => setUseBranchWise(e.target.checked)}
-                    color="primary"
-                  />
-                }
-                label="Set Branch-wise Specific Criteria"
-              />
-              {useBranchWise && (
-                <Box sx={{ mt: 2 }}>
-                  {selectedPrograms.map(id => {
-                    const prog = programmes.find(p => p.id === id);
-                    if (!prog) return null;
-                    const bdata = branchWiseData[id] || { min_cgpa: form.min_cgpa, active_backlogs_allowed: form.active_backlogs_allowed };
+
+          <Box>
+            {degrees.map(degree => (
+              <Accordion
+                key={degree}
+                sx={{
+                  mb: 1,
+                  border: '1px solid rgba(0,0,0,0.1)',
+                  boxShadow: 'none',
+                  '&:before': { display: 'none' }
+                }}
+              >
+                <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                  <Typography sx={{ fontWeight: 600 }}>{degree} Programmes</Typography>
+                  <Typography sx={{ ml: 2, color: 'text.secondary', fontSize: '0.8rem' }}>
+                    ({programmes.filter(p => p.degree === degree && selectedPrograms.includes(p.id)).length} selected)
+                  </Typography>
+                </AccordionSummary>
+                <AccordionDetails sx={{ p: 0 }}>
+                  {programmes
+                    .filter(p => p.degree === degree)
+                    .sort((a, b) => a.label.localeCompare(b.label))
+                    .map(prog => {
+                    const isSelected = selectedPrograms.includes(prog.id);
+                    const bdata = branchWiseData[prog.id] || {
+                      min_cgpa: form.min_cgpa,
+                      active_backlogs_allowed: form.active_backlogs_allowed
+                    };
+
                     return (
-                      <Grid container spacing={2} key={id} sx={{ mb: 2, alignItems: 'center' }}>
-                        <Grid item xs={12} md={4}>
-                          <Typography variant="body2" sx={{ fontWeight: 600 }}>{prog.label}</Typography>
-                        </Grid>
-                        <Grid item xs={12} sm={6} md={4}>
-                          <TextField
-                            size="small" fullWidth label="Minimum CGPA"
-                            type="number"
-                            value={bdata.min_cgpa}
-                            onChange={e => setBranchWiseData(prev => ({
-                              ...prev,
-                              [id]: { ...bdata, min_cgpa: e.target.value }
-                            }))}
-                          />
-                        </Grid>
-                        <Grid item xs={12} sm={6} md={4}>
-                          <FormControlLabel
-                            control={
-                              <Switch
-                                checked={bdata.active_backlogs_allowed}
-                                onChange={e => setBranchWiseData(prev => ({
-                                  ...prev,
-                                  [id]: { ...bdata, active_backlogs_allowed: e.target.checked }
-                                }))}
-                              />
-                            }
-                            label="Active Backlogs Allowed?"
-                          />
-                        </Grid>
-                      </Grid>
+                      <Box
+                        key={prog.id}
+                        sx={{
+                          py: 0.5,
+                          px: 2,
+                          borderTop: '1px solid rgba(0,0,0,0.05)',
+                          background: isSelected ? 'rgba(0,51,102,0.02)' : 'transparent',
+                          display: 'flex',
+                          flexDirection: { xs: 'column', md: 'row' },
+                          alignItems: { md: 'center' },
+                          gap: 2
+                        }}
+                      >
+                        <FormControlLabel
+                          sx={{ flex: 1, minWidth: 250 }}
+                          control={
+                            <MuiCheckbox
+                              size="small"
+                              checked={isSelected}
+                              onChange={() => toggleProgram(prog.id)}
+                            />
+                          }
+                          label={<Typography variant="body2">{prog.label}</Typography>}
+                        />
+
+                        {isSelected && (
+                          <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', flexShrink: 0 }}>
+                            <TextField
+                              size="small"
+                              label="CGPA"
+                              type="number"
+                              sx={{ width: 80 }}
+                              value={bdata.min_cgpa}
+                              onChange={e => setBranchWiseData(prev => ({
+                                ...prev,
+                                [prog.id]: { ...bdata, min_cgpa: e.target.value }
+                              }))}
+                            />
+                            <FormControlLabel
+                              control={
+                                <Switch
+                                  checked={bdata.active_backlogs_allowed}
+                                  onChange={e => setBranchWiseData(prev => ({
+                                    ...prev,
+                                    [prog.id]: { ...bdata, active_backlogs_allowed: e.target.checked }
+                                  }))}
+                                />
+                              }
+                              label={<Typography variant="caption">Active Backlogs Allowed</Typography>}
+                            />
+                          </Box>
+                        )}
+                      </Box>
                     );
                   })}
+                </AccordionDetails>
+              </Accordion>
+            ))}
+          </Box>
+
+          <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
+            Note: Selecting a branch automatically applies the global CGPA/Backlog settings. You can then override them individually.
+          </Typography>
+        </Grid>
+
+        <Grid item xs={12}>
+          <Box sx={{ mt: 3, p: 3, border: '1px solid #e0e0e0', borderRadius: 2, bgcolor: '#f9f9f9' }}>
+            <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 2, color: '#003366' }}>
+              Special Hiring Interests
+            </Typography>
+            <Grid container spacing={2}>
+              {/* M.A. Question */}
+              <Grid item xs={12}>
+                <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 2 }}>
+                  <Typography variant="body2" sx={{ fontWeight: 600, flexGrow: 1 }}>
+                    Are you interested in Hiring 2 Year M.A. (Digital Humanities & Social Sciences):
+                  </Typography>
+                  <FormControlLabel
+                    control={<MuiCheckbox checked={form.hiring_ma} onChange={() => set('hiring_ma', true)} />}
+                    label={<Typography variant="caption">Yes</Typography>}
+                  />
+                  <FormControlLabel
+                    control={<MuiCheckbox checked={!form.hiring_ma} onChange={() => set('hiring_ma', false)} />}
+                    label={<Typography variant="caption">No</Typography>}
+                  />
                 </Box>
+              </Grid>
+
+              {/* Ph.D. Question */}
+              <Grid item xs={12}>
+                <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 2 }}>
+                  <Typography variant="body2" sx={{ fontWeight: 600, flexGrow: 1 }}>
+                    Are you interested in Hiring Ph.D. Students admitted through GATE/NET:
+                  </Typography>
+                  <FormControlLabel
+                    control={<MuiCheckbox checked={form.hiring_phd} onChange={() => set('hiring_phd', true)} />}
+                    label={<Typography variant="caption">Yes</Typography>}
+                  />
+                  <FormControlLabel
+                    control={<MuiCheckbox checked={!form.hiring_phd} onChange={() => set('hiring_phd', false)} />}
+                    label={<Typography variant="caption">No</Typography>}
+                  />
+                </Box>
+              </Grid>
+
+              {form.hiring_phd && (
+                <Grid item xs={12}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mt: 1 }}>
+                    <Typography variant="caption" sx={{ fontWeight: 700, whiteSpace: 'nowrap' }}>
+                      If yes, Please specify the required Department name:
+                    </Typography>
+                    <TextField
+                      fullWidth
+                      variant="standard"
+                      placeholder="Click here to enter text"
+                      value={form.phd_departments}
+                      onChange={e => set('phd_departments', e.target.value)}
+                      sx={{ '& .MuiInputBase-input': { fontSize: '0.8rem' } }}
+                    />
+                  </Box>
+                </Grid>
               )}
-            </Box>
-          )}
+            </Grid>
+          </Box>
         </Grid>
 
         <Grid item xs={12}>

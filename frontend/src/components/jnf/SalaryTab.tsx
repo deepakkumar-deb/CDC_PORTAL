@@ -80,6 +80,18 @@ export default function SalaryTab({
     ));
   };
 
+  const applyGlobal = (key: string, value: any) => {
+    setRows(prev => prev.map(r => ({ ...r, [key]: value })));
+  };
+
+  const [globalVals, setGlobalVals] = useState<any>({
+    ctc_annual: '', base_fixed: '', monthly_takehome: '', gross_salary: '',
+  });
+
+  const handleApplyAll = () => {
+    setRows(prev => prev.map(r => ({ ...r, ...globalVals })));
+  };
+
   const handleSave = () => {
     onSave({ salary_breakdowns: rows });
   };
@@ -93,6 +105,54 @@ export default function SalaryTab({
         Fill salary details for each programme you are recruiting from.
         Leave blank if not applicable.
       </Typography>
+
+      {/* Global Salary Setter */}
+      <Box sx={{ 
+        p: 2, mb: 4, borderRadius: 2, 
+        border: '1px dashed #003366',
+        background: 'rgba(0,51,102,0.02)'
+      }}>
+        <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 2, color: '#003366' }}>
+          Global Salary Setter (Apply to all courses)
+        </Typography>
+        <Grid container spacing={2} alignItems="center">
+          <Grid item xs={12} sm={3}>
+            <TextField 
+              fullWidth size="small" label="Global CTC" 
+              type="number" value={globalVals.ctc_annual}
+              onChange={e => setGlobalVals({...globalVals, ctc_annual: e.target.value})}
+            />
+          </Grid>
+          <Grid item xs={12} sm={3}>
+            <TextField 
+              fullWidth size="small" label="Global Base" 
+              type="number" value={globalVals.base_fixed}
+              onChange={e => setGlobalVals({...globalVals, base_fixed: e.target.value})}
+            />
+          </Grid>
+          <Grid item xs={12} sm={3}>
+            <TextField 
+              fullWidth size="small" label="Global Take-home" 
+              type="number" value={globalVals.monthly_takehome}
+              onChange={e => setGlobalVals({...globalVals, monthly_takehome: e.target.value})}
+            />
+          </Grid>
+          <Grid item xs={12} sm={3}>
+            <Button 
+              fullWidth variant="contained" 
+              onClick={handleApplyAll}
+              sx={{ background: '#003366', height: 40 }}
+            >
+              Apply to All
+            </Button>
+          </Grid>
+        </Grid>
+        <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
+          Tip: You can set values here once and click "Apply" to fill all rows below.
+        </Typography>
+      </Box>
+
+      <Divider sx={{ mb: 4 }} />
 
       {rows.map((row, i) => (
         <Box key={row.programme_type} sx={{ mb: 4 }}>

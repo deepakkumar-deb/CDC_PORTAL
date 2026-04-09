@@ -62,6 +62,23 @@ class InfController extends Controller
         $company = $request->user()->company;
         if (!$company) return $this->noCompany();
 
+        // Reuse existing empty draft if available (created in last hour with no internship_title)
+        $existing = Jnf::where('company_id', $company->id)
+            ->where('opportunity_type', 'internship')
+            ->where('status', 'draft')
+            ->whereNull('internship_title')
+            ->where('created_at', '>', now()->subHour())
+            ->first();
+
+        if ($existing) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Reusing existing empty draft.',
+                'jnf_id'  => $existing->id,
+                'inf_code' => $existing->jnf_code,
+            ], 200);
+        }
+
         $jnf = Jnf::create([
             'company_id'        => $company->id,
             'opportunity_type'  => 'internship',
@@ -356,7 +373,7 @@ class InfController extends Controller
         $body .= "Company          : {$company->company_name}\n";
         $body .= "Internship Title : {$jnf->internship_title}\n";
         $body .= "Recruitment Cycle: {$jnf->recruitment_cycle}\n";
-        $body .= "Submitted At     : {$jnf->submitted_at}\n";
+        $body .= "Submitted At     : " . date('d/m/Y h:i A', strtotime($jnf->submitted_at)) . "\n";
         $body .= str_repeat('-', 40) . "\n\n";
         $body .= "Login to the admin panel to review:\n";
         $body .= env('APP_URL', 'http://localhost:3000') . "/admin";
@@ -400,5 +417,22 @@ class InfController extends Controller
             'success' => true,
             'message' => $message,
         ]);
+    }
+    // ── Delete INF (only drafts) ──────────────────────────────
+    public function destroy(Request $request, $id)
+    {
+        $jnf = $this->getInf($request, $id);
+        if (!$jnf) return $this->notFound();
+
+        if ($jnf->status !== 'draft') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Only draft INFs can be deleted.',
+            ], 403);
+        }
+
+        $jnf->delete();
+
+        return $this->success('INF deleted.');
     }
 }

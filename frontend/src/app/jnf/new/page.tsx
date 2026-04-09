@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import {
   Box, Card, CardContent, Typography, Button,
@@ -101,8 +101,11 @@ export default function NewJnfPage() {
 
   const [pdfFile, setPdfFile] = useState<File | null>(null);
   const [extracting, setExtracting] = useState(false);
+  const hasInitialized = useRef(false);
 
   useEffect(() => {
+    if (hasInitialized.current) return;
+    hasInitialized.current = true;
     let cancelled = false;
 
     const init = async () => {
@@ -144,6 +147,13 @@ export default function NewJnfPage() {
     setSuccess('');
     try {
       await api.post(`/jnf/${jnfId}/${endpoint}`, data);
+
+      // Update local storage of existing data so 'Back' button works perfectly
+      setExistingData((prev: any) => ({
+        ...(prev || {}),
+        ...data
+      }));
+
       setSuccess('Saved successfully.');
       if (tabIndex < tabs.length - 1) {
         setActiveTab(tabIndex + 1);

@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Box, Card, CardContent, Typography,
@@ -95,6 +95,7 @@ export default function NewInfPage() {
   const [initialized, setInit]      = useState(false);
   const [existingData, setExistingData] = useState<any>(null);
   const [extracting, setExtracting] = useState(false);
+  const hasInitialized = useRef(false);
 
   const initInf = async () => {
     if (initialized) return;
@@ -108,7 +109,11 @@ export default function NewInfPage() {
     }
   };
 
-  useState(() => { initInf(); });
+  useEffect(() => {
+    if (hasInitialized.current) return;
+    hasInitialized.current = true;
+    initInf();
+  }, []);
 
   const handleTabSave = async (tabIndex: number, data: any, endpoint: string) => {
     if (!jnfId) return;
@@ -117,6 +122,13 @@ export default function NewInfPage() {
     setSuccess('');
     try {
       await api.post(`/inf/${jnfId}/${endpoint}`, data);
+      
+      // Update local storage of existing data so 'Back' button works perfectly
+      setExistingData((prev: any) => ({
+        ...(prev || {}),
+        ...data
+      }));
+
       setSuccess('Saved successfully.');
       if (tabIndex < tabs.length - 1) setActiveTab(tabIndex + 1);
     } catch (err: any) {
@@ -216,7 +228,7 @@ export default function NewInfPage() {
             }} />
           </Button>
           <Button variant="outlined" size="small" onClick={() => router.push('/dashboard')}>
-            Back
+            Back to Dashboard
           </Button>
         </Box>
       </Box>
@@ -245,23 +257,30 @@ export default function NewInfPage() {
               {activeTab === 0 && (
                 <InternProfileTab saving={saving}
                   initialData={existingData}
-                  onSave={d => handleTabSave(0, d, 'intern-profile')} />
+                  onSave={d => handleTabSave(0, d, 'intern-profile')}
+                  onBack={() => router.push('/dashboard')} />
               )}
               {activeTab === 1 && (
                 <EligibilityTab saving={saving}
-                  onSave={d => handleTabSave(1, d, 'eligibility')} />
+                  initialData={existingData}
+                  onSave={d => handleTabSave(1, d, 'eligibility')}
+                  onBack={() => setActiveTab(0)} />
               )}
               {activeTab === 2 && (
                 <StipendTab saving={saving}
                   initialData={existingData}
-                  onSave={d => handleTabSave(2, d, 'stipend')} />
+                  onSave={d => handleTabSave(2, d, 'stipend')}
+                  onBack={() => setActiveTab(1)} />
               )}
               {activeTab === 3 && (
                 <SelectionTab saving={saving}
-                  onSave={d => handleTabSave(3, d, 'selection')} />
+                  initialData={existingData}
+                  onSave={d => handleTabSave(3, d, 'selection')}
+                  onBack={() => setActiveTab(2)} />
               )}
               {activeTab === 4 && (
-                <DeclarationTab saving={saving} onSubmit={handleSubmit} />
+                <DeclarationTab saving={saving} onSubmit={handleSubmit}
+                  onBack={() => setActiveTab(3)} />
               )}
             </>
           )}

@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Box, TextField, Grid, MenuItem, Typography,
   Button, Chip, CircularProgress, Switch, FormControlLabel, Alert
@@ -9,10 +9,11 @@ const locationTypes   = ['onsite', 'remote', 'hybrid'];
 const internshipTypes = ['summer', 'winter', 'year-long'];
 
 export default function InternProfileTab({
-  saving, onSave, initialData
+  saving, onSave, onBack, initialData
 }: {
   saving: boolean;
   onSave: (data: any) => void;
+  onBack?: () => void;
   initialData?: any;
 }) {
   const [form, setForm] = useState({
@@ -33,15 +34,31 @@ export default function InternProfileTab({
   const [skillInput, setSkill] = useState('');
   const [validationError, setValidationError] = useState('');
 
-  // Pre-fill from initialData (e.g. from a PDF Autofill)
-  require('react').useEffect(() => {
+  // Pre-fill from initialData (e.g. from a PDF Autofill or saved draft)
+  useEffect(() => {
     if (!initialData) return;
     setForm(f => ({
       ...f,
-      internship_title: initialData.internship_title || f.internship_title,
-      job_description: initialData.job_description || f.job_description,
-      location_type: initialData.location_type || f.location_type,
-      openings_count: initialData.openings_count ?? f.openings_count,
+      internship_title:           initialData.internship_title           || f.internship_title,
+      designation:                initialData.designation                || f.designation,
+      department_function:        initialData.department_function        || f.department_function,
+      job_description:            initialData.job_description            || f.job_description,
+      responsibilities:           initialData.responsibilities           || f.responsibilities,
+      location_type:              initialData.location_type              || f.location_type,
+      location_text:              initialData.location_text              || f.location_text,
+      openings_count:             initialData.openings_count             ?? f.openings_count,
+      min_openings:               initialData.min_openings               ?? f.min_openings,
+      internship_type:            initialData.inf_detail?.internship_type || f.internship_type,
+      internship_duration_months: initialData.inf_detail?.duration_months   || f.internship_duration_months,
+      expected_duration:          initialData.expected_duration          || f.expected_duration,
+      ppo_offered:                initialData.inf_detail?.ppo_offered     ?? f.ppo_offered,
+      ppo_ctc_expected:          initialData.inf_detail?.ppo_ctc_expected || f.ppo_ctc_expected,
+      registration_link:          initialData.registration_link          || f.registration_link,
+      accommodation_provided:     initialData.inf_detail?.accommodation_provided ?? f.accommodation_provided,
+      travel_allowance:           initialData.inf_detail?.travel_allowance       ?? f.travel_allowance,
+      certificate_provided:       initialData.inf_detail?.certificate_provided   ?? f.certificate_provided,
+      work_from_home_allowed:    initialData.inf_detail?.work_from_home_allowed || f.work_from_home_allowed,
+      additional_info:            initialData.additional_info            || f.additional_info,
     }));
     if (initialData.skills?.length) {
       setSkills(initialData.skills.map((s: any) => s.skill_name));
@@ -232,7 +249,7 @@ export default function InternProfileTab({
         </Grid>
       </Grid>
 
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 4 }}>
+      <Box sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', mt: 4, gap: 2 }}>
         <Box sx={{ flex: 1, mr: 2 }}>
           {validationError && (
             <Alert severity="error" onClose={() => setValidationError('')}>
@@ -240,6 +257,11 @@ export default function InternProfileTab({
             </Alert>
           )}
         </Box>
+        {onBack && (
+          <Button variant="outlined" size="large" onClick={onBack}>
+            Back
+          </Button>
+        )}
         <Button
           variant="contained" size="large"
           onClick={handleSave} disabled={saving}

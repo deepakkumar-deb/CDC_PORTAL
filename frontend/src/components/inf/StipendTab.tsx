@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Box, TextField, Grid, Typography, Button,
   MenuItem, CircularProgress, Divider, IconButton,
@@ -23,16 +23,48 @@ const emptyRow = (pt: string) => ({
 });
 
 export default function StipendTab({
-  saving, onSave, initialData
+  saving, onSave, onBack, initialData
 }: {
   saving: boolean;
   onSave: (data: any) => void;
+  onBack?: () => void;
   initialData?: any;
 }) {
   const [rows, setRows] = useState(programmes.map(p => emptyRow(p)));
   const [perks, setPerks] = useState<
     { programme_type: string; perk_label: string; perk_value: string }[]
   >([]);
+
+  // Pre-fill from initialData
+  useEffect(() => {
+    if (!initialData) return;
+    if (initialData.inf_stipend_breakdowns?.length) {
+      const dbRows = initialData.inf_stipend_breakdowns;
+      setRows(programmes.map(p => {
+        const found = dbRows.find((r: any) => r.programme_type === p);
+        return found ? {
+          programme_type: found.programme_type,
+          currency:        found.currency        || 'INR',
+          base_stipend:    found.base_stipend    ?? '',
+          hra_housing:     found.hra_housing     ?? '',
+          variable_pay:    found.variable_pay    ?? '',
+          other_allowance: found.other_allowance ?? '',
+          total_stipend:   found.total_stipend   ?? '',
+        } : emptyRow(p);
+      }));
+    } else if (initialData.stipends?.length) {
+       // Support legacy/AI extracted format
+       // ... (optional, basic mapping is enough for now)
+    }
+    
+    if (initialData.inf_compensation_perks?.length) {
+      setPerks(initialData.inf_compensation_perks.map((p: any) => ({
+        programme_type: p.programme_type,
+        perk_label:     p.perk_label || '',
+        perk_value:     p.perk_value || '',
+      })));
+    }
+  }, [initialData]);
 
   const setRow = (i: number, k: string, v: string) => {
     setRows(prev => prev.map((r, idx) =>
@@ -155,7 +187,12 @@ export default function StipendTab({
         </Box>
       ))}
 
-      <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 4 }}>
+      <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 4, gap: 2 }}>
+        {onBack && (
+          <Button variant="outlined" size="large" onClick={onBack}>
+            Back
+          </Button>
+        )}
         <Button
           variant="contained" size="large"
           onClick={handleSave} disabled={saving}

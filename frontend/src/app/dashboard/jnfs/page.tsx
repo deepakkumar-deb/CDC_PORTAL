@@ -99,7 +99,7 @@ export default function MyJnfsPage() {
       field: 'created_at',
       headerName: 'Created',
       width: 120,
-      renderCell: (params) => new Date(params.value).toLocaleDateString(),
+      renderCell: (params) => params.value ? new Date(params.value).toLocaleDateString() : 'N/A',
     },
     {
       field: 'actions',
@@ -203,9 +203,13 @@ export default function MyJnfsPage() {
           <DataGrid
             rows={filteredJnfs}
             columns={columns}
-            pageSize={10}
-            rowsPerPageOptions={[10, 25, 50]}
-            disableSelectionOnClick
+            initialState={{
+              pagination: {
+                paginationModel: { pageSize: 10 },
+              },
+            }}
+            pageSizeOptions={[10, 25, 50]}
+            disableRowSelectionOnClick
             sx={{
               border: 'none',
               '& .MuiDataGrid-cell:focus': {

@@ -7,11 +7,11 @@ import {
 } from '@mui/material';
 
 const declarations = [
-  'I have thoroughly read the AIPC guidelines and agree to abide by them during the entire placement process.',
-  'Shortlisting criteria will be provided and the final shortlist will be shared within 24–48 hours after the written test.',
-  'The information in this form is verified and correct. No new clauses will be added in the final offer letter.',
-  'I consent to share the company name, logo, and email with national ranking agencies and media.',
-  'I confirm the accuracy of the job profile and agree to adhere to all T&C. I understand that strict action will be taken in case of discrepancy.',
+  "We have gone through the AIPC guidelines thoroughly and agree to abide by the guidelines during the entire process of placement/internship activities. In case of violation of guidelines by us, we understand that an appropriate action may be taken on us as per AIPC guidelines.",
+  "We declare that we would be providing the shortlisting criteria along with the CV-shortlisted and/or Test-shortlisted candidates. We also assure that the details of final shortlisted candidates will be provided within the 24 to 48 hours after the written test.",
+  "The information related to various job/intern profiles posted by us is verified and correct to the best of our knowledge, and the company will abide by the terms and conditions as outlined in these job/intern profiles posted while making the offers. No new clauses/ changes would be added/made in the final offer rolled out to the candidates selected on the profile(s). All details have already been outlined in the Job/ Internship Notification Forms. In the event of any discrepancy in the final offers, the company may be subject to appropriate actions in accordance with the AIPC guidelines.",
+  "We consent to sharing of company name, logo and email with national ranking agencies and government directives, and to listing company names in social media platforms and press/media.",
+  "I/We confirm that the information pertaining to the posted job profile is accurate and verified to the best of our knowledge. The company commits to adhere to the terms and conditions outlined in these job profiles while extending offers. No additional clauses or changes will be introduced in the final offers extended to the candidates selected for the respective profiles. All relevant details have been clearly outlined in the Job Notification Form. In the event of any discrepancies in the final offers, the company will be subject to strict action as per the AIPC guidelines.",
 ];
 
 export default function DeclarationTab({
@@ -95,6 +95,12 @@ export default function DeclarationTab({
           Please accept all declarations and enter the authorised signatory name to submit.
         </Alert>
       )}
+
+      <Box sx={{ mt: 4, mb: 3 }}>
+        <Typography variant="caption" sx={{ color: '#d32f2f', fontWeight: 600, display: 'block', mb: 1 }}>
+          Note: Student's choices will be governed by the information you provide in this form. Therefore, please be as clear and detailed as possible. Before filling the form kindly refer to the placement brochure and placement website for the selection process and rules & regulations.
+        </Typography>
+      </Box>
 
       <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
         {onBack && (

@@ -254,8 +254,10 @@ class AdminController extends Controller
                 'total_submitted' => Jnf::where('status', 'submitted')->count(),
                 'total_approved'  => Jnf::where('status', 'approved')->count(),
                 'total_rejected'  => Jnf::where('status', 'rejected')->count(),
-                'total_jnf'       => Jnf::where('opportunity_type', 'job')->count(),
-                'total_inf'       => Jnf::where('opportunity_type', 'internship')->count(),
+                'total_jnf'       => Jnf::where('opportunity_type', 'job')
+                                        ->where('status', '!=', 'draft')->count(),
+                'total_inf'       => Jnf::where('opportunity_type', 'internship')
+                                        ->where('status', '!=', 'draft')->count(),
             ],
         ]);
     }

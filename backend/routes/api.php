@@ -55,6 +55,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/inf/{id}/selection',        [InfController::class, 'saveSelection']);
     Route::post('/inf/{id}/submit',           [InfController::class, 'submit']);
     Route::post('/inf/{id}/request-edit',     [InfController::class, 'requestEdit']);
+    Route::delete('/inf/{id}',                 [InfController::class, 'destroy']);
     // Route::post('/inf/{id}/duplicate', [JnfController::class, 'duplicate']);
 });
 

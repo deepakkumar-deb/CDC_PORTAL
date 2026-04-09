@@ -102,6 +102,23 @@ class JnfController extends Controller
             ], 404);
         }
 
+        // Reuse existing empty draft if available (created in last hour with no designation)
+        $existing = Jnf::where('company_id', $company->id)
+            ->where('opportunity_type', 'job')
+            ->where('status', 'draft')
+            ->whereNull('designation')
+            ->where('created_at', '>', now()->subHour())
+            ->first();
+
+        if ($existing) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Reusing existing empty draft.',
+                'jnf_id'  => $existing->id,
+                'jnf_code' => $existing->jnf_code,
+            ], 200);
+        }
+
         $jnf = Jnf::create([
             'company_id'       => $company->id,
             'opportunity_type' => 'job',
@@ -398,7 +415,7 @@ class JnfController extends Controller
         $body .= "Company          : {$company->company_name}\n";
         $body .= "Designation      : {$jnf->designation}\n";
         $body .= "Recruitment Cycle: {$jnf->recruitment_cycle}\n";
-        $body .= "Submitted At     : {$jnf->submitted_at}\n";
+        $body .= "Submitted At     : " . date('d/m/Y h:i A', strtotime($jnf->submitted_at)) . "\n";
         $body .= str_repeat('-', 40) . "\n\n";
         $body .= "Login to the admin panel to review:\n";
         $body .= env('APP_URL', 'http://localhost:3000') . "/admin";
