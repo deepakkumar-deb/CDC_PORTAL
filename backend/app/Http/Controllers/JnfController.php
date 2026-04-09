@@ -372,6 +372,11 @@ class JnfController extends Controller
         $jnf = $this->getJnf($request, $id);
         if (!$jnf) return $this->notFound();
 
+        $jnf->update([
+            'is_edit_requested' => true,
+            'edit_reason'       => $request->reason
+        ]);
+
         $request->validate([
             'reason' => 'required|string|max:2000',
         ]);

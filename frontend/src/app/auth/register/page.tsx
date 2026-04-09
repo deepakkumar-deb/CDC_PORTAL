@@ -126,16 +126,19 @@ export default function RegisterPage() {
 
           {/* Header */}
           <Box sx={{ textAlign: 'center', mb: 3 }}>
-            <Box sx={{
-              width: 56, height: 56, borderRadius: '50%',
-              background: 'linear-gradient(135deg, #003366, #C8922A)',
-              display: 'flex', alignItems: 'center',
-              justifyContent: 'center', mx: 'auto', mb: 2,
-              fontFamily: '"Playfair Display", serif',
-              fontWeight: 700, fontSize: '1.1rem', color: 'white',
-            }}>
-              ISM
-            </Box>
+            <Box
+              component="img"
+              src="/logo.webp"
+              alt="IIT ISM Logo"
+              sx={{
+                width: 80,
+                height: 80,
+                objectFit: "contain",
+                mx: 'auto',
+                mb: 2,
+                display: 'block'
+              }}
+            />
             <Typography variant="h5" sx={{ fontWeight: 700, color: '#003366' }}>
               Recruiter Registration
             </Typography>

@@ -33,7 +33,7 @@ export default function AdminPage() {
   const [reason, setReason] = useState('');
   const [acting, setActing] = useState(false);
 
-  const statusFilters = ['submitted', 'approved', 'rejected'];
+  const statusFilters = ['submitted', 'requests', 'approved', 'rejected'];
 
   useEffect(() => {
     if (status === 'unauthenticated') router.push('/auth/login');
@@ -104,6 +104,7 @@ export default function AdminPage() {
         <Grid container spacing={2} sx={{ mb: 3 }}>
           {[
             { label: 'Pending Review', value: stats.total_submitted, color: '#ed6c02' },
+            { label: 'Edit Requests', value: stats.total_requests, color: '#9c27b0' },
             { label: 'Approved', value: stats.total_approved, color: '#2e7d32' },
             { label: 'Rejected', value: stats.total_rejected, color: '#d32f2f' },
             { label: 'Total JNFs', value: stats.total_jnf, color: '#003366' },
@@ -133,6 +134,7 @@ export default function AdminPage() {
         <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
           <Tabs value={tab} onChange={(_, v) => setTab(v)}>
             <Tab label="Pending" />
+            <Tab label="Requests" />
             <Tab label="Approved" />
             <Tab label="Rejected" />
           </Tabs>
@@ -177,6 +179,17 @@ export default function AdminPage() {
                       <TableCell>{form.company?.company_name ?? '—'}</TableCell>
                       <TableCell>
                         {form.designation || form.internship_title || 'Untitled'}
+                        {tab === 1 && form.edit_reason && (
+                          <Typography variant="caption" sx={{ display: 'block', color: 'text.secondary', fontStyle: 'italic', mt: 0.5 }}>
+                            Reason: {form.edit_reason}
+                          </Typography>
+                        )}
+                        {tab === 1 && (
+                          <Chip 
+                            label="Edit Requested" size="small" 
+                            sx={{ mt: 0.5, height: 18, fontSize: '0.65rem', bgcolor: '#9c27b0', color: 'white' }} 
+                          />
+                        )}
                       </TableCell>
                       <TableCell>
                         <Chip

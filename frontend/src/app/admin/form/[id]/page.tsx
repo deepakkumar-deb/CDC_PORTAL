@@ -57,6 +57,7 @@ export default function AdminFormDetailPage() {
   const [editFields, setEditFields] = useState<any>({});
   const [editSaving, setEditSaving] = useState(false);
   const [editNote, setEditNote] = useState('');
+  const [showPreview, setShowPreview] = useState(false);
 
   const loadForm = () => {
     api.get(`/admin/forms/${id}`)
@@ -220,6 +221,17 @@ export default function AdminFormDetailPage() {
           sx={{ textTransform: 'capitalize', fontWeight: 600 }}
         />
       </Box>
+
+      {form.is_edit_requested && form.edit_reason && (
+        <Alert severity="secondary" sx={{ mb: 3, border: '1px solid #9c27b0', bgcolor: 'rgba(156, 39, 176, 0.04)' }}>
+          <Typography variant="subtitle2" sx={{ color: '#9c27b0', fontWeight: 600 }}>
+            ✏️ Edit Request from Recruiter:
+          </Typography>
+          <Typography variant="body2" sx={{ mt: 0.5 }}>
+            {form.edit_reason}
+          </Typography>
+        </Alert>
+      )}
 
       {form.status === 'rejected' && form.rejection_reason && (
         <Alert severity="error" sx={{ mb: 3 }}>
@@ -500,8 +512,22 @@ export default function AdminFormDetailPage() {
         </Card>
       )}
 
-      <Box sx={{ mt: 3 }}>
-        <PrintableJnf form={form} />
+      <Box sx={{ mt: 4, display: 'flex', flexDirection: 'column', gap: 2 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+          <Button
+            variant="outlined"
+            onClick={() => setShowPreview(!showPreview)}
+            sx={{ borderRadius: 4, px: 4 }}
+          >
+            {showPreview ? 'Hide PDF Preview' : 'Preview PDF Layout for Download'}
+          </Button>
+        </Box>
+
+        {showPreview && (
+          <Card variant="outlined" sx={{ p: 1, background: '#f5f5f5' }}>
+            <PrintableJnf form={form} />
+          </Card>
+        )}
       </Box>
 
       {/* Admin Action Buttons */}

@@ -48,6 +48,7 @@ export default function JnfDetailPage() {
   const [editSending, setEditSending] = useState(false);
   const [editSuccess, setEditSuccess] = useState("");
   const [editError, setEditError] = useState("");
+  const [showPreview, setShowPreview] = useState(false);
 
   useEffect(() => {
     api
@@ -468,8 +469,22 @@ export default function JnfDetailPage() {
         </DialogActions>
       </Dialog>
 
-      <Box sx={{ mt: 3 }}>
-        <PrintableJnf form={jnf} />
+      <Box sx={{ mt: 4, display: 'flex', flexDirection: 'column', gap: 2 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+          <Button
+            variant="outlined"
+            onClick={() => setShowPreview(!showPreview)}
+            sx={{ borderRadius: 4, px: 4, borderColor: '#003366', color: '#003366' }}
+          >
+            {showPreview ? 'Hide PDF Preview' : 'Preview PDF Layout for Download'}
+          </Button>
+        </Box>
+
+        {showPreview && (
+          <Card variant="outlined" sx={{ p: 1, background: '#f5f5f5' }}>
+            <PrintableJnf form={jnf} />
+          </Card>
+        )}
       </Box>
     </DashboardLayout>
   );

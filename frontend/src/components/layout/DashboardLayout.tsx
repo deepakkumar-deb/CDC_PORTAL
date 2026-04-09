@@ -69,21 +69,28 @@ export default function DashboardLayout({
       >
         <Box
           sx={{
-            width: 40,
-            height: 40,
+            width: 48,
+            height: 48,
             borderRadius: "50%",
-            background: "linear-gradient(135deg, #003366, #C8922A)",
+            background: "white",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            fontFamily: '"Playfair Display", serif',
-            fontWeight: 700,
-            fontSize: "0.85rem",
-            color: "white",
             flexShrink: 0,
+            overflow: "hidden", // Ensures nothing spills out
+            boxShadow: "0 0 0 2px rgba(255,255,255,0.1)", // Subtle outer ring
           }}
         >
-          ISM
+          <Box
+            component="img"
+            src="/logo.webp"
+            alt="IIT ISM Logo"
+            sx={{
+              width: "85%", // Increased breathing room
+              height: "85%",
+              objectFit: "contain",
+            }}
+          />
         </Box>
         <Box>
           <Typography

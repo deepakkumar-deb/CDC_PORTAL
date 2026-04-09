@@ -323,6 +323,7 @@ export default function NewJnfPage() {
                   saving={saving}
                   onSubmit={handleSubmit}
                   onBack={() => setActiveTab(3)}
+                  formData={existingData}
                 />
               )}
             </>

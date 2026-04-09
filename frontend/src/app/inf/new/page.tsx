@@ -280,7 +280,7 @@ export default function NewInfPage() {
               )}
               {activeTab === 4 && (
                 <DeclarationTab saving={saving} onSubmit={handleSubmit}
-                  onBack={() => setActiveTab(3)} />
+                  onBack={() => setActiveTab(3)} formData={existingData} />
               )}
             </>
           )}

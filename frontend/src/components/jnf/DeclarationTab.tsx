@@ -3,8 +3,11 @@ import { useState } from 'react';
 import {
   Box, Typography, FormControlLabel, Checkbox,
   TextField, Button, CircularProgress, Alert,
-  Divider,
+  Divider, Dialog, DialogTitle, DialogContent,
+  DialogActions,
 } from '@mui/material';
+import VisibilityIcon from '@mui/icons-material/Visibility';
+import PrintableJnf from '../common/PrintableJnf';
 
 const declarations = [
   "We have gone through the AIPC guidelines thoroughly and agree to abide by the guidelines during the entire process of placement/internship activities. In case of violation of guidelines by us, we understand that an appropriate action may be taken on us as per AIPC guidelines.",
@@ -15,17 +18,19 @@ const declarations = [
 ];
 
 export default function DeclarationTab({
-  saving, onSubmit, onBack,
+  saving, onSubmit, onBack, formData,
 }: {
   saving: boolean;
   onSubmit: () => void;
   onBack?: () => void;
+  formData?: any;
 }) {
   const [checked, setChecked] = useState<boolean[]>(
     new Array(declarations.length).fill(false)
   );
   const [signatory, setSignatory] = useState('');
   const [sigDesig, setSigDesig]   = useState('');
+  const [previewOpen, setPreviewOpen] = useState(false);
 
   const toggle = (i: number) => {
     setChecked(prev => prev.map((v, idx) => idx === i ? !v : v));
@@ -108,6 +113,18 @@ export default function DeclarationTab({
             Back
           </Button>
         )}
+        
+        <Button
+          variant="outlined"
+          color="secondary"
+          size="large"
+          startIcon={<VisibilityIcon />}
+          onClick={() => setPreviewOpen(true)}
+          sx={{ borderColor: '#003366', color: '#003366' }}
+        >
+          Preview JNF
+        </Button>
+
         <Button
           variant="contained" size="large"
           onClick={onSubmit}
@@ -122,6 +139,28 @@ export default function DeclarationTab({
             : 'Submit JNF to CDC'}
         </Button>
       </Box>
+
+      {/* Preview Dialog */}
+      <Dialog
+        open={previewOpen}
+        onClose={() => setPreviewOpen(false)}
+        maxWidth="lg"
+        fullWidth
+      >
+        <DialogTitle sx={{ fontWeight: 700, color: '#003366' }}>
+          Preview Submission
+        </DialogTitle>
+        <DialogContent dividers>
+          <Box sx={{ background: '#f5f5f5', p: { xs: 1, md: 3 } }}>
+            <PrintableJnf form={formData} showDownloadButton={false} />
+          </Box>
+        </DialogContent>
+        <DialogActions sx={{ p: 2 }}>
+          <Button variant="contained" onClick={() => setPreviewOpen(false)}>
+            Close Preview
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 }

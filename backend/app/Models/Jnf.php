@@ -17,7 +17,8 @@ class Jnf extends Model
         'ppo_offered', 'registration_link',
         'additional_info', 'slp_requirements',
         'status', 'submitted_at', 'approved_at',
-        'rejection_reason', 'admin_notes', 'onboarding_procedure'
+        'rejection_reason', 'admin_notes', 'onboarding_procedure',
+        'is_edit_requested', 'edit_reason'
     ];
 
     protected $casts = [

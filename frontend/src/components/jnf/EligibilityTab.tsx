@@ -6,6 +6,7 @@ import {
   Accordion, AccordionSummary, AccordionDetails, Checkbox as MuiCheckbox,
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import React, { memo } from 'react';
 
 const genderOptions = ['all', 'male', 'female', 'other'];
 
@@ -78,6 +79,59 @@ const degrees = [
   'CAT: MBA (2 Yr)',
   'JAM: M.Sc (2 Yr)'
 ];
+
+const ProgramRow = memo(({ prog, isSelected, bdata, onToggle, onBranchDataChange }: any) => {
+  return (
+    <Box
+      sx={{
+        py: 0.5,
+        px: 2,
+        borderTop: '1px solid rgba(0,0,0,0.05)',
+        background: isSelected ? 'rgba(0,51,102,0.02)' : 'transparent',
+        display: 'flex',
+        flexDirection: { xs: 'column', md: 'row' },
+        alignItems: { md: 'center' },
+        gap: 2
+      }}
+    >
+      <FormControlLabel
+        sx={{ flex: 1, minWidth: 250 }}
+        control={
+          <MuiCheckbox
+            size="small"
+            checked={isSelected}
+            onChange={() => onToggle(prog.id)}
+          />
+        }
+        label={<Typography variant="body2">{prog.label}</Typography>}
+      />
+
+      {isSelected && (
+        <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', flexShrink: 0 }}>
+          <TextField
+            size="small"
+            label="CGPA"
+            type="number"
+            sx={{ width: 80 }}
+            value={bdata.min_cgpa}
+            onChange={e => onBranchDataChange(prog.id, { ...bdata, min_cgpa: e.target.value })}
+          />
+          <FormControlLabel
+            control={
+              <Switch
+                checked={bdata.active_backlogs_allowed}
+                onChange={e => onBranchDataChange(prog.id, { ...bdata, active_backlogs_allowed: e.target.checked })}
+              />
+            }
+            label={<Typography variant="caption">Active Backlogs Allowed</Typography>}
+          />
+        </Box>
+      )}
+    </Box>
+  );
+});
+
+ProgramRow.displayName = 'ProgramRow';
 
 export default function EligibilityTab({
   saving, onSave, onBack, initialData,
@@ -257,69 +311,21 @@ export default function EligibilityTab({
                   {programmes
                     .filter(p => p.degree === degree)
                     .sort((a, b) => a.label.localeCompare(b.label))
-                    .map(prog => {
-                    const isSelected = selectedPrograms.includes(prog.id);
-                    const bdata = branchWiseData[prog.id] || {
-                      min_cgpa: form.min_cgpa,
-                      active_backlogs_allowed: form.active_backlogs_allowed
-                    };
-
-                    return (
-                      <Box
+                    .map(prog => (
+                      <ProgramRow
                         key={prog.id}
-                        sx={{
-                          py: 0.5,
-                          px: 2,
-                          borderTop: '1px solid rgba(0,0,0,0.05)',
-                          background: isSelected ? 'rgba(0,51,102,0.02)' : 'transparent',
-                          display: 'flex',
-                          flexDirection: { xs: 'column', md: 'row' },
-                          alignItems: { md: 'center' },
-                          gap: 2
+                        prog={prog}
+                        isSelected={selectedPrograms.includes(prog.id)}
+                        bdata={branchWiseData[prog.id] || {
+                          min_cgpa: form.min_cgpa,
+                          active_backlogs_allowed: form.active_backlogs_allowed
                         }}
-                      >
-                        <FormControlLabel
-                          sx={{ flex: 1, minWidth: 250 }}
-                          control={
-                            <MuiCheckbox
-                              size="small"
-                              checked={isSelected}
-                              onChange={() => toggleProgram(prog.id)}
-                            />
-                          }
-                          label={<Typography variant="body2">{prog.label}</Typography>}
-                        />
-
-                        {isSelected && (
-                          <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', flexShrink: 0 }}>
-                            <TextField
-                              size="small"
-                              label="CGPA"
-                              type="number"
-                              sx={{ width: 80 }}
-                              value={bdata.min_cgpa}
-                              onChange={e => setBranchWiseData(prev => ({
-                                ...prev,
-                                [prog.id]: { ...bdata, min_cgpa: e.target.value }
-                              }))}
-                            />
-                            <FormControlLabel
-                              control={
-                                <Switch
-                                  checked={bdata.active_backlogs_allowed}
-                                  onChange={e => setBranchWiseData(prev => ({
-                                    ...prev,
-                                    [prog.id]: { ...bdata, active_backlogs_allowed: e.target.checked }
-                                  }))}
-                                />
-                              }
-                              label={<Typography variant="caption">Active Backlogs Allowed</Typography>}
-                            />
-                          </Box>
-                        )}
-                      </Box>
-                    );
-                  })}
+                        onToggle={toggleProgram}
+                        onBranchDataChange={(id: number, newData: any) => 
+                          setBranchWiseData(prev => ({ ...prev, [id]: newData }))
+                        }
+                      />
+                    ))}
                 </AccordionDetails>
               </Accordion>
             ))}

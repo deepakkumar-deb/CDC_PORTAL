@@ -5,6 +5,9 @@ use Illuminate\Http\Request;
 use App\Models\Jnf;
 use App\Models\ApprovalHistory;
 use App\Models\Notification;
+use App\Mail\JnfStatusUpdated;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Log;
 
 class AdminController extends Controller
 {
@@ -15,8 +18,13 @@ class AdminController extends Controller
         $type   = $request->query('type', 'all');
 
         $query = Jnf::with('company')
-            ->where('status', $status)
             ->orderBy('submitted_at', 'desc');
+
+        if ($status === 'requests') {
+            $query->where('is_edit_requested', true);
+        } else {
+            $query->where('status', $status);
+        }
 
         if ($type !== 'all') {
             $query->where('opportunity_type', $type === 'inf' ? 'internship' : 'job');
@@ -28,6 +36,7 @@ class AdminController extends Controller
                 'id', 'jnf_code', 'opportunity_type',
                 'designation', 'internship_title',
                 'status', 'submitted_at', 'company_id',
+                'is_edit_requested', 'edit_reason'
             ]),
         ]);
     }
@@ -50,7 +59,7 @@ class AdminController extends Controller
     // Approve a form
     public function approve(Request $request, $id)
     {
-        $jnf = Jnf::findOrFail($id);
+        $jnf = Jnf::with('company.user')->findOrFail($id);
 
         if ($jnf->status !== 'submitted') {
             return response()->json([
@@ -84,6 +93,16 @@ class AdminController extends Controller
             'related_type' => $jnf->opportunity_type,
         ]);
 
+        // ── SEND EMAIL NOTIFICATION ──────────────────────────
+        try {
+            if ($jnf->company && $jnf->company->user) {
+                Mail::to($jnf->company->user->email)
+                    ->send(new JnfStatusUpdated($jnf, 'approved'));
+            }
+        } catch (\Exception $e) {
+            Log::error("Failed to send JNF approval email: " . $e->getMessage());
+        }
+
         return response()->json(['success' => true, 'message' => 'Form approved.']);
     }
 
@@ -94,7 +113,7 @@ class AdminController extends Controller
             'rejection_reason' => 'required|string',
         ]);
 
-        $jnf = Jnf::findOrFail($id);
+        $jnf = Jnf::with('company.user')->findOrFail($id);
 
         if ($jnf->status !== 'submitted') {
             return response()->json([
@@ -126,6 +145,16 @@ class AdminController extends Controller
             'related_type' => $jnf->opportunity_type,
         ]);
 
+        // ── SEND EMAIL NOTIFICATION ──────────────────────────
+        try {
+            if ($jnf->company && $jnf->company->user) {
+                Mail::to($jnf->company->user->email)
+                    ->send(new JnfStatusUpdated($jnf, 'rejected', $request->rejection_reason));
+            }
+        } catch (\Exception $e) {
+            Log::error("Failed to send JNF rejection email: " . $e->getMessage());
+        }
+
         return response()->json(['success' => true, 'message' => 'Form rejected.']);
     }
 
@@ -144,9 +173,11 @@ class AdminController extends Controller
         $oldStatus = $jnf->status;
 
         $jnf->update([
-            'status'           => 'draft',
-            'rejection_reason' => null,
-            'admin_notes'      => $request->admin_notes,
+            'status'            => 'draft',
+            'is_edit_requested' => false,
+            'edit_reason'       => null,
+            'rejection_reason'  => null,
+            'admin_notes'       => $request->admin_notes,
         ]);
 
         ApprovalHistory::create([
@@ -165,6 +196,16 @@ class AdminController extends Controller
             'related_id'   => $jnf->id,
             'related_type' => $jnf->opportunity_type,
         ]);
+
+        // ── SEND EMAIL NOTIFICATION ──────────────────────────
+        try {
+            if ($jnf->company && $jnf->company->user) {
+                Mail::to($jnf->company->user->email)
+                    ->send(new JnfStatusUpdated($jnf, 'draft', $request->admin_notes ?? 'Admin allowed recruiter to edit this form.'));
+            }
+        } catch (\Exception $e) {
+            Log::error("Failed to send JNF edit-allowed email: " . $e->getMessage());
+        }
 
         return response()->json(['success' => true, 'message' => 'Form reverted to draft. Recruiter can now edit it.']);
     }
@@ -254,6 +295,7 @@ class AdminController extends Controller
                 'total_submitted' => Jnf::where('status', 'submitted')->count(),
                 'total_approved'  => Jnf::where('status', 'approved')->count(),
                 'total_rejected'  => Jnf::where('status', 'rejected')->count(),
+                'total_requests'  => Jnf::where('is_edit_requested', true)->count(),
                 'total_jnf'       => Jnf::where('opportunity_type', 'job')
                                         ->where('status', '!=', 'draft')->count(),
                 'total_inf'       => Jnf::where('opportunity_type', 'internship')
