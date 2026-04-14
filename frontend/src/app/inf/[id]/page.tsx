@@ -257,21 +257,9 @@ export default function InfDetailPage() {
         </Card>
       )}
 
-      {inf.status === "draft" && (
-        <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
-          <Button
-            variant="contained"
-            size="large"
-            sx={{ background: "#C8922A", "&:hover": { background: "#A0721A" } }}
-            onClick={() => router.push(`/inf/new?edit=${inf.id}`)}
-          >
-            Continue Editing
-          </Button>
-        </Box>
-      )}
-
+      {/* Actions */}
       <Box
-        sx={{ display: "flex", justifyContent: "flex-end", gap: 2, mt: 3 }}
+        sx={{ display: "flex", justifyContent: "flex-end", gap: 2, mt: 4 }}
         className="no-print"
       >
         <Button

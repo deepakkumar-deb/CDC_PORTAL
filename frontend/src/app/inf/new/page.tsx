@@ -42,7 +42,7 @@ const ColorlibConnector = styled(StepConnector)(() => ({
   [`& .${stepConnectorClasses.line}`]: {
     height: 3,
     border: 0,
-    backgroundColor: '#eaeaf0',
+    backgroundColor: '#ccc',
     borderRadius: 1,
   },
 }));
@@ -95,27 +95,29 @@ export default function NewInfPage() {
   const [initialized, setInit]      = useState(false);
   const [existingData, setExistingData] = useState<any>(null);
   const [extracting, setExtracting] = useState(false);
-  const hasInitialized = useRef(false);
-
-  const initInf = async () => {
-    if (initialized) return;
-    console.log('Initializing INF...');
-    try {
-      const res = await api.post('/inf');
-      setJnfId(res.data.jnf_id);
-      setInfCode(res.data.inf_code);
-    } catch (err: any) {
-      console.error('INF Init Error:', err.response?.data || err.message);
-      setError(err.response?.data?.message || 'Failed to initialize INF. Make sure your company profile is complete.');
-    } finally {
-      setInit(true);
-    }
-  };
-
   useEffect(() => {
-    if (hasInitialized.current) return;
-    hasInitialized.current = true;
+    let cancelled = false;
+
+    const initInf = async () => {
+      console.log('Initializing INF...');
+      try {
+        const res = await api.post('/inf');
+        if (!cancelled) {
+          setJnfId(res.data.jnf_id);
+          setInfCode(res.data.inf_code);
+        }
+      } catch (err: any) {
+        console.error('INF Init Error:', err.response?.data || err.message);
+        if (!cancelled) {
+          setError(err.response?.data?.message || 'Failed to initialize INF. Make sure your company profile is complete.');
+        }
+      } finally {
+        if (!cancelled) setInit(true);
+      }
+    };
+
     initInf();
+    return () => { cancelled = true; };
   }, []);
 
   const handleTabSave = async (tabIndex: number, data: any, endpoint: string) => {
@@ -240,7 +242,7 @@ export default function NewInfPage() {
       {success && <Alert severity="success" sx={{ mb: 2 }} onClose={() => setSuccess('')}>{success}</Alert>}
 
       <Card>
-        <Box sx={{ p: 4, pb: 6, borderBottom: 1, borderColor: 'divider', background: '#FAFAFA' }}>
+        <Box sx={{ p: 4, pb: 6, borderBottom: '2px solid', borderColor: '#e0e0e0', background: '#FAFAFA' }}>
           <Stepper alternativeLabel activeStep={activeTab} connector={<ColorlibConnector />}>
             {tabs.map((label) => (
               <Step key={label}>

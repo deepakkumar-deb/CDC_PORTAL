@@ -43,7 +43,7 @@ const ColorlibConnector = styled(StepConnector)(() => ({
   [`& .${stepConnectorClasses.line}`]: {
     height: 3,
     border: 0,
-    backgroundColor: '#eaeaf0',
+    backgroundColor: '#ccc', // Darker background for visibility
     borderRadius: 1,
   },
 }));
@@ -101,11 +101,7 @@ export default function NewJnfPage() {
 
   const [pdfFile, setPdfFile] = useState<File | null>(null);
   const [extracting, setExtracting] = useState(false);
-  const hasInitialized = useRef(false);
-
   useEffect(() => {
-    if (hasInitialized.current) return;
-    hasInitialized.current = true;
     let cancelled = false;
 
     const init = async () => {
@@ -272,7 +268,7 @@ export default function NewJnfPage() {
 
       {/* Tabs / Stepper */}
       <Card>
-        <Box sx={{ p: 4, pb: 6, borderBottom: 1, borderColor: 'divider', background: '#FAFAFA' }}>
+        <Box sx={{ p: 4, pb: 6, borderBottom: '2px solid', borderColor: '#e0e0e0', background: '#FAFAFA' }}>
           <Stepper alternativeLabel activeStep={activeTab} connector={<ColorlibConnector />}>
             {tabs.map((label) => (
               <Step key={label}>

@@ -34,18 +34,14 @@ class ExtractionController extends Controller
 
             $response = Http::withHeaders([
                 'Content-Type' => 'application/json'
-            ])->post("https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key={$apiKey}", [
+            ])->post("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent?key={$apiKey}", [
                 'contents' => [
                     [
                         'parts' => [
                             ['text' => $prompt],
-                            ['text' => "Here is the raw text extracted from the PDF:\n\n" . substr($text, 0, 100000)]
+                            ['text' => "Here is the raw text extracted from the PDF:\n\n" . substr($text, 0, 15000)]
                         ]
                     ]
-                ],
-                'generationConfig' => [
-                    'temperature' => 0.1,
-                    'responseMimeType' => 'application/json',
                 ]
             ]);
 

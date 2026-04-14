@@ -26,7 +26,8 @@ import MenuIcon from "@mui/icons-material/Menu";
 import LogoutIcon from "@mui/icons-material/Logout";
 import AdminPanelSettingsIcon from "@mui/icons-material/AdminPanelSettings";
 
-const DRAWER_WIDTH = 240;
+const DRAWER_WIDTH = 280; // Increased from 240
+
 
 // Replace the navItems array with this:
 const navItems = [
@@ -60,25 +61,40 @@ export default function DashboardLayout({
       {/* Logo */}
       <Box
         sx={{
-          p: 3,
-          background: "linear-gradient(135deg, #001028, #003366)",
+          pt: 4,
+          pb: 3,
+          px: 2.5,
+          background: "linear-gradient(135deg, #001028 0%, #003366 100%)",
+          position: "relative",
+          overflow: "hidden",
           display: "flex",
           alignItems: "center",
-          gap: 1.5,
+          gap: 2,
+          "&::before": {
+            content: '""',
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            opacity: 0.05,
+            backgroundImage: `radial-gradient(#ffffff 0.5px, transparent 0.5px)`,
+            backgroundSize: "10px 10px",
+          },
         }}
       >
         <Box
           sx={{
-            width: 48,
-            height: 48,
-            borderRadius: "50%",
+            width: 54, // Increased from 48
+            height: 54,
+            borderRadius: "12px", // Changed from 50% for a more modern boxy look
             background: "white",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
             flexShrink: 0,
-            overflow: "hidden", // Ensures nothing spills out
-            boxShadow: "0 0 0 2px rgba(255,255,255,0.1)", // Subtle outer ring
+            boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
+            zIndex: 1,
           }}
         >
           <Box
@@ -86,57 +102,86 @@ export default function DashboardLayout({
             src="/logo.webp"
             alt="IIT ISM Logo"
             sx={{
-              width: "85%", // Increased breathing room
-              height: "85%",
+              width: "80%",
+              height: "80%",
               objectFit: "contain",
             }}
           />
         </Box>
-        <Box>
+        <Box sx={{ minWidth: 0, zIndex: 1 }}>
           <Typography
             sx={{
-              fontFamily: '"Playfair Display", serif',
+              fontFamily: '"Outfit", sans-serif',
               fontWeight: 700,
-              fontSize: "0.85rem",
+              fontSize: "1.1rem", // Slightly larger
               color: "white",
               lineHeight: 1.2,
+              letterSpacing: "0.01em",
             }}
           >
             IIT (ISM) Dhanbad
           </Typography>
           <Typography
             sx={{
-              fontSize: "0.65rem",
+              fontFamily: '"Outfit", sans-serif',
+              fontSize: "0.75rem",
               color: "#C8922A",
-              letterSpacing: "0.08em",
+              letterSpacing: "0.15em",
               textTransform: "uppercase",
-              fontWeight: 600,
+              fontWeight: 700,
+              mt: 0.5,
             }}
           >
             CDC Portal
           </Typography>
         </Box>
       </Box>
+      <Divider sx={{ borderColor: 'rgba(255,255,255,0.1)' }} />
 
       {/* Nav Links */}
       <List sx={{ flex: 1, px: 1.5, pt: 2 }}>
         {navItems.map((item) => {
           const active = pathname === item.href;
           return (
-            <ListItem key={item.label} disablePadding sx={{ mb: 0.5 }}>
+            <ListItem key={item.label} disablePadding sx={{ mb: 1 }}>
               <ListItemButton
                 onClick={() => router.push(item.href)}
                 sx={{
-                  borderRadius: 2,
-                  background: active ? "rgba(0,51,102,0.1)" : "transparent",
-                  color: active ? "#003366" : "text.secondary",
-                  "&:hover": { background: "rgba(0,51,102,0.07)" },
+                  borderRadius: "12px",
+                  py: 1.5,
+                  px: 2,
+                  background: active 
+                    ? "linear-gradient(90deg, rgba(0,51,102,0.08) 0%, rgba(0,51,102,0.02) 100%)" 
+                    : "transparent",
+                  color: active ? "#003366" : "#5F6368",
+                  position: "relative",
+                  "&:hover": { 
+                    background: "rgba(0,51,102,0.04)",
+                    "& .MuiListItemIcon-root": {
+                      transform: "translateX(2px)",
+                    }
+                  },
+                  transition: "all 0.2s ease-in-out",
                 }}
               >
+                {active && (
+                  <Box
+                    sx={{
+                      position: "absolute",
+                      left: 0,
+                      top: "20%",
+                      bottom: "20%",
+                      width: 4,
+                      bgcolor: "#003366",
+                      borderRadius: "0 4px 4px 0",
+                    }}
+                  />
+                )}
                 <ListItemIcon
                   sx={{
-                    color: active ? "#003366" : "text.secondary",
-                    minWidth: 40,
+                    color: active ? "#003366" : "#5F6368",
+                    minWidth: 44,
+                    transition: "transform 0.2s ease-in-out",
                   }}
                 >
                   {item.icon}
@@ -144,8 +189,10 @@ export default function DashboardLayout({
                 <ListItemText
                   primary={item.label}
                   primaryTypographyProps={{
-                    fontSize: "0.9rem",
-                    fontWeight: active ? 600 : 400,
+                    fontFamily: '"Outfit", sans-serif',
+                    fontSize: "1rem",
+                    fontWeight: active ? 700 : 500,
+                    letterSpacing: "0.01em",
                   }}
                 />
               </ListItemButton>
@@ -154,31 +201,57 @@ export default function DashboardLayout({
         })}
 
         {["admin", "superadmin"].includes(session?.user?.role ?? "") && (
-          <ListItem disablePadding sx={{ mb: 0.5 }}>
+          <ListItem disablePadding sx={{ mb: 1 }}>
             <ListItemButton
               onClick={() => router.push("/admin")}
               sx={{
-                borderRadius: 2,
+                borderRadius: "12px",
+                py: 1.5,
+                px: 2,
                 background:
-                  pathname === "/admin" ? "rgba(0,51,102,0.1)" : "transparent",
-                color: pathname === "/admin" ? "#003366" : "text.secondary",
-                "&:hover": { background: "rgba(0,51,102,0.07)" },
+                  pathname === "/admin" 
+                    ? "linear-gradient(90deg, rgba(0,51,102,0.08) 0%, rgba(0,51,102,0.02) 100%)" 
+                    : "transparent",
+                color: pathname === "/admin" ? "#003366" : "#5F6368",
+                position: "relative",
+                "&:hover": { 
+                  background: "rgba(0,51,102,0.04)",
+                  "& .MuiListItemIcon-root": {
+                    transform: "translateX(2px)",
+                  }
+                },
+                transition: "all 0.2s ease-in-out",
               }}
             >
+              {pathname === "/admin" && (
+                <Box
+                  sx={{
+                    position: "absolute",
+                    left: 0,
+                    top: "20%",
+                    bottom: "20%",
+                    width: 4,
+                    bgcolor: "#003366",
+                    borderRadius: "0 4px 4px 0",
+                  }}
+                />
+              )}
               <ListItemIcon
                 sx={{
-                  color: pathname === "/admin" ? "#003366" : "text.secondary",
-                  minWidth: 40,
+                  color: pathname === "/admin" ? "#003366" : "#5F6368",
+                  minWidth: 44,
+                  transition: "transform 0.2s ease-in-out",
                 }}
               >
-                {/* Add this import at the top: import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings'; */}
                 <AdminPanelSettingsIcon />
               </ListItemIcon>
               <ListItemText
                 primary="Admin Panel"
                 primaryTypographyProps={{
-                  fontSize: "0.9rem",
-                  fontWeight: pathname === "/admin" ? 600 : 400,
+                  fontFamily: '"Outfit", sans-serif',
+                  fontSize: "1rem",
+                  fontWeight: pathname === "/admin" ? 700 : 500,
+                  letterSpacing: "0.01em",
                 }}
               />
             </ListItemButton>
@@ -189,14 +262,16 @@ export default function DashboardLayout({
       <Divider />
 
       {/* User info + logout */}
-      <Box sx={{ p: 2 }}>
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 1.5 }}>
+      <Box sx={{ p: 2.5, bgcolor: "rgba(0,0,0,0.02)" }}>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 2 }}>
           <Avatar
             sx={{
-              width: 36,
-              height: 36,
-              background: "#003366",
-              fontSize: "0.85rem",
+              width: 42,
+              height: 42,
+              background: "linear-gradient(135deg, #003366 0%, #001f3f 100%)",
+              fontSize: "1rem",
+              fontWeight: 700,
+              boxShadow: "0 2px 8px rgba(0,51,102,0.2)",
             }}
           >
             {session?.user?.name?.[0]?.toUpperCase()}
@@ -204,8 +279,10 @@ export default function DashboardLayout({
           <Box sx={{ flex: 1, minWidth: 0 }}>
             <Typography
               sx={{
-                fontSize: "0.85rem",
-                fontWeight: 600,
+                fontFamily: '"Outfit", sans-serif',
+                fontSize: "0.95rem",
+                fontWeight: 700,
+                color: "#1A1C1E",
                 whiteSpace: "nowrap",
                 overflow: "hidden",
                 textOverflow: "ellipsis",
@@ -213,23 +290,35 @@ export default function DashboardLayout({
             >
               {session?.user?.name}
             </Typography>
-            <Typography sx={{ fontSize: "0.72rem", color: "text.secondary" }}>
+            <Typography 
+              sx={{ 
+                fontFamily: '"Outfit", sans-serif',
+                fontSize: "0.75rem", 
+                color: "text.secondary",
+                textTransform: "capitalize",
+                fontWeight: 500,
+              }}
+            >
               {session?.user?.role}
             </Typography>
           </Box>
         </Box>
         <Button
           fullWidth
-          variant="outlined"
-          size="small"
+          variant="contained"
           startIcon={<LogoutIcon />}
           onClick={handleLogout}
           sx={{ 
-            borderColor: "rgba(211, 47, 47, 0.4)", 
-            color: "#d32f2f",
+            borderRadius: "10px",
+            textTransform: "none",
+            fontWeight: 700,
+            fontFamily: '"Outfit", sans-serif',
+            bgcolor: "#d32f2f",
+            color: "#fff",
+            boxShadow: "0 4px 12px rgba(211, 47, 47, 0.2)",
             "&:hover": {
-              borderColor: "#d32f2f",
-              bgcolor: "rgba(211, 47, 47, 0.04)"
+              bgcolor: "#b71c1c",
+              boxShadow: "0 6px 16px rgba(211, 47, 47, 0.3)",
             }
           }}
         >

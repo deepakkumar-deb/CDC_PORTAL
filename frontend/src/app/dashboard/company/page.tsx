@@ -169,6 +169,7 @@ export default function CompanyProfilePage() {
         const res = await api.post("/company", formData, { headers: { "Content-Type": "multipart/form-data" } });
         setIsNew(false);
         setSuccess("Company profile created successfully!");
+        window.scrollTo({ top: 0, behavior: "smooth" });
         if (res.data?.company?.logo_path) {
           setLogoPreview(`${baseUrl}/storage/${res.data.company.logo_path}?t=${Date.now()}`);
           setLogoFile(null);
@@ -176,6 +177,7 @@ export default function CompanyProfilePage() {
       } else {
         const res = await api.post("/company/update", formData, { headers: { "Content-Type": "multipart/form-data" } });
         setSuccess("Company profile updated successfully!");
+        window.scrollTo({ top: 0, behavior: "smooth" });
         if (res.data?.company?.logo_path) {
           setLogoPreview(`${baseUrl}/storage/${res.data.company.logo_path}?t=${Date.now()}`);
           setLogoFile(null);
@@ -183,8 +185,12 @@ export default function CompanyProfilePage() {
       }
     } catch (err: any) {
       setError(err.response?.data?.message || "Failed to save. Check all required fields.");
+      window.scrollTo({ top: 0, behavior: "smooth" });
     } finally {
       setSaving(false);
+      if (success || error) {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
     }
   };
 
@@ -225,8 +231,10 @@ export default function CompanyProfilePage() {
       }
     } catch (err: any) {
       setError(err.response?.data?.message || "PDF extraction failed");
+      window.scrollTo({ top: 0, behavior: "smooth" });
     } finally {
       setExtracting(false);
+      window.scrollTo({ top: 0, behavior: "smooth" });
     }
   };
 
@@ -254,12 +262,30 @@ export default function CompanyProfilePage() {
       </Box>
 
       {error && (
-        <Alert severity="error" sx={{ mb: 2 }}>
+        <Alert 
+          severity="error" 
+          onClose={() => setError("")}
+          sx={{ 
+            mb: 3, 
+            borderRadius: "12px", 
+            boxShadow: "0 2px 12px rgba(211, 47, 47, 0.1)",
+            "& .MuiAlert-message": { fontWeight: 500 }
+          }}
+        >
           {error}
         </Alert>
       )}
       {success && (
-        <Alert severity="success" sx={{ mb: 2 }}>
+        <Alert 
+          severity="success" 
+          onClose={() => setSuccess("")}
+          sx={{ 
+            mb: 3, 
+            borderRadius: "12px", 
+            boxShadow: "0 2px 12px rgba(46, 125, 50, 0.1)",
+            "& .MuiAlert-message": { fontWeight: 500 }
+          }}
+        >
           {success}
         </Alert>
       )}
