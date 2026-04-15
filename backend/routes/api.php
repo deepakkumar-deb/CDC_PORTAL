@@ -7,9 +7,12 @@ use App\Http\Controllers\JnfController;
 use App\Http\Controllers\InfController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\ExtractionController;
+use App\Http\Controllers\MetadataController;
 use App\Http\Middleware\AdminMiddleware;
 
 // ── Public routes (no login needed) ──────────────────────────
+Route::get('/metadata/programs', [MetadataController::class, 'programs']);
+
 Route::prefix('auth')->group(function () {
     Route::post('/send-otp',  [AuthController::class, 'sendOtp']);
     Route::post('/verify-otp', [AuthController::class, 'verifyOtp']);

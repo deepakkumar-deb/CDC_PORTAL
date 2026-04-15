@@ -14,7 +14,6 @@ use App\Models\JnfDeptCgpa;
 use App\Models\SelectionRound;
 use App\Models\SelectionInfrastructure;
 use App\Models\ApprovalHistory;
-use App\Models\ProgramDeptMap;
 // use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Mail;
@@ -65,6 +64,7 @@ class JnfController extends Controller
         $jnf = Jnf::where('id', $id)
             ->where('company_id', $company->id)
             ->with([
+                'company.contacts',
                 'skills',
                 'attachments',
                 'eligibilityRule',
@@ -72,7 +72,8 @@ class JnfController extends Controller
                 'allowedPrograms.programDeptMap.program',
                 'allowedPrograms.programDeptMap.department',
                 'allowedCategories.category',
-                'deptCgpa',
+                'deptCgpa.programDeptMap.department',
+                'deptCgpa.programDeptMap.program',
                 'selectionRounds',
                 'selectionInfrastructure',
             ])
@@ -203,22 +204,20 @@ class JnfController extends Controller
         EligibilityRule::updateOrCreate(
             ['jnf_id' => $id],
             [
-                'min_cgpa'                => $request->min_cgpa,
-                'max_backlogs_allowed'    => $request->max_backlogs_allowed,
+                'min_cgpa'                => $this->cleanNum($request->min_cgpa),
+                'max_backlogs_allowed'    => $this->cleanNum($request->max_backlogs_allowed, true),
                 'active_backlogs_allowed' => $request->active_backlogs_allowed ?? false,
-                'min_class_10_percent'    => $request->min_class_10_percent,
-                'min_class_12_percent'    => $request->min_class_12_percent,
+                'min_class_10_percent'    => $this->cleanNum($request->min_class_10_percent),
+                'min_class_12_percent'    => $this->cleanNum($request->min_class_12_percent),
                 'allowed_gender'          => $request->allowed_gender ?? 'all',
                 'additional_text'         => $request->additional_text,
             ]
         );
 
-        // Save allowed programmes - validate IDs exist first
+        // Save allowed programmes
         if ($request->has('program_dept_map_ids')) {
             JnfAllowedProgram::where('jnf_id', $id)->delete();
-            // Filter out non-existent program_dept_map IDs
-            $validMapIds = ProgramDeptMap::whereIn('id', $request->program_dept_map_ids)->pluck('id')->toArray();
-            foreach ($validMapIds as $mapId) {
+            foreach ($request->program_dept_map_ids as $mapId) {
                 JnfAllowedProgram::create([
                     'jnf_id'             => $id,
                     'program_dept_map_id' => $mapId,
@@ -240,18 +239,13 @@ class JnfController extends Controller
         // Save per-department CGPA
         if ($request->has('dept_cgpa')) {
             JnfDeptCgpa::where('jnf_id', $id)->delete();
-            // Get valid program_dept_map IDs
-            $validMapIds = ProgramDeptMap::pluck('id')->toArray();
             foreach ($request->dept_cgpa as $item) {
-                // Only save if program_dept_map_id exists
-                if (in_array($item['program_dept_map_id'], $validMapIds)) {
-                    JnfDeptCgpa::create([
-                        'jnf_id'                  => $id,
-                        'program_dept_map_id'     => $item['program_dept_map_id'],
-                        'min_cgpa'                => $item['min_cgpa'],
-                        'active_backlogs_allowed' => $item['active_backlogs_allowed'] ?? false,
-                    ]);
-                }
+                JnfDeptCgpa::create([
+                    'jnf_id'                  => $id,
+                    'program_dept_map_id'     => $item['program_dept_map_id'],
+                    'min_cgpa'                => $item['min_cgpa'],
+                    'active_backlogs_allowed' => $item['active_backlogs_allowed'] ?? false,
+                ]);
             }
         }
 
@@ -269,16 +263,6 @@ class JnfController extends Controller
             'salary_breakdowns.*.programme_type' => 'required|string',
         ]);
 
-        // Helper function to sanitize numeric values
-        $sanitizeNumber = function ($value) {
-            if ($value === null || $value === '' || $value === '?') {
-                return null;
-            }
-            // Remove commas, spaces, and currency text
-            $cleaned = preg_replace('/[^\d.]/', '', (string)$value);
-            return is_numeric($cleaned) ? (float)$cleaned : null;
-        };
-
         SalaryBreakdown::where('jnf_id', $id)->delete();
 
         foreach ($request->salary_breakdowns as $row) {
@@ -286,25 +270,25 @@ class JnfController extends Controller
                 'jnf_id'               => $id,
                 'programme_type'       => $row['programme_type'],
                 'currency'             => $row['currency'] ?? 'INR',
-                'ctc_annual'           => $sanitizeNumber($row['ctc_annual'] ?? null),
-                'base_fixed'           => $sanitizeNumber($row['base_fixed'] ?? null),
-                'monthly_takehome'     => $sanitizeNumber($row['monthly_takehome'] ?? null),
-                'gross_salary'         => $sanitizeNumber($row['gross_salary'] ?? null),
-                'joining_bonus'        => $sanitizeNumber($row['joining_bonus'] ?? null),
-                'retention_bonus'      => $sanitizeNumber($row['retention_bonus'] ?? null),
-                'relocation_allowance' => $sanitizeNumber($row['relocation_allowance'] ?? null),
-                'medical_allowance'    => $sanitizeNumber($row['medical_allowance'] ?? null),
-                'esop_value'           => $sanitizeNumber($row['esop_value'] ?? null),
-                'vest_period'          => $sanitizeNumber($row['vest_period'] ?? null),
-                'first_year_ctc'       => $sanitizeNumber($row['first_year_ctc'] ?? null),
+                'ctc_annual'           => $this->cleanNum($row['ctc_annual']),
+                'base_fixed'           => $this->cleanNum($row['base_fixed']),
+                'monthly_takehome'     => $this->cleanNum($row['monthly_takehome']),
+                'gross_salary'         => $this->cleanNum($row['gross_salary']),
+                'joining_bonus'        => $row['joining_bonus'] ?? null,
+                'retention_bonus'      => $row['retention_bonus'] ?? null,
+                'relocation_allowance' => $row['relocation_allowance'] ?? null,
+                'medical_allowance'    => $row['medical_allowance'] ?? null,
+                'esop_value'           => $this->cleanNum($row['esop_value']),
+                'vest_period'          => $row['vest_period'] ?? null,
+                'first_year_ctc'       => $this->cleanNum($row['first_year_ctc']),
                 'bond_required'        => $row['bond_required'] ?? false,
-                'bond_amount'          => $sanitizeNumber($row['bond_amount'] ?? null),
-                'bond_duration_months' => $sanitizeNumber($row['bond_duration_months'] ?? null),
+                'bond_amount'          => $this->cleanNum($row['bond_amount']),
+                'bond_duration_months' => $this->cleanNum($row['bond_duration_months'], true),
                 'bond_details'         => $row['bond_details'] ?? null,
                 'deductions_text'      => $row['deductions_text'] ?? null,
                 'ctc_breakup_notes'    => $row['ctc_breakup_notes'] ?? null,
-                'variable_performance_bonus' => $sanitizeNumber($row['variable_performance_bonus'] ?? null),
-                'stocks_options'       => $sanitizeNumber($row['stocks_options'] ?? null),
+                'variable_performance_bonus' => $row['variable_performance_bonus'] ?? null,
+                'stocks_options'       => $row['stocks_options'] ?? null,
             ]);
         }
 
@@ -316,16 +300,6 @@ class JnfController extends Controller
     {
         $jnf = $this->getJnf($request, $id);
         if (!$jnf) return $this->notFound();
-
-        // Helper function to sanitize numeric values
-        $sanitizeNumber = function ($value) {
-            if ($value === null || $value === '' || $value === '?') {
-                return null;
-            }
-            // Remove commas, spaces, and currency text
-            $cleaned = preg_replace('/[^\d.]/', '', (string)$value);
-            return is_numeric($cleaned) ? (int)(float)$cleaned : null;
-        };
 
         // Save rounds
         if ($request->has('rounds')) {
@@ -340,7 +314,7 @@ class JnfController extends Controller
                     'interview_mode'       => $round['interview_mode'] ?? null,
                     'description'          => $round['description'] ?? null,
                     'tentative_date'       => $round['tentative_date'] ?? null,
-                    'duration_minutes'     => $sanitizeNumber($round['duration_minutes']),
+                    'duration_minutes'     => $round['duration_minutes'] ?? null,
                     'is_elimination_round' => $round['is_elimination_round'] ?? false,
                 ]);
             }
@@ -350,8 +324,8 @@ class JnfController extends Controller
         SelectionInfrastructure::updateOrCreate(
             ['jnf_id' => $id],
             [
-                'rooms_required'        => $sanitizeNumber($request->rooms_required),
-                'team_members_required' => $sanitizeNumber($request->team_members_required),
+                'rooms_required'        => $request->rooms_required,
+                'team_members_required' => $request->team_members_required,
                 'psychometric_test'     => $request->psychometric_test ?? false,
                 'medical_test'          => $request->medical_test ?? false,
                 'proctoring_required'   => $request->proctoring_required ?? false,
@@ -503,6 +477,18 @@ class JnfController extends Controller
             'success' => true,
             'message' => $message,
         ]);
+    }
+
+    private function cleanNum($val, $integer = false)
+    {
+        if (!$val || is_bool($val)) return null;
+        if (is_numeric($val)) return $val;
+
+        // Remove commas, spaces, currency symbols
+        $cleaned = preg_replace('/[^\d.]/', '', (string)$val);
+        if ($cleaned === '' || $cleaned === '.') return null;
+
+        return $integer ? (int)$cleaned : (float)$cleaned;
     }
 
     // ■■ Duplicate a JNF ■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■

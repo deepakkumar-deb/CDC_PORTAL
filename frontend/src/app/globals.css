@@ -47,3 +47,27 @@ a {
     color-scheme: dark;
   }
 }
+
+/* Print Styles */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  #print-area, #print-area * {
+    visibility: visible;
+  }
+  #print-area {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    visibility: visible;
+  }
+  .no-print {
+    display: none !important;
+  }
+  /* Remove margins and headers/footers added by browser */
+  @page {
+    margin: 1cm;
+  }
+}

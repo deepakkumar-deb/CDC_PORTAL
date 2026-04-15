@@ -45,7 +45,10 @@ export default function DeclarationTab({
         Declaration & Submit
       </Typography>
       <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-        Please read and accept all declarations before submitting your JNF.
+        Please read and accept all declarations before submitting your JNF.{' '}
+        <a href="/AIPC_Guidelines.pdf" target="_blank" rel="noreferrer" style={{ color: '#003366', fontWeight: 600, textDecoration: 'underline' }}>
+          Read AIPC Guidelines (PDF)
+        </a>
       </Typography>
 
       {/* Declaration checkboxes */}

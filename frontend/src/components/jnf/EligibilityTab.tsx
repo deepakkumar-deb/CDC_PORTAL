@@ -10,7 +10,7 @@ import React, { memo } from 'react';
 
 const genderOptions = ['all', 'male', 'female', 'other'];
 
-const programmes = [
+const DEFAULT_PROGRAMMES = [
   // B.Tech / Dual
   { id: 1,  label: 'Chemical Engineering', degree: 'JEE Advanced: B.Tech / Dual Degree (4/5 Yr)' },
   { id: 2,  label: 'Civil Engineering', degree: 'JEE Advanced: B.Tech / Dual Degree (4/5 Yr)' },
@@ -71,7 +71,7 @@ const programmes = [
   { id: 28, label: 'Mathematics & Computing', degree: 'JAM: M.Sc (2 Yr)' },
 ];
 
-const degrees = [
+const DEFAULT_DEGREES = [
   'JEE Advanced: B.Tech / Dual Degree (4/5 Yr)',
   'JEE Advanced: Integrated M.Tech (5 Yr)',
   'GATE: M.Tech (2 Yr)',
@@ -79,6 +79,8 @@ const degrees = [
   'CAT: MBA (2 Yr)',
   'JAM: M.Sc (2 Yr)'
 ];
+
+import api from '@/lib/api';
 
 const ProgramRow = memo(({ prog, isSelected, bdata, onToggle, onBranchDataChange }: any) => {
   return (
@@ -151,6 +153,23 @@ export default function EligibilityTab({
   const [selectedPrograms, setSelectedPrograms] = useState<number[]>([]);
   const [useBranchWise, setUseBranchWise] = useState(false);
   const [branchWiseData, setBranchWiseData] = useState<Record<number, { min_cgpa: string, active_backlogs_allowed: boolean }>>({});
+  
+  const [programmes, setProgrammes] = useState<any[]>(DEFAULT_PROGRAMMES);
+  const [degrees, setDegrees] = useState<string[]>(DEFAULT_DEGREES);
+
+  // Fetch programs from metadata API
+  useEffect(() => {
+    api.get('/metadata/programs')
+      .then(res => {
+        if (res.data.success && res.data.programmes?.length > 0) {
+          const fetched = res.data.programmes;
+          setProgrammes(fetched);
+          const uniqueDegrees: string[] = Array.from(new Set(fetched.map((p: any) => p.degree)));
+          setDegrees(uniqueDegrees);
+        }
+      })
+      .catch(err => console.error("Failed to fetch programs:", err));
+  }, []);
 
   // Pre-fill from initialData (duplicated JNF)
   useEffect(() => {
@@ -227,7 +246,7 @@ export default function EligibilityTab({
       <Grid container spacing={3}>
         <Grid item xs={12} md={4}>
           <TextField
-            fullWidth label="Minimum CGPA"
+            fullWidth label="Minimum CGPA *"
             type="number" value={form.min_cgpa}
             onChange={e => set('min_cgpa', e.target.value)}
             inputProps={{ step: 0.1, min: 0, max: 10 }}
@@ -235,14 +254,14 @@ export default function EligibilityTab({
         </Grid>
         <Grid item xs={12} md={4}>
           <TextField
-            fullWidth label="Max Backlogs Allowed"
+            fullWidth label="Max Backlogs Allowed *"
             type="number" value={form.max_backlogs_allowed}
             onChange={e => set('max_backlogs_allowed', e.target.value)}
           />
         </Grid>
         <Grid item xs={12} md={4}>
           <TextField
-            fullWidth select label="Gender Filter"
+            fullWidth select label="Gender Filter *"
             value={form.allowed_gender}
             onChange={e => set('allowed_gender', e.target.value)}
           >

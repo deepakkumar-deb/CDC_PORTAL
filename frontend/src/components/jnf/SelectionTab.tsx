@@ -113,7 +113,7 @@ export default function SelectionTab({
           <Grid container spacing={2}>
             <Grid item xs={12} sm={6} md={3}>
               <TextField
-                fullWidth select size="small" label="Round Type"
+                fullWidth select size="small" label="Round Type *"
                 value={round.round_type}
                 onChange={e => setRound(i, 'round_type', e.target.value)}
               >
@@ -126,7 +126,7 @@ export default function SelectionTab({
             </Grid>
             <Grid item xs={12} sm={6} md={3}>
               <TextField
-                fullWidth select size="small" label="Mode"
+                fullWidth select size="small" label="Mode *"
                 value={round.mode}
                 onChange={e => setRound(i, 'mode', e.target.value)}
               >
@@ -214,14 +214,14 @@ export default function SelectionTab({
       <Grid container spacing={2}>
         <Grid item xs={12} sm={6} md={3}>
           <TextField
-            fullWidth size="small" label="Rooms Required"
+            fullWidth size="small" label="Rooms Required *"
             type="number" value={infra.rooms_required}
             onChange={e => setI('rooms_required', e.target.value)}
           />
         </Grid>
         <Grid item xs={12} sm={6} md={3}>
           <TextField
-            fullWidth size="small" label="Team Members Required"
+            fullWidth size="small" label="Team Members Required *"
             type="number" value={infra.team_members_required}
             onChange={e => setI('team_members_required', e.target.value)}
           />

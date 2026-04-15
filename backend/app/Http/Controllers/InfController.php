@@ -15,7 +15,6 @@ use App\Models\JnfAllowedCategory;
 use App\Models\SelectionRound;
 use App\Models\SelectionInfrastructure;
 use App\Models\ApprovalHistory;
-use App\Models\ProgramDeptMap;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Mail;
 
@@ -50,6 +49,7 @@ class InfController extends Controller
             ->where('company_id', $company->id)
             ->where('opportunity_type', 'internship')
             ->with([
+                'company.contacts',
                 'skills',
                 'attachments',
                 'eligibilityRule',
@@ -189,11 +189,11 @@ class InfController extends Controller
         EligibilityRule::updateOrCreate(
             ['jnf_id' => $id],
             [
-                'min_cgpa'                => $request->min_cgpa,
-                'max_backlogs_allowed'    => $request->max_backlogs_allowed,
+                'min_cgpa'                => $this->cleanNum($request->min_cgpa),
+                'max_backlogs_allowed'    => $this->cleanNum($request->max_backlogs_allowed, true),
                 'active_backlogs_allowed' => $request->active_backlogs_allowed ?? false,
-                'min_class_10_percent'    => $request->min_class_10_percent,
-                'min_class_12_percent'    => $request->min_class_12_percent,
+                'min_class_10_percent'    => $this->cleanNum($request->min_class_10_percent),
+                'min_class_12_percent'    => $this->cleanNum($request->min_class_12_percent),
                 'allowed_gender'          => $request->allowed_gender ?? 'all',
                 'additional_text'         => $request->additional_text,
             ]
@@ -201,9 +201,7 @@ class InfController extends Controller
 
         if ($request->has('program_dept_map_ids')) {
             JnfAllowedProgram::where('jnf_id', $id)->delete();
-            // Filter out non-existent program_dept_map IDs
-            $validMapIds = ProgramDeptMap::whereIn('id', $request->program_dept_map_ids)->pluck('id')->toArray();
-            foreach ($validMapIds as $mapId) {
+            foreach ($request->program_dept_map_ids as $mapId) {
                 JnfAllowedProgram::create([
                     'jnf_id'              => $id,
                     'program_dept_map_id' => $mapId,
@@ -235,16 +233,6 @@ class InfController extends Controller
             'stipend_breakdowns.*.programme_type' => 'required|string',
         ]);
 
-        // Helper function to sanitize numeric values
-        $sanitizeNumber = function ($value) {
-            if ($value === null || $value === '' || $value === '?') {
-                return null;
-            }
-            // Remove commas, spaces, and currency text
-            $cleaned = preg_replace('/[^\d.]/', '', (string)$value);
-            return is_numeric($cleaned) ? (float)$cleaned : null;
-        };
-
         InfStipendBreakdown::where('jnf_id', $id)->delete();
 
         foreach ($request->stipend_breakdowns as $row) {
@@ -252,11 +240,11 @@ class InfController extends Controller
                 'jnf_id'           => $id,
                 'programme_type'   => $row['programme_type'],
                 'currency'         => $row['currency'] ?? 'INR',
-                'base_stipend'     => $sanitizeNumber($row['base_stipend'] ?? null),
-                'hra_housing'      => $sanitizeNumber($row['hra_housing'] ?? null),
-                'variable_pay'     => $sanitizeNumber($row['variable_pay'] ?? null),
-                'other_allowance'  => $sanitizeNumber($row['other_allowance'] ?? null),
-                'total_stipend'    => $sanitizeNumber($row['total_stipend'] ?? null),
+                'base_stipend'     => $row['base_stipend'] ?? null,
+                'hra_housing'      => $row['hra_housing'] ?? null,
+                'variable_pay'     => $row['variable_pay'] ?? null,
+                'other_allowance'  => $row['other_allowance'] ?? null,
+                'total_stipend'    => $row['total_stipend'] ?? null,
             ]);
         }
 
@@ -268,7 +256,7 @@ class InfController extends Controller
                     'jnf_id'          => $id,
                     'programme_type'  => $perk['programme_type'],
                     'perk_label'      => $perk['perk_label'],
-                    'perk_value'      => $sanitizeNumber($perk['perk_value'] ?? null),
+                    'perk_value'      => $perk['perk_value'] ?? null,
                     'display_order'   => $index,
                 ]);
             }
@@ -283,16 +271,6 @@ class InfController extends Controller
         $jnf = $this->getInf($request, $id);
         if (!$jnf) return $this->notFound();
 
-        // Helper function to sanitize numeric values
-        $sanitizeNumber = function ($value) {
-            if ($value === null || $value === '' || $value === '?') {
-                return null;
-            }
-            // Remove commas, spaces, and currency text
-            $cleaned = preg_replace('/[^\d.]/', '', (string)$value);
-            return is_numeric($cleaned) ? (int)(float)$cleaned : null;
-        };
-
         if ($request->has('rounds')) {
             SelectionRound::where('jnf_id', $id)->delete();
             foreach ($request->rounds as $round) {
@@ -305,7 +283,7 @@ class InfController extends Controller
                     'interview_mode'       => $round['interview_mode'] ?? null,
                     'description'          => $round['description'] ?? null,
                     'tentative_date'       => $round['tentative_date'] ?? null,
-                    'duration_minutes'     => $sanitizeNumber($round['duration_minutes']),
+                    'duration_minutes'     => $round['duration_minutes'] ?? null,
                     'is_elimination_round' => $round['is_elimination_round'] ?? false,
                 ]);
             }
@@ -314,8 +292,8 @@ class InfController extends Controller
         SelectionInfrastructure::updateOrCreate(
             ['jnf_id' => $id],
             [
-                'rooms_required'        => $sanitizeNumber($request->rooms_required),
-                'team_members_required' => $sanitizeNumber($request->team_members_required),
+                'rooms_required'        => $request->rooms_required,
+                'team_members_required' => $request->team_members_required,
                 'psychometric_test'     => $request->psychometric_test ?? false,
                 'medical_test'          => $request->medical_test ?? false,
                 'proctoring_required'   => $request->proctoring_required ?? false,
@@ -448,6 +426,17 @@ class InfController extends Controller
             'success' => false,
             'message' => 'Please complete your company profile first.',
         ], 404);
+    }
+
+    private function cleanNum($val, $integer = false)
+    {
+        if (!$val || is_bool($val)) return null;
+        if (is_numeric($val)) return $val;
+
+        $cleaned = preg_replace('/[^\d.]/', '', (string)$val);
+        if ($cleaned === '' || $cleaned === '.') return null;
+
+        return $integer ? (int)$cleaned : (float)$cleaned;
     }
 
     private function success($message)

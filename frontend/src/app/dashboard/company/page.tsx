@@ -18,8 +18,8 @@ import {
   Avatar,
   IconButton,
 } from "@mui/material";
-import PhotoCamera from '@mui/icons-material/PhotoCamera';
-import UploadFileIcon from '@mui/icons-material/UploadFile';
+import PhotoCamera from "@mui/icons-material/PhotoCamera";
+import UploadFileIcon from "@mui/icons-material/UploadFile";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import api from "@/lib/api";
 
@@ -50,7 +50,7 @@ export default function CompanyProfilePage() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [extracting, setExtracting] = useState(false);
-  
+
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [logoPreview, setLogoPreview] = useState<string>("");
   const [companyFile, setCompanyFile] = useState<File | null>(null);
@@ -108,7 +108,9 @@ export default function CompanyProfilePage() {
           mnc_hq_city: c.mnc_hq_city ?? "",
         });
         if (c.logo_path) {
-          const base = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000').replace(/\/api\/?$/, '');
+          const base = (
+            process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"
+          ).replace(/\/api\/?$/, "");
           setLogoPreview(`${base}/storage/${c.logo_path}?t=${Date.now()}`);
         }
         setIndustryTags(c.industry_tags ?? []);
@@ -157,34 +159,51 @@ export default function CompanyProfilePage() {
     try {
       const formData = new FormData();
       Object.entries(form).forEach(([k, v]) => formData.append(k, v));
-      industryTags.forEach((tag, i) => formData.append(`industry_tags[${i}]`, tag));
+      industryTags.forEach((tag, i) =>
+        formData.append(`industry_tags[${i}]`, tag),
+      );
       contacts.forEach((contact, i) => {
-        Object.entries(contact).forEach(([k, v]) => formData.append(`contacts[${i}][${k}]`, v));
+        Object.entries(contact).forEach(([k, v]) =>
+          formData.append(`contacts[${i}][${k}]`, v),
+        );
       });
       if (logoFile) formData.append("logo", logoFile);
       if (companyFile) formData.append("company_file", companyFile);
 
-      const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000').replace(/\/api\/?$/, '');
+      const baseUrl = (
+        process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"
+      ).replace(/\/api\/?$/, "");
       if (isNew) {
-        const res = await api.post("/company", formData, { headers: { "Content-Type": "multipart/form-data" } });
+        const res = await api.post("/company", formData, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
         setIsNew(false);
         setSuccess("Company profile created successfully!");
         window.scrollTo({ top: 0, behavior: "smooth" });
         if (res.data?.company?.logo_path) {
-          setLogoPreview(`${baseUrl}/storage/${res.data.company.logo_path}?t=${Date.now()}`);
+          setLogoPreview(
+            `${baseUrl}/storage/${res.data.company.logo_path}?t=${Date.now()}`,
+          );
           setLogoFile(null);
         }
       } else {
-        const res = await api.post("/company/update", formData, { headers: { "Content-Type": "multipart/form-data" } });
+        const res = await api.post("/company/update", formData, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
         setSuccess("Company profile updated successfully!");
         window.scrollTo({ top: 0, behavior: "smooth" });
         if (res.data?.company?.logo_path) {
-          setLogoPreview(`${baseUrl}/storage/${res.data.company.logo_path}?t=${Date.now()}`);
+          setLogoPreview(
+            `${baseUrl}/storage/${res.data.company.logo_path}?t=${Date.now()}`,
+          );
           setLogoFile(null);
         }
       }
     } catch (err: any) {
-      setError(err.response?.data?.message || "Failed to save. Check all required fields.");
+      setError(
+        err.response?.data?.message ||
+          "Failed to save. Check all required fields.",
+      );
       window.scrollTo({ top: 0, behavior: "smooth" });
     } finally {
       setSaving(false);
@@ -209,17 +228,20 @@ export default function CompanyProfilePage() {
       const formData = new FormData();
       formData.append("file", companyFile);
       formData.append("type", "company");
-      const res = await api.post("/extract-pdf", formData, { headers: { "Content-Type": "multipart/form-data" } });
+      const res = await api.post("/extract-pdf", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
       const data = res.data.data;
       if (data) {
-        setForm(prev => ({
+        setForm((prev) => ({
           ...prev,
           company_name: data.company_name || prev.company_name,
           website: data.website || prev.website,
           industry: data.industry || prev.industry,
           company_type: data.company_type || prev.company_type,
           about_company: data.about_company || prev.about_company,
-          headquarters_address: data.headquarters_address || prev.headquarters_address,
+          headquarters_address:
+            data.headquarters_address || prev.headquarters_address,
           city: data.city || prev.city,
           state: data.state || prev.state,
           country: data.country || prev.country,
@@ -227,7 +249,9 @@ export default function CompanyProfilePage() {
           no_of_employees: data.no_of_employees || prev.no_of_employees,
           annual_turnover: data.annual_turnover || prev.annual_turnover,
         }));
-        setSuccess("Successfully extracted details from the PDF. Please review the autofilled data carefully to ensure accuracy.");
+        setSuccess(
+          "Successfully extracted details from the PDF. Please review the autofilled data carefully to ensure accuracy.",
+        );
       }
     } catch (err: any) {
       setError(err.response?.data?.message || "PDF extraction failed");
@@ -262,28 +286,28 @@ export default function CompanyProfilePage() {
       </Box>
 
       {error && (
-        <Alert 
-          severity="error" 
+        <Alert
+          severity="error"
           onClose={() => setError("")}
-          sx={{ 
-            mb: 3, 
-            borderRadius: "12px", 
+          sx={{
+            mb: 3,
+            borderRadius: "12px",
             boxShadow: "0 2px 12px rgba(211, 47, 47, 0.1)",
-            "& .MuiAlert-message": { fontWeight: 500 }
+            "& .MuiAlert-message": { fontWeight: 500 },
           }}
         >
           {error}
         </Alert>
       )}
       {success && (
-        <Alert 
-          severity="success" 
+        <Alert
+          severity="success"
           onClose={() => setSuccess("")}
-          sx={{ 
-            mb: 3, 
-            borderRadius: "12px", 
+          sx={{
+            mb: 3,
+            borderRadius: "12px",
             boxShadow: "0 2px 12px rgba(46, 125, 50, 0.1)",
-            "& .MuiAlert-message": { fontWeight: 500 }
+            "& .MuiAlert-message": { fontWeight: 500 },
           }}
         >
           {success}
@@ -299,12 +323,12 @@ export default function CompanyProfilePage() {
           >
             Basic Information
           </Typography>
-          <Box sx={{ display: 'flex', alignItems: 'center', mb: 3, gap: 2 }}>
-            <Avatar 
-              src={logoPreview} 
-              sx={{ width: 80, height: 80, border: '2px solid #ccc' }} 
+          <Box sx={{ display: "flex", alignItems: "center", mb: 3, gap: 2 }}>
+            <Avatar
+              src={logoPreview}
+              sx={{ width: 80, height: 80, border: "2px solid #ccc" }}
             />
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+            <Box sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}>
               <Button
                 component="label"
                 variant="outlined"
@@ -312,13 +336,22 @@ export default function CompanyProfilePage() {
                 size="small"
               >
                 Upload Logo
-                <input hidden accept="image/*" type="file" onChange={handleLogoChange} />
+                <input
+                  hidden
+                  accept="image/*"
+                  type="file"
+                  onChange={handleLogoChange}
+                />
               </Button>
-              <Typography variant="caption" color="text.secondary" sx={{ textAlign: 'center' }}>
+              <Typography
+                variant="caption"
+                color="text.secondary"
+                sx={{ textAlign: "center" }}
+              >
                 Max size: 2MB
               </Typography>
             </Box>
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+            <Box sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}>
               <Button
                 component="label"
                 variant="outlined"
@@ -327,11 +360,21 @@ export default function CompanyProfilePage() {
                 color={companyFile ? "success" : "primary"}
               >
                 {companyFile ? "File Selected" : "Upload Company Profile (PDF)"}
-                <input hidden accept="application/pdf" type="file" onChange={e => {
-                  if (e.target.files && e.target.files[0]) setCompanyFile(e.target.files[0]);
-                }} />
+                <input
+                  hidden
+                  accept="application/pdf"
+                  type="file"
+                  onChange={(e) => {
+                    if (e.target.files && e.target.files[0])
+                      setCompanyFile(e.target.files[0]);
+                  }}
+                />
               </Button>
-              <Typography variant="caption" color="text.secondary" sx={{ textAlign: 'center' }}>
+              <Typography
+                variant="caption"
+                color="text.secondary"
+                sx={{ textAlign: "center" }}
+              >
                 Max size: 5MB
               </Typography>
             </Box>
@@ -342,7 +385,10 @@ export default function CompanyProfilePage() {
                 color="secondary"
                 onClick={handleAutofill}
                 disabled={extracting}
-                sx={{ background: '#C8922A', '&:hover': { background: '#A0721A' } }}
+                sx={{
+                  background: "#C8922A",
+                  "&:hover": { background: "#A0721A" },
+                }}
               >
                 {extracting ? "Extracting..." : "Autofill from File"}
               </Button>

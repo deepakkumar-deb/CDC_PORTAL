@@ -130,17 +130,15 @@ export default function JobDetailsTab({
           </TextField>
         </Grid>
         <Grid item xs={12} md={8}>
-          <Typography variant="body2" sx={{ mb: 1, fontWeight: 600 }}>
-            Place of Posting / Job Location
-          </Typography>
-          <Box sx={{ display: 'flex', gap: 1, mb: 1.5 }}>
+          <Box sx={{ display: 'flex', gap: 1, mb: 1, mt: 0.5 }}>
             <TextField
-              size="small" label="Add location" value={locationInput}
+              size="small" label="Place of Posting / Job Location" value={locationInput}
               onChange={e => setLocationInput(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && addLocation()}
               sx={{ flex: 1 }}
+              placeholder="e.g. Mumbai, Bangalore"
             />
-            <Button variant="outlined" onClick={addLocation}>Add</Button>
+            <Button variant="outlined" onClick={addLocation} sx={{ height: 40 }}>Add</Button>
           </Box>
           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
             {locations.map(loc => (
@@ -169,17 +167,15 @@ export default function JobDetailsTab({
 
         {/* Skills chip input */}
         <Grid item xs={12}>
-          <Typography variant="body2" sx={{ mb: 1, fontWeight: 600 }}>
-            Required Skills
-          </Typography>
-          <Box sx={{ display: 'flex', gap: 1, mb: 1.5 }}>
+          <Box sx={{ display: 'flex', gap: 1, mb: 1.5, mt: 1 }}>
             <TextField
-              size="small" label="Add skill" value={skillInput}
+              size="small" label="Required Skills (Add multiple)" value={skillInput}
               onChange={e => setSkill(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && addSkill()}
               sx={{ flex: 1 }}
+              placeholder="e.g. Python, Java"
             />
-            <Button variant="outlined" onClick={addSkill}>Add</Button>
+            <Button variant="outlined" onClick={addSkill} sx={{ height: 40 }}>Add</Button>
           </Box>
           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
             {skills.map(skill => (

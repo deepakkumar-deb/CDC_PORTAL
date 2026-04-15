@@ -118,14 +118,14 @@ export default function SalaryTab({
         <Grid container spacing={2} alignItems="center">
           <Grid item xs={12} sm={3}>
             <TextField 
-              fullWidth size="small" label="Global CTC" 
+              fullWidth size="small" label="Global CTC *" 
               type="number" value={globalVals.ctc_annual}
               onChange={e => setGlobalVals({...globalVals, ctc_annual: e.target.value})}
             />
           </Grid>
           <Grid item xs={12} sm={3}>
             <TextField 
-              fullWidth size="small" label="Global Base" 
+              fullWidth size="small" label="Global Base *" 
               type="number" value={globalVals.base_fixed}
               onChange={e => setGlobalVals({...globalVals, base_fixed: e.target.value})}
             />
@@ -181,14 +181,14 @@ export default function SalaryTab({
           <Grid container spacing={2}>
             <Grid item xs={12} sm={6} md={3}>
               <TextField
-                fullWidth size="small" label="CTC (Annual)"
+                fullWidth size="small" label="CTC (Annual) *"
                 type="number" value={row.ctc_annual}
                 onChange={e => setRow(i, 'ctc_annual', e.target.value)}
               />
             </Grid>
             <Grid item xs={12} sm={6} md={3}>
               <TextField
-                fullWidth size="small" label="Base / Fixed"
+                fullWidth size="small" label="Base / Fixed *"
                 type="number" value={row.base_fixed}
                 onChange={e => setRow(i, 'base_fixed', e.target.value)}
               />

@@ -95,22 +95,22 @@ class ExtractionController extends Controller
                 "  \"openings_count\": \"\",\n" .
                 "  \"skills\": [\"\"],\n" .
                 "  \"salary\": {\n" .
-                "    \"ctc\": \"\",\n" .
-                "    \"base\": \"\",\n" .
-                "    \"bonus\": \"\",\n" .
+                "    \"ctc\": \"(numeric only, no currency/commas)\",\n" .
+                "    \"base\": \"(numeric only, no currency/commas)\",\n" .
+                "    \"bonus\": \"(numeric only, no currency/commas)\",\n" .
                 "    \"bond_details\": \"\"\n" .
                 "  },\n" .
                 "  \"eligibility_rule\": {\n" .
-                "    \"min_cgpa\": \"\",\n" .
-                "    \"max_backlogs_allowed\": \"\",\n" .
-                "    \"min_class_10_percent\": \"\",\n" .
-                "    \"min_class_12_percent\": \"\"\n" .
+                "    \"min_cgpa\": \"(float, e.g. 7.5)\",\n" .
+                "    \"max_backlogs_allowed\": \"(integer)\",\n" .
+                "    \"min_class_10_percent\": \"(numeric)\",\n" .
+                "    \"min_class_12_percent\": \"(numeric)\"\n" .
                 "  },\n" .
                 "  \"selection_process\": {\n" .
                 "    \"rounds\": [{\"round_order\": 1, \"round_type\": \"resume|test|gd|interview\", \"mode\": \"online|offline|hybrid\", \"description\": \"\"}],\n" .
                 "    \"infrastructure\": {\n" .
-                "      \"rooms_required\": \"(number only)\",\n" .
-                "      \"team_members_required\": \"(number only)\",\n" .
+                "      \"rooms_required\": \"\",\n" .
+                "      \"team_members_required\": \"\",\n" .
                 "      \"other_screening\": \"\"\n" .
                 "    }\n" .
                 "  }\n" .
@@ -124,21 +124,21 @@ class ExtractionController extends Controller
                 "  \"openings_count\": \"\",\n" .
                 "  \"skills\": [\"\"],\n" .
                 "  \"stipend\": {\n" .
-                "    \"monthly_stipend\": \"\",\n" .
+                "    \"monthly_stipend\": \"(numeric only)\",\n" .
                 "    \"accommodation_provided\": true|false,\n" .
                 "    \"ppo_offered\": true|false\n" .
                 "  },\n" .
                 "  \"eligibility_rule\": {\n" .
-                "    \"min_cgpa\": \"\",\n" .
-                "    \"max_backlogs_allowed\": \"\",\n" .
-                "    \"min_class_10_percent\": \"\",\n" .
-                "    \"min_class_12_percent\": \"\"\n" .
+                "    \"min_cgpa\": \"(float)\",\n" .
+                "    \"max_backlogs_allowed\": \"(integer)\",\n" .
+                "    \"min_class_10_percent\": \"(numeric)\",\n" .
+                "    \"min_class_12_percent\": \"(numeric)\"\n" .
                 "  },\n" .
                 "  \"selection_process\": {\n" .
                 "    \"rounds\": [{\"round_order\": 1, \"round_type\": \"resume|test|gd|interview\", \"mode\": \"online|offline|hybrid\", \"description\": \"\"}],\n" .
                 "    \"infrastructure\": {\n" .
-                "      \"rooms_required\": \"(number only)\",\n" .
-                "      \"team_members_required\": \"(number only)\",\n" .
+                "      \"rooms_required\": \"\",\n" .
+                "      \"team_members_required\": \"\",\n" .
                 "      \"other_screening\": \"\"\n" .
                 "    }\n" .
                 "  }\n" .

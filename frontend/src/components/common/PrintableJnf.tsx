@@ -56,11 +56,13 @@ const PrintableJnf = memo(({ form, showDownloadButton = true }: Props) => {
                   justifyContent: 'space-between',
                   mb: 2,
                 }}>
-                  <Box
-                    component="img"
-                    src="/logo.webp"
-                    sx={{ width: 70, height: 70, objectFit: 'contain' }}
-                  />
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                    <Box
+                      component="img"
+                      src="/logo.webp"
+                      sx={{ width: 70, height: 70, objectFit: 'contain' }}
+                    />
+                  </Box>
                   <Box sx={{ textAlign: 'center', flex: 1, px: 2 }}>
                     <Typography sx={{ color: '#D32F2F', fontWeight: 700, fontSize: '1.2rem', lineHeight: 1.1 }}>
                       कैरियर विकास केंद्र
@@ -121,15 +123,26 @@ const PrintableJnf = memo(({ form, showDownloadButton = true }: Props) => {
                 </Box>
                 {/* Company Info */}
                 <Section title="Company Information">
+                  <Box sx={{ display: 'flex', gap: 3, alignItems: 'center', mb: 2 }}>
+                    {form.company?.logo_url && (
+                      <Box
+                        component="img"
+                        src={form.company.logo_url}
+                        sx={{ width: 80, height: 80, objectFit: 'contain', border: '1px solid #eee', p: 1, borderRadius: 1 }}
+                      />
+                    )}
+                    <Grid container spacing={2}>
+                      <Field label="Company Name" value={form.company?.company_name} />
+                      <Field label="Industry" value={form.company?.industry} />
+                      <Field label="Website" value={form.company?.website} />
+                      <Field label="City" value={form.company?.city} />
+                    </Grid>
+                  </Box>
                   <Grid container spacing={2}>
-                    <Field label="Company Name" value={form.company?.company_name} />
-                    <Field label="Industry" value={form.company?.industry} />
-                    <Field label="Website" value={form.company?.website} />
-                    <Field label="City" value={form.company?.city} />
-                    {form.company?.contacts?.map((c: any) => (
+                    {form.company?.contacts?.map((c: any, idx: number) => (
                       <Field
-                        key={c.id}
-                        label={c.contact_type.replace(/_/g, ' ').toUpperCase()}
+                        key={c.id || idx}
+                        label={c.contact_type?.replace(/_/g, ' ').toUpperCase()}
                         value={`${c.contact_name} | ${c.email} | ${c.phone || '—'}`}
                         full
                       />
@@ -163,12 +176,12 @@ const PrintableJnf = memo(({ form, showDownloadButton = true }: Props) => {
                     {form.responsibilities && (
                       <Field label="Responsibilities" value={form.responsibilities} full />
                     )}
-                    {form.skills?.length > 0 && (
+                    {form.skills?.filter((s: any) => s.skill_name).length > 0 && (
                       <Grid item xs={12}>
                         <PrintLabel>Required Skills</PrintLabel>
                         <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mt: 0.5 }}>
-                          {form.skills.map((s: any) => (
-                            <Chip key={s.id} label={s.skill_name} size="small"
+                          {form.skills.filter((s: any) => s.skill_name).map((s: any, idx: number) => (
+                            <Chip key={s.id || idx} label={s.skill_name} size="small"
                               sx={{ background: 'rgba(0,51,102,0.08)', color: '#003366' }} />
                           ))}
                         </Box>
@@ -176,6 +189,48 @@ const PrintableJnf = memo(({ form, showDownloadButton = true }: Props) => {
                     )}
                   </Grid>
                 </Section>
+
+                <Divider sx={{ my: 2 }} />
+
+                {/* Branches Section */}
+                {form.allowed_programs?.length > 0 && (
+                  <Section title="Allowed Branches & Programs">
+                    {(() => {
+                      const grouped: Record<string, string[]> = {};
+                      form.allowed_programs.forEach((p: any) => {
+                        const course = p.program_dept_map?.program?.program_name || p.program_dept_map?.program?.course || 'Other';
+                        if (!grouped[course]) grouped[course] = [];
+                        grouped[course].push(p.program_dept_map?.department?.department_name || 'Unknown');
+                      });
+                      return Object.entries(grouped).map(([course, Depts]) => (
+                        <Box key={course} sx={{ mb: 1, borderLeft: '3px solid #003366', pl: 1.5, py: 0.5 }}>
+                          <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: '#003366', textTransform: 'uppercase' }}>
+                            {course}
+                          </Typography>
+                          <Typography sx={{ fontSize: '0.8rem', color: '#455A64', lineHeight: 1.4 }}>
+                            {Depts.join(', ')}
+                          </Typography>
+                        </Box>
+                      ));
+                    })()}
+                  </Section>
+                )}
+
+                {/* Categories Section */}
+                {form.allowed_categories?.length > 0 && (
+                  <Section title="Allowed Categories">
+                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                      {form.allowed_categories.map((c: any, idx: number) => (
+                        <Chip
+                          key={c.id || idx}
+                          label={c.category?.name || '—'}
+                          size="small"
+                          sx={{ fontSize: '0.7rem', background: '#f5f5f5' }}
+                        />
+                      ))}
+                    </Box>
+                  </Section>
+                )}
 
                 <Divider sx={{ my: 2 }} />
 
@@ -195,15 +250,49 @@ const PrintableJnf = memo(({ form, showDownloadButton = true }: Props) => {
                         )}
                       </Grid>
                     </Section>
+
+                    {/* Department-wise CGPA if any */}
+                    {form.dept_cgpa?.length > 0 && (
+                      <Box sx={{ mt: 1, px: 2, py: 2, background: '#fafafa', borderRadius: 1, border: '1px dashed #ccc' }}>
+                        <Typography variant="caption" sx={{ fontWeight: 700, display: 'block', mb: 1, color: '#003366' }}>
+                          Course-wise CGPA Exceptions:
+                        </Typography>
+                        <Grid container spacing={2}>
+                          {form.dept_cgpa.map((dc: any, idx: number) => {
+                            // Robust lookup: find the branch name from allowed_programs if relations are missing
+                            const branchRef = form.allowed_programs?.find((p: any) => 
+                              p.program_dept_map_id === dc.program_dept_map_id
+                            );
+                            
+                            const branchName = 
+                              (dc.program_dept_map?.program?.program_name || dc.program_dept_map?.program?.course || branchRef?.program_dept_map?.program?.program_name || '') + 
+                              ' - ' + 
+                              (dc.program_dept_map?.department?.department_name || branchRef?.program_dept_map?.department?.department_name || 'Specified Program');
+
+                            return (
+                              <Grid item xs={12} sm={6} md={4} key={dc.id || idx}>
+                                <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', fontWeight: 600 }}>
+                                  {branchName}:
+                                </Typography>
+                                <Typography sx={{ fontSize: '0.8rem', fontWeight: 700 }}>
+                                  {dc.min_cgpa} CGPA {dc.active_backlogs_allowed ? '(Backlogs ok)' : '(No backlogs)'}
+                                </Typography>
+                              </Grid>
+                            );
+                          })}
+                        </Grid>
+                      </Box>
+                    )}
+
                     <Divider sx={{ my: 2 }} />
                   </>
                 )}
 
                 {/* Salary/Stipend */}
-                {form.salary_breakdowns?.length > 0 && (
+                {form.salary_breakdowns?.filter((row: any) => row.ctc_annual || row.base_fixed).length > 0 && (
                   <Section title="Salary Details">
-                    {form.salary_breakdowns.map((row: any) => (
-                      <Box key={row.id} sx={{ mb: 2, p: 2, border: '1px solid rgba(0,0,0,0.1)', borderRadius: 1 }}>
+                    {form.salary_breakdowns.filter((row: any) => row.ctc_annual || row.base_fixed).map((row: any, idx: number) => (
+                      <Box key={row.id || idx} sx={{ mb: 2, p: 2, border: '1px solid rgba(0,0,0,0.1)', borderRadius: 1 }}>
                         <Typography sx={{ fontWeight: 700, fontSize: '0.8rem', color: '#003366', mb: 1, textTransform: 'uppercase' }}>
                           {row.programme_type?.replace(/_/g, ' / ')} — {row.currency}
                         </Typography>
@@ -213,6 +302,7 @@ const PrintableJnf = memo(({ form, showDownloadButton = true }: Props) => {
                             ['Base / Fixed', row.base_fixed],
                             ['Monthly Take-home', row.monthly_takehome],
                             ['Joining Bonus', row.joining_bonus],
+                            ['Variable Bonus', row.variable_performance_bonus],
                             ['ESOP Value', row.esop_value],
                             ['Bond Required', row.bond_required ? 'Yes' : null],
                             ['Bond Amount', row.bond_amount],
@@ -225,6 +315,12 @@ const PrintableJnf = memo(({ form, showDownloadButton = true }: Props) => {
                               </Typography>
                             </Grid>
                           ))}
+                          {row.ctc_breakup_notes && (
+                            <Grid item xs={12}>
+                              <PrintLabel>Notes</PrintLabel>
+                              <Typography sx={{ fontSize: '0.75rem' }}>{row.ctc_breakup_notes}</Typography>
+                            </Grid>
+                          )}
                         </Grid>
                       </Box>
                     ))}
@@ -233,8 +329,8 @@ const PrintableJnf = memo(({ form, showDownloadButton = true }: Props) => {
 
                 {form.inf_stipend_breakdowns?.length > 0 && (
                   <Section title="Stipend Details">
-                    {form.inf_stipend_breakdowns.map((row: any) => (
-                      <Box key={row.id} sx={{ mb: 2, p: 2, border: '1px solid rgba(0,0,0,0.1)', borderRadius: 1 }}>
+                    {form.inf_stipend_breakdowns.map((row: any, idx: number) => (
+                      <Box key={row.id || idx} sx={{ mb: 2, p: 2, border: '1px solid rgba(0,0,0,0.1)', borderRadius: 1 }}>
                         <Typography sx={{ fontWeight: 700, fontSize: '0.8rem', color: '#003366', mb: 1, textTransform: 'uppercase' }}>
                           {row.programme_type?.replace(/_/g, ' / ')} — {row.currency}
                         </Typography>
@@ -249,7 +345,7 @@ const PrintableJnf = memo(({ form, showDownloadButton = true }: Props) => {
                             <Grid item xs={6} md={3} key={label as string}>
                               <PrintLabel>{label as string}</PrintLabel>
                               <Typography sx={{ fontSize: '0.85rem', fontWeight: 500 }}>
-                                ₹{Number(val).toLocaleString('en-IN')}
+                                {typeof val === 'number' ? `₹${Number(val).toLocaleString('en-IN')}` : String(val)}
                               </Typography>
                             </Grid>
                           ))}
@@ -262,14 +358,23 @@ const PrintableJnf = memo(({ form, showDownloadButton = true }: Props) => {
                 {/* Selection Process */}
                 {form.selection_rounds?.length > 0 && (
                   <Section title="Selection Process">
-                    {form.selection_rounds.map((round: any) => (
-                      <Box key={round.id} sx={{ display: 'flex', gap: 2, py: 1.5, borderBottom: '1px solid rgba(0,0,0,0.06)', '&:last-child': { borderBottom: 'none' } }}>
+                    <Grid container spacing={2} sx={{ mb: 2 }}>
+                       {form.selection_infrastructure && (
+                         <>
+                           <Field label="Rooms Required" value={form.selection_infrastructure.rooms_required} />
+                           <Field label="Team Size" value={form.selection_infrastructure.team_members_required} />
+                           <Field label="Medical Test" value={form.selection_infrastructure.medical_test ? 'Yes' : 'No'} />
+                         </>
+                       )}
+                    </Grid>
+                    {form.selection_rounds.map((round: any, idx: number) => (
+                      <Box key={round.id || idx} sx={{ display: 'flex', gap: 2, py: 1.5, borderBottom: '1px solid rgba(0,0,0,0.06)', '&:last-child': { borderBottom: 'none' } }}>
                         <Box sx={{ minWidth: 28, height: 28, borderRadius: '50%', background: '#003366', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.75rem', fontWeight: 700, flexShrink: 0 }}>
                           {round.round_order}
                         </Box>
                         <Box>
                           <Typography sx={{ fontWeight: 600, fontSize: '0.875rem', textTransform: 'capitalize' }}>
-                            {round.round_type} {round.mode && ` · ${round.mode}`} {round.duration_minutes && ` · ${round.duration_minutes} mins`}
+                            {round.round_type.replace(/_/g, ' ')} {round.mode && ` · ${round.mode}`} {round.duration_minutes && ` · ${round.duration_minutes} mins`}
                           </Typography>
                           {round.description && <Typography variant="caption" color="text.secondary">{round.description}</Typography>}
                         </Box>
