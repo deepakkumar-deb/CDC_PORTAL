@@ -14,6 +14,7 @@ use App\Models\JnfDeptCgpa;
 use App\Models\SelectionRound;
 use App\Models\SelectionInfrastructure;
 use App\Models\ApprovalHistory;
+use App\Models\ProgramDeptMap;
 // use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Mail;
@@ -212,10 +213,12 @@ class JnfController extends Controller
             ]
         );
 
-        // Save allowed programmes
+        // Save allowed programmes - validate IDs exist first
         if ($request->has('program_dept_map_ids')) {
             JnfAllowedProgram::where('jnf_id', $id)->delete();
-            foreach ($request->program_dept_map_ids as $mapId) {
+            // Filter out non-existent program_dept_map IDs
+            $validMapIds = ProgramDeptMap::whereIn('id', $request->program_dept_map_ids)->pluck('id')->toArray();
+            foreach ($validMapIds as $mapId) {
                 JnfAllowedProgram::create([
                     'jnf_id'             => $id,
                     'program_dept_map_id' => $mapId,
@@ -237,13 +240,18 @@ class JnfController extends Controller
         // Save per-department CGPA
         if ($request->has('dept_cgpa')) {
             JnfDeptCgpa::where('jnf_id', $id)->delete();
+            // Get valid program_dept_map IDs
+            $validMapIds = ProgramDeptMap::pluck('id')->toArray();
             foreach ($request->dept_cgpa as $item) {
-                JnfDeptCgpa::create([
-                    'jnf_id'                  => $id,
-                    'program_dept_map_id'     => $item['program_dept_map_id'],
-                    'min_cgpa'                => $item['min_cgpa'],
-                    'active_backlogs_allowed' => $item['active_backlogs_allowed'] ?? false,
-                ]);
+                // Only save if program_dept_map_id exists
+                if (in_array($item['program_dept_map_id'], $validMapIds)) {
+                    JnfDeptCgpa::create([
+                        'jnf_id'                  => $id,
+                        'program_dept_map_id'     => $item['program_dept_map_id'],
+                        'min_cgpa'                => $item['min_cgpa'],
+                        'active_backlogs_allowed' => $item['active_backlogs_allowed'] ?? false,
+                    ]);
+                }
             }
         }
 
@@ -261,6 +269,16 @@ class JnfController extends Controller
             'salary_breakdowns.*.programme_type' => 'required|string',
         ]);
 
+        // Helper function to sanitize numeric values
+        $sanitizeNumber = function ($value) {
+            if ($value === null || $value === '' || $value === '?') {
+                return null;
+            }
+            // Remove commas, spaces, and currency text
+            $cleaned = preg_replace('/[^\d.]/', '', (string)$value);
+            return is_numeric($cleaned) ? (float)$cleaned : null;
+        };
+
         SalaryBreakdown::where('jnf_id', $id)->delete();
 
         foreach ($request->salary_breakdowns as $row) {
@@ -268,25 +286,25 @@ class JnfController extends Controller
                 'jnf_id'               => $id,
                 'programme_type'       => $row['programme_type'],
                 'currency'             => $row['currency'] ?? 'INR',
-                'ctc_annual'           => $row['ctc_annual'] ?? null,
-                'base_fixed'           => $row['base_fixed'] ?? null,
-                'monthly_takehome'     => $row['monthly_takehome'] ?? null,
-                'gross_salary'         => $row['gross_salary'] ?? null,
-                'joining_bonus'        => $row['joining_bonus'] ?? null,
-                'retention_bonus'      => $row['retention_bonus'] ?? null,
-                'relocation_allowance' => $row['relocation_allowance'] ?? null,
-                'medical_allowance'    => $row['medical_allowance'] ?? null,
-                'esop_value'           => $row['esop_value'] ?? null,
-                'vest_period'          => $row['vest_period'] ?? null,
-                'first_year_ctc'       => $row['first_year_ctc'] ?? null,
+                'ctc_annual'           => $sanitizeNumber($row['ctc_annual'] ?? null),
+                'base_fixed'           => $sanitizeNumber($row['base_fixed'] ?? null),
+                'monthly_takehome'     => $sanitizeNumber($row['monthly_takehome'] ?? null),
+                'gross_salary'         => $sanitizeNumber($row['gross_salary'] ?? null),
+                'joining_bonus'        => $sanitizeNumber($row['joining_bonus'] ?? null),
+                'retention_bonus'      => $sanitizeNumber($row['retention_bonus'] ?? null),
+                'relocation_allowance' => $sanitizeNumber($row['relocation_allowance'] ?? null),
+                'medical_allowance'    => $sanitizeNumber($row['medical_allowance'] ?? null),
+                'esop_value'           => $sanitizeNumber($row['esop_value'] ?? null),
+                'vest_period'          => $sanitizeNumber($row['vest_period'] ?? null),
+                'first_year_ctc'       => $sanitizeNumber($row['first_year_ctc'] ?? null),
                 'bond_required'        => $row['bond_required'] ?? false,
-                'bond_amount'          => $row['bond_amount'] ?? null,
-                'bond_duration_months' => $row['bond_duration_months'] ?? null,
+                'bond_amount'          => $sanitizeNumber($row['bond_amount'] ?? null),
+                'bond_duration_months' => $sanitizeNumber($row['bond_duration_months'] ?? null),
                 'bond_details'         => $row['bond_details'] ?? null,
                 'deductions_text'      => $row['deductions_text'] ?? null,
                 'ctc_breakup_notes'    => $row['ctc_breakup_notes'] ?? null,
-                'variable_performance_bonus' => $row['variable_performance_bonus'] ?? null,
-                'stocks_options'       => $row['stocks_options'] ?? null,
+                'variable_performance_bonus' => $sanitizeNumber($row['variable_performance_bonus'] ?? null),
+                'stocks_options'       => $sanitizeNumber($row['stocks_options'] ?? null),
             ]);
         }
 
@@ -298,6 +316,16 @@ class JnfController extends Controller
     {
         $jnf = $this->getJnf($request, $id);
         if (!$jnf) return $this->notFound();
+
+        // Helper function to sanitize numeric values
+        $sanitizeNumber = function ($value) {
+            if ($value === null || $value === '' || $value === '?') {
+                return null;
+            }
+            // Remove commas, spaces, and currency text
+            $cleaned = preg_replace('/[^\d.]/', '', (string)$value);
+            return is_numeric($cleaned) ? (int)(float)$cleaned : null;
+        };
 
         // Save rounds
         if ($request->has('rounds')) {
@@ -312,7 +340,7 @@ class JnfController extends Controller
                     'interview_mode'       => $round['interview_mode'] ?? null,
                     'description'          => $round['description'] ?? null,
                     'tentative_date'       => $round['tentative_date'] ?? null,
-                    'duration_minutes'     => $round['duration_minutes'] ?? null,
+                    'duration_minutes'     => $sanitizeNumber($round['duration_minutes']),
                     'is_elimination_round' => $round['is_elimination_round'] ?? false,
                 ]);
             }
@@ -322,8 +350,8 @@ class JnfController extends Controller
         SelectionInfrastructure::updateOrCreate(
             ['jnf_id' => $id],
             [
-                'rooms_required'        => $request->rooms_required,
-                'team_members_required' => $request->team_members_required,
+                'rooms_required'        => $sanitizeNumber($request->rooms_required),
+                'team_members_required' => $sanitizeNumber($request->team_members_required),
                 'psychometric_test'     => $request->psychometric_test ?? false,
                 'medical_test'          => $request->medical_test ?? false,
                 'proctoring_required'   => $request->proctoring_required ?? false,
@@ -335,39 +363,39 @@ class JnfController extends Controller
     }
 
     // ── Tab 5: Submit JNF ─────────────────────────────────────
-   public function submit(Request $request, $id)
-{
-    $jnf = $this->getJnf($request, $id);
-    if (!$jnf) return $this->notFound();
+    public function submit(Request $request, $id)
+    {
+        $jnf = $this->getJnf($request, $id);
+        if (!$jnf) return $this->notFound();
 
-    if ($jnf->status !== 'draft') {
-        return response()->json([
-            'success' => false,
-            'message' => 'JNF already submitted.',
-        ], 409);
+        if ($jnf->status !== 'draft') {
+            return response()->json([
+                'success' => false,
+                'message' => 'JNF already submitted.',
+            ], 409);
+        }
+
+        $jnf->update([
+            'status' => 'submitted',
+            'submitted_at' => now(),
+        ]);
+
+        // Log approval history
+        ApprovalHistory::create([
+            'jnf_id' => $id,
+            'action_by_user_id' => $request->user()->id,
+            'old_status' => 'draft',
+            'new_status' => 'submitted',
+            'remarks' => 'Submitted by recruiter.',
+        ]);
+
+        // ✅ SEND EMAIL TO ADMIN
+        $this->sendAdminNotification($jnf);
+
+        return $this->success('JNF submitted successfully. CDC will review it shortly.');
     }
 
-    $jnf->update([
-        'status' => 'submitted',
-        'submitted_at' => now(),
-    ]);
-
-    // Log approval history
-    ApprovalHistory::create([
-        'jnf_id' => $id,
-        'action_by_user_id' => $request->user()->id,
-        'old_status' => 'draft',
-        'new_status' => 'submitted',
-        'remarks' => 'Submitted by recruiter.',
-    ]);
-
-    // ✅ SEND EMAIL TO ADMIN
-    $this->sendAdminNotification($jnf);
-
-    return $this->success('JNF submitted successfully. CDC will review it shortly.');
-}
-
-// ── Request Edit (recruiter emails admin to request changes) ─
+    // ── Request Edit (recruiter emails admin to request changes) ─
     public function requestEdit(Request $request, $id)
     {
         $jnf = $this->getJnf($request, $id);
@@ -401,14 +429,14 @@ class JnfController extends Controller
 
         Mail::raw($body, function ($mail) use ($adminEmail, $recruiter, $subject) {
             $mail->to($adminEmail)
-                 ->replyTo($recruiter->email, $recruiter->name)
-                 ->subject($subject);
+                ->replyTo($recruiter->email, $recruiter->name)
+                ->subject($subject);
         });
 
         return $this->success('Your edit request has been sent to the CDC admin.');
     }
 
-// ── Send admin notification on new JNF submission ────────
+    // ── Send admin notification on new JNF submission ────────
     private function sendAdminNotification($jnf)
     {
         $adminEmail = env('ADMIN_EMAIL', 'deepakk51688@gmail.com');
@@ -428,7 +456,7 @@ class JnfController extends Controller
 
         Mail::raw($body, function ($mail) use ($adminEmail, $subject) {
             $mail->to($adminEmail)
-                 ->subject($subject);
+                ->subject($subject);
         });
     }
 
@@ -478,198 +506,198 @@ class JnfController extends Controller
     }
 
     // ■■ Duplicate a JNF ■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
-public function duplicate(Request $request, $id)
-{
-    $company = $request->user()->company;
-    if (!$company) return $this->notFound();
+    public function duplicate(Request $request, $id)
+    {
+        $company = $request->user()->company;
+        if (!$company) return $this->notFound();
 
-    // Find original JNF
-    $original = Jnf::where('id', $id)
-        ->where('company_id', $company->id)
-        ->with([
-            'skills',
-            'eligibilityRule',
-            'salaryBreakdowns',
-            'allowedPrograms',
-            'allowedCategories',
-            'deptCgpa',
-            'selectionRounds',
-            'selectionInfrastructure',
-            'infDetail',
-            'infStipendBreakdowns',
-            'infCompensationPerks',
-        ])
-        ->first();
+        // Find original JNF
+        $original = Jnf::where('id', $id)
+            ->where('company_id', $company->id)
+            ->with([
+                'skills',
+                'eligibilityRule',
+                'salaryBreakdowns',
+                'allowedPrograms',
+                'allowedCategories',
+                'deptCgpa',
+                'selectionRounds',
+                'selectionInfrastructure',
+                'infDetail',
+                'infStipendBreakdowns',
+                'infCompensationPerks',
+            ])
+            ->first();
 
-    if (!$original) return $this->notFound();
+        if (!$original) return $this->notFound();
 
-    // Create new JNF as draft with copied data
-    $new = Jnf::create([
-        'company_id'                => $company->id,
-        'opportunity_type'          => $original->opportunity_type,
-        'status'                    => 'draft',
-        'jnf_code'                  => ($original->opportunity_type === 'internship' ? 'INF-' : 'JNF-') . strtoupper(\Illuminate\Support\Str::random(8)),
-        'recruitment_cycle'         => date('Y') . '-' . (date('Y') + 1),
-        'designation'               => $original->designation . ' (Copy)',
-        'internship_title'          => $original->internship_title ? $original->internship_title . ' (Copy)' : null,
-        'department_function'       => $original->department_function,
-        'job_description'           => $original->job_description,
-        'responsibilities'          => $original->responsibilities,
-        'location_type'             => $original->location_type,
-        'location_text'             => $original->location_text,
-        'openings_count'            => $original->openings_count,
-        'min_openings'              => $original->min_openings,
-        'tentative_joining_date'    => $original->tentative_joining_date,
-        'internship_duration_months'=> $original->internship_duration_months,
-        'expected_duration'         => $original->expected_duration,
-        'ppo_offered'               => $original->ppo_offered,
-        'registration_link'         => $original->registration_link,
-        'additional_info'           => $original->additional_info,
-        'onboarding_procedure'      => $original->onboarding_procedure,
-        'slp_requirements'          => $original->slp_requirements,
-    ]);
-
-    // Copy skills
-    foreach ($original->skills as $skill) {
-        \App\Models\JnfSkill::create([
-            'jnf_id'     => $new->id,
-            'skill_name' => $skill->skill_name,
+        // Create new JNF as draft with copied data
+        $new = Jnf::create([
+            'company_id'                => $company->id,
+            'opportunity_type'          => $original->opportunity_type,
+            'status'                    => 'draft',
+            'jnf_code'                  => ($original->opportunity_type === 'internship' ? 'INF-' : 'JNF-') . strtoupper(\Illuminate\Support\Str::random(8)),
+            'recruitment_cycle'         => date('Y') . '-' . (date('Y') + 1),
+            'designation'               => $original->designation . ' (Copy)',
+            'internship_title'          => $original->internship_title ? $original->internship_title . ' (Copy)' : null,
+            'department_function'       => $original->department_function,
+            'job_description'           => $original->job_description,
+            'responsibilities'          => $original->responsibilities,
+            'location_type'             => $original->location_type,
+            'location_text'             => $original->location_text,
+            'openings_count'            => $original->openings_count,
+            'min_openings'              => $original->min_openings,
+            'tentative_joining_date'    => $original->tentative_joining_date,
+            'internship_duration_months' => $original->internship_duration_months,
+            'expected_duration'         => $original->expected_duration,
+            'ppo_offered'               => $original->ppo_offered,
+            'registration_link'         => $original->registration_link,
+            'additional_info'           => $original->additional_info,
+            'onboarding_procedure'      => $original->onboarding_procedure,
+            'slp_requirements'          => $original->slp_requirements,
         ]);
-    }
 
-    // Copy eligibility rules
-    if ($original->eligibilityRule) {
-        \App\Models\EligibilityRule::create([
-            'jnf_id'                  => $new->id,
-            'min_cgpa'                => $original->eligibilityRule->min_cgpa,
-            'max_backlogs_allowed'    => $original->eligibilityRule->max_backlogs_allowed,
-            'active_backlogs_allowed' => $original->eligibilityRule->active_backlogs_allowed,
-            'min_class_10_percent'    => $original->eligibilityRule->min_class_10_percent,
-            'min_class_12_percent'    => $original->eligibilityRule->min_class_12_percent,
-            'allowed_gender'          => $original->eligibilityRule->allowed_gender,
-            'additional_text'         => $original->eligibilityRule->additional_text,
-        ]);
-    }
+        // Copy skills
+        foreach ($original->skills as $skill) {
+            \App\Models\JnfSkill::create([
+                'jnf_id'     => $new->id,
+                'skill_name' => $skill->skill_name,
+            ]);
+        }
 
-    // Copy salary breakdowns
-    foreach ($original->salaryBreakdowns as $row) {
-        \App\Models\SalaryBreakdown::create([
-            'jnf_id'               => $new->id,
-            'programme_type'       => $row->programme_type,
-            'currency'             => $row->currency,
-            'ctc_annual'           => $row->ctc_annual,
-            'base_fixed'           => $row->base_fixed,
-            'monthly_takehome'     => $row->monthly_takehome,
-            'gross_salary'         => $row->gross_salary,
-            'joining_bonus'        => $row->joining_bonus,
-            'retention_bonus'      => $row->retention_bonus,
-            'relocation_allowance' => $row->relocation_allowance,
-            'medical_allowance'    => $row->medical_allowance,
-            'esop_value'           => $row->esop_value,
-            'vest_period'          => $row->vest_period,
-            'first_year_ctc'       => $row->first_year_ctc,
-            'bond_required'        => $row->bond_required,
-            'bond_amount'          => $row->bond_amount,
-            'bond_duration_months' => $row->bond_duration_months,
-            'bond_details'         => $row->bond_details,
-            'deductions_text'      => $row->deductions_text,
-            'ctc_breakup_notes'    => $row->ctc_breakup_notes,
-            'variable_performance_bonus' => $row->variable_performance_bonus,
-            'stocks_options'       => $row->stocks_options,
-        ]);
-    }
-
-    // Copy allowed programs
-    foreach ($original->allowedPrograms as $p) {
-        \App\Models\JnfAllowedProgram::create([
-            'jnf_id'             => $new->id,
-            'program_dept_map_id'=> $p->program_dept_map_id,
-        ]);
-    }
-
-    // Copy allowed categories
-    foreach ($original->allowedCategories as $c) {
-        \App\Models\JnfAllowedCategory::create([
-            'jnf_id'      => $new->id,
-            'category_id' => $c->category_id,
-        ]);
-    }
-
-    // Copy selection rounds
-    foreach ($original->selectionRounds as $round) {
-        \App\Models\SelectionRound::create([
-            'jnf_id'               => $new->id,
-            'round_order'          => $round->round_order,
-            'round_type'           => $round->round_type,
-            'mode'                 => $round->mode,
-            'test_type'            => $round->test_type,
-            'interview_mode'       => $round->interview_mode,
-            'description'          => $round->description,
-            'duration_minutes'     => $round->duration_minutes,
-            'is_elimination_round' => $round->is_elimination_round,
-        ]);
-    }
-
-    // Copy selection infrastructure
-    if ($original->selectionInfrastructure) {
-        \App\Models\SelectionInfrastructure::create([
-            'jnf_id'                 => $new->id,
-            'rooms_required'         => $original->selectionInfrastructure->rooms_required,
-            'team_members_required'  => $original->selectionInfrastructure->team_members_required,
-            'psychometric_test'      => $original->selectionInfrastructure->psychometric_test,
-            'medical_test'           => $original->selectionInfrastructure->medical_test,
-            'proctoring_required'    => $original->selectionInfrastructure->proctoring_required,
-            'other_screening'        => $original->selectionInfrastructure->other_screening,
-        ]);
-    }
-
-    // Copy INF specific data if internship
-    if ($original->opportunity_type === 'internship') {
-        if ($original->infDetail) {
-            \App\Models\InfDetail::create([
+        // Copy eligibility rules
+        if ($original->eligibilityRule) {
+            \App\Models\EligibilityRule::create([
                 'jnf_id'                  => $new->id,
-                'internship_type'         => $original->infDetail->internship_type,
-                'duration_months'         => $original->infDetail->duration_months,
-                'ppo_offered'             => $original->infDetail->ppo_offered,
-                'ppo_ctc_expected'        => $original->infDetail->ppo_ctc_expected,
-                'accommodation_provided'  => $original->infDetail->accommodation_provided,
-                'accommodation_details'   => $original->infDetail->accommodation_details,
-                'travel_allowance'        => $original->infDetail->travel_allowance,
-                'travel_allowance_details'=> $original->infDetail->travel_allowance_details,
-                'certificate_provided'    => $original->infDetail->certificate_provided,
-                'work_from_home_allowed'  => $original->infDetail->work_from_home_allowed,
+                'min_cgpa'                => $original->eligibilityRule->min_cgpa,
+                'max_backlogs_allowed'    => $original->eligibilityRule->max_backlogs_allowed,
+                'active_backlogs_allowed' => $original->eligibilityRule->active_backlogs_allowed,
+                'min_class_10_percent'    => $original->eligibilityRule->min_class_10_percent,
+                'min_class_12_percent'    => $original->eligibilityRule->min_class_12_percent,
+                'allowed_gender'          => $original->eligibilityRule->allowed_gender,
+                'additional_text'         => $original->eligibilityRule->additional_text,
             ]);
         }
 
-        foreach ($original->infStipendBreakdowns as $row) {
-            \App\Models\InfStipendBreakdown::create([
-                'jnf_id'          => $new->id,
-                'programme_type'  => $row->programme_type,
-                'currency'        => $row->currency,
-                'base_stipend'    => $row->base_stipend,
-                'hra_housing'     => $row->hra_housing,
-                'variable_pay'    => $row->variable_pay,
-                'other_allowance' => $row->other_allowance,
-                'total_stipend'   => $row->total_stipend,
+        // Copy salary breakdowns
+        foreach ($original->salaryBreakdowns as $row) {
+            \App\Models\SalaryBreakdown::create([
+                'jnf_id'               => $new->id,
+                'programme_type'       => $row->programme_type,
+                'currency'             => $row->currency,
+                'ctc_annual'           => $row->ctc_annual,
+                'base_fixed'           => $row->base_fixed,
+                'monthly_takehome'     => $row->monthly_takehome,
+                'gross_salary'         => $row->gross_salary,
+                'joining_bonus'        => $row->joining_bonus,
+                'retention_bonus'      => $row->retention_bonus,
+                'relocation_allowance' => $row->relocation_allowance,
+                'medical_allowance'    => $row->medical_allowance,
+                'esop_value'           => $row->esop_value,
+                'vest_period'          => $row->vest_period,
+                'first_year_ctc'       => $row->first_year_ctc,
+                'bond_required'        => $row->bond_required,
+                'bond_amount'          => $row->bond_amount,
+                'bond_duration_months' => $row->bond_duration_months,
+                'bond_details'         => $row->bond_details,
+                'deductions_text'      => $row->deductions_text,
+                'ctc_breakup_notes'    => $row->ctc_breakup_notes,
+                'variable_performance_bonus' => $row->variable_performance_bonus,
+                'stocks_options'       => $row->stocks_options,
             ]);
         }
 
-        foreach ($original->infCompensationPerks as $perk) {
-            \App\Models\InfCompensationPerk::create([
-                'jnf_id'          => $new->id,
-                'programme_type'  => $perk->programme_type,
-                'perk_label'      => $perk->perk_label,
-                'perk_value'      => $perk->perk_value,
-                'display_order'   => $perk->display_order,
+        // Copy allowed programs
+        foreach ($original->allowedPrograms as $p) {
+            \App\Models\JnfAllowedProgram::create([
+                'jnf_id'             => $new->id,
+                'program_dept_map_id' => $p->program_dept_map_id,
             ]);
         }
+
+        // Copy allowed categories
+        foreach ($original->allowedCategories as $c) {
+            \App\Models\JnfAllowedCategory::create([
+                'jnf_id'      => $new->id,
+                'category_id' => $c->category_id,
+            ]);
+        }
+
+        // Copy selection rounds
+        foreach ($original->selectionRounds as $round) {
+            \App\Models\SelectionRound::create([
+                'jnf_id'               => $new->id,
+                'round_order'          => $round->round_order,
+                'round_type'           => $round->round_type,
+                'mode'                 => $round->mode,
+                'test_type'            => $round->test_type,
+                'interview_mode'       => $round->interview_mode,
+                'description'          => $round->description,
+                'duration_minutes'     => $round->duration_minutes,
+                'is_elimination_round' => $round->is_elimination_round,
+            ]);
+        }
+
+        // Copy selection infrastructure
+        if ($original->selectionInfrastructure) {
+            \App\Models\SelectionInfrastructure::create([
+                'jnf_id'                 => $new->id,
+                'rooms_required'         => $original->selectionInfrastructure->rooms_required,
+                'team_members_required'  => $original->selectionInfrastructure->team_members_required,
+                'psychometric_test'      => $original->selectionInfrastructure->psychometric_test,
+                'medical_test'           => $original->selectionInfrastructure->medical_test,
+                'proctoring_required'    => $original->selectionInfrastructure->proctoring_required,
+                'other_screening'        => $original->selectionInfrastructure->other_screening,
+            ]);
+        }
+
+        // Copy INF specific data if internship
+        if ($original->opportunity_type === 'internship') {
+            if ($original->infDetail) {
+                \App\Models\InfDetail::create([
+                    'jnf_id'                  => $new->id,
+                    'internship_type'         => $original->infDetail->internship_type,
+                    'duration_months'         => $original->infDetail->duration_months,
+                    'ppo_offered'             => $original->infDetail->ppo_offered,
+                    'ppo_ctc_expected'        => $original->infDetail->ppo_ctc_expected,
+                    'accommodation_provided'  => $original->infDetail->accommodation_provided,
+                    'accommodation_details'   => $original->infDetail->accommodation_details,
+                    'travel_allowance'        => $original->infDetail->travel_allowance,
+                    'travel_allowance_details' => $original->infDetail->travel_allowance_details,
+                    'certificate_provided'    => $original->infDetail->certificate_provided,
+                    'work_from_home_allowed'  => $original->infDetail->work_from_home_allowed,
+                ]);
+            }
+
+            foreach ($original->infStipendBreakdowns as $row) {
+                \App\Models\InfStipendBreakdown::create([
+                    'jnf_id'          => $new->id,
+                    'programme_type'  => $row->programme_type,
+                    'currency'        => $row->currency,
+                    'base_stipend'    => $row->base_stipend,
+                    'hra_housing'     => $row->hra_housing,
+                    'variable_pay'    => $row->variable_pay,
+                    'other_allowance' => $row->other_allowance,
+                    'total_stipend'   => $row->total_stipend,
+                ]);
+            }
+
+            foreach ($original->infCompensationPerks as $perk) {
+                \App\Models\InfCompensationPerk::create([
+                    'jnf_id'          => $new->id,
+                    'programme_type'  => $perk->programme_type,
+                    'perk_label'      => $perk->perk_label,
+                    'perk_value'      => $perk->perk_value,
+                    'display_order'   => $perk->display_order,
+                ]);
+            }
+        }
+
+        return response()->json([
+            'success'  => true,
+            'message'  => 'JNF duplicated successfully as a new draft.',
+            'jnf_id'   => $new->id,
+            'jnf_code' => $new->jnf_code,
+        ], 201);
     }
-
-    return response()->json([
-        'success'  => true,
-        'message'  => 'JNF duplicated successfully as a new draft.',
-        'jnf_id'   => $new->id,
-        'jnf_code' => $new->jnf_code,
-    ], 201);
-}
 }

@@ -1,27 +1,37 @@
-'use client';
-import { useState, useEffect, useRef } from 'react';
-import { useRouter } from 'next/navigation';
+"use client";
+import { useState, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
 import {
-  Box, Card, CardContent, Typography,
-  Button, CircularProgress, Alert, Stepper, Step, StepLabel,
-  StepConnector, stepConnectorClasses, StepIconProps,
-} from '@mui/material';
-import UploadFileIcon from '@mui/icons-material/UploadFile';
-import { styled } from '@mui/material/styles';
-import DashboardLayout   from '@/components/layout/DashboardLayout';
-import api               from '@/lib/api';
-import InternProfileTab  from '@/components/inf/InternProfileTab';
-import EligibilityTab    from '@/components/jnf/EligibilityTab';
-import StipendTab        from '@/components/inf/StipendTab';
-import SelectionTab      from '@/components/jnf/SelectionTab';
-import DeclarationTab    from '@/components/jnf/DeclarationTab';
+  Box,
+  Card,
+  CardContent,
+  Typography,
+  Button,
+  CircularProgress,
+  Alert,
+  Stepper,
+  Step,
+  StepLabel,
+  StepConnector,
+  stepConnectorClasses,
+  StepIconProps,
+} from "@mui/material";
+import UploadFileIcon from "@mui/icons-material/UploadFile";
+import { styled } from "@mui/material/styles";
+import DashboardLayout from "@/components/layout/DashboardLayout";
+import api from "@/lib/api";
+import InternProfileTab from "@/components/inf/InternProfileTab";
+import EligibilityTab from "@/components/jnf/EligibilityTab";
+import StipendTab from "@/components/inf/StipendTab";
+import SelectionTab from "@/components/jnf/SelectionTab";
+import DeclarationTab from "@/components/jnf/DeclarationTab";
 
 const tabs = [
-  'Intern Profile',
-  'Eligibility',
-  'Stipend',
-  'Selection Process',
-  'Declaration & Submit',
+  "Intern Profile",
+  "Eligibility",
+  "Stipend",
+  "Selection Process",
+  "Declaration & Submit",
 ];
 
 // Custom Stepper Styling
@@ -31,54 +41,57 @@ const ColorlibConnector = styled(StepConnector)(() => ({
   },
   [`&.${stepConnectorClasses.active}`]: {
     [`& .${stepConnectorClasses.line}`]: {
-      backgroundColor: '#008080', // Teal
+      backgroundColor: "#008080", // Teal
     },
   },
   [`&.${stepConnectorClasses.completed}`]: {
     [`& .${stepConnectorClasses.line}`]: {
-      backgroundColor: '#008080', // Teal
+      backgroundColor: "#008080", // Teal
     },
   },
   [`& .${stepConnectorClasses.line}`]: {
     height: 3,
     border: 0,
-    backgroundColor: '#ccc',
+    backgroundColor: "#ccc",
     borderRadius: 1,
   },
 }));
 
-const ColorlibStepIconRoot = styled('div')<{
+const ColorlibStepIconRoot = styled("div")<{
   ownerState: { completed?: boolean; active?: boolean };
 }>(({ ownerState }) => ({
-  backgroundColor: '#fff',
+  backgroundColor: "#fff",
   zIndex: 1,
-  color: '#ccc',
+  color: "#ccc",
   width: 45,
   height: 45,
-  display: 'flex',
-  borderRadius: '50%',
-  justifyContent: 'center',
-  alignItems: 'center',
-  fontWeight: 'bold',
-  fontSize: '1.2rem',
-  border: '3px solid #ccc',
+  display: "flex",
+  borderRadius: "50%",
+  justifyContent: "center",
+  alignItems: "center",
+  fontWeight: "bold",
+  fontSize: "1.2rem",
+  border: "3px solid #ccc",
   ...(ownerState.active && {
-    backgroundColor: '#d32f2f', // Red
-    color: '#fff',
-    border: 'none',
-    boxShadow: '0 4px 10px 0 rgba(0,0,0,.25)',
+    backgroundColor: "#d32f2f", // Red
+    color: "#fff",
+    border: "none",
+    boxShadow: "0 4px 10px 0 rgba(0,0,0,.25)",
   }),
   ...(ownerState.completed && {
-    color: '#008080', // Teal
-    border: '3px solid #008080',
-    backgroundColor: '#fff',
+    color: "#008080", // Teal
+    border: "3px solid #008080",
+    backgroundColor: "#fff",
   }),
 }));
 
 function ColorlibStepIcon(props: StepIconProps) {
   const { active, completed, className, icon } = props;
   return (
-    <ColorlibStepIconRoot ownerState={{ completed, active }} className={className}>
+    <ColorlibStepIconRoot
+      ownerState={{ completed, active }}
+      className={className}
+    >
       {icon}
     </ColorlibStepIconRoot>
   );
@@ -86,58 +99,50 @@ function ColorlibStepIcon(props: StepIconProps) {
 
 export default function NewInfPage() {
   const router = useRouter();
-  const [activeTab, setActiveTab]   = useState(0);
-  const [jnfId, setJnfId]           = useState<number | null>(null);
-  const [infCode, setInfCode]       = useState('');
-  const [saving, setSaving]         = useState(false);
-  const [error, setError]           = useState('');
-  const [success, setSuccess]       = useState('');
-  const [initialized, setInit]      = useState(false);
+  const [activeTab, setActiveTab] = useState(0);
+  const [jnfId, setJnfId] = useState<number | null>(null);
+  const [infCode, setInfCode] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+  const [initialized, setInit] = useState(false);
   const [existingData, setExistingData] = useState<any>(null);
   const [extracting, setExtracting] = useState(false);
   useEffect(() => {
-    let cancelled = false;
-
-    const initInf = async () => {
-      console.log('Initializing INF...');
-      try {
-        const res = await api.post('/inf');
-        if (!cancelled) {
-          setJnfId(res.data.jnf_id);
-          setInfCode(res.data.inf_code);
-        }
-      } catch (err: any) {
-        console.error('INF Init Error:', err.response?.data || err.message);
-        if (!cancelled) {
-          setError(err.response?.data?.message || 'Failed to initialize INF. Make sure your company profile is complete.');
-        }
-      } finally {
-        if (!cancelled) setInit(true);
-      }
-    };
-
-    initInf();
-    return () => { cancelled = true; };
+    // Lazy creation: don't call backend until first save
+    setInit(true);
   }, []);
 
-  const handleTabSave = async (tabIndex: number, data: any, endpoint: string) => {
-    if (!jnfId) return;
+  const handleTabSave = async (
+    tabIndex: number,
+    data: any,
+    endpoint: string,
+  ) => {
     setSaving(true);
-    setError('');
-    setSuccess('');
+    setError("");
+    setSuccess("");
     try {
-      await api.post(`/inf/${jnfId}/${endpoint}`, data);
-      
-      // Update local storage of existing data so 'Back' button works perfectly
+      let currentId = jnfId;
+
+      // If no ID yet (fresh form), create it now
+      if (!currentId) {
+        const res = await api.post("/inf");
+        currentId = res.data.jnf_id;
+        setJnfId(currentId);
+        setInfCode(res.data.inf_code);
+      }
+
+      await api.post(`/inf/${currentId}/${endpoint}`, data);
+
       setExistingData((prev: any) => ({
         ...(prev || {}),
-        ...data
+        ...data,
       }));
 
-      setSuccess('Saved successfully.');
+      setSuccess("Saved successfully.");
       if (tabIndex < tabs.length - 1) setActiveTab(tabIndex + 1);
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to save.');
+      setError(err.response?.data?.message || "Failed to save.");
     } finally {
       setSaving(false);
     }
@@ -148,10 +153,10 @@ export default function NewInfPage() {
     setSaving(true);
     try {
       await api.post(`/inf/${jnfId}/submit`);
-      setSuccess('INF submitted! CDC will review it shortly.');
-      setTimeout(() => router.push('/dashboard'), 2000);
+      setSuccess("INF submitted! CDC will review it shortly.");
+      setTimeout(() => router.push("/dashboard"), 2000);
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Submission failed.');
+      setError(err.response?.data?.message || "Submission failed.");
     } finally {
       setSaving(false);
     }
@@ -160,45 +165,68 @@ export default function NewInfPage() {
   const handleAutofillPdf = async (file: File) => {
     if (!file) return;
     setExtracting(true);
-    setError('');
-    setSuccess('');
+    setError("");
+    setSuccess("");
     try {
       const formData = new FormData();
-      formData.append('file', file);
-      formData.append('type', 'inf');
-      const res = await api.post('/extract-pdf', formData, { headers: { 'Content-Type': 'multipart/form-data' } });
+      formData.append("file", file);
+      formData.append("type", "inf");
+      const res = await api.post("/extract-pdf", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
       const AI = res.data.data;
       if (AI) {
+        const programmes = ["btech_dual", "mtech", "mba", "msc", "phd"];
         setExistingData((prev: any) => ({
           ...(prev || {}),
           internship_title: AI.internship_title,
           job_description: AI.job_description,
           location_type: AI.location_type,
           openings_count: AI.openings_count,
-          skills: AI.skills ? AI.skills.map((s: string) => ({ skill_name: s })) : [],
-          stipends: AI.stipend ? [{
-            stipend_type: 'monthly',
-            monthly_stipend: AI.stipend.monthly_stipend,
-            accommodation_provided: AI.stipend.accommodation_provided,
-            ppo_offered: AI.stipend.ppo_offered
-          }] : [],
-          eligibility_rule: AI.eligibility_rule ? {
-            min_cgpa: AI.eligibility_rule.min_cgpa,
-            max_backlogs_allowed: AI.eligibility_rule.max_backlogs_allowed,
-            min_class_10_percent: AI.eligibility_rule.min_class_10_percent,
-            min_class_12_percent: AI.eligibility_rule.min_class_12_percent
-          } : undefined,
+          skills: AI.skills
+            ? AI.skills.map((s: string) => ({ skill_name: s }))
+            : [],
+          inf_stipend_breakdowns: AI.stipend
+            ? programmes.map((p) => ({
+                programme_type: p,
+                currency: "INR",
+                base_stipend: AI.stipend.monthly_stipend || "",
+                hra_housing: "",
+                variable_pay: "",
+                other_allowance: "",
+                total_stipend: AI.stipend.monthly_stipend || "",
+              }))
+            : [],
+          inf_compensation_perks: [],
+          ppo_offered: AI.stipend?.ppo_offered || false,
+          ppo_ctc_expected: "",
+          accommodation_provided: AI.stipend?.accommodation_provided || false,
+          eligibility_rule: AI.eligibility_rule
+            ? {
+                min_cgpa: AI.eligibility_rule.min_cgpa,
+                max_backlogs_allowed: AI.eligibility_rule.max_backlogs_allowed,
+                min_class_10_percent: AI.eligibility_rule.min_class_10_percent,
+                min_class_12_percent: AI.eligibility_rule.min_class_12_percent,
+              }
+            : undefined,
           selection_rounds: AI.selection_process?.rounds,
-          selection_infrastructure: AI.selection_process?.infrastructure ? {
-            rooms_required: AI.selection_process.infrastructure.rooms_required,
-            team_members_required: AI.selection_process.infrastructure.team_members_required,
-            other_screening: AI.selection_process.infrastructure.other_screening
-          } : undefined
+          selection_infrastructure: AI.selection_process?.infrastructure
+            ? {
+                rooms_required:
+                  AI.selection_process.infrastructure.rooms_required,
+                team_members_required:
+                  AI.selection_process.infrastructure.team_members_required,
+                other_screening:
+                  AI.selection_process.infrastructure.other_screening,
+              }
+            : undefined,
         }));
-        setSuccess('Successfully extracted details from the PDF. Please review the autofilled data carefully to ensure accuracy before submitting.');
+        setSuccess(
+          "Successfully extracted details from the PDF. Please review the autofilled data carefully to ensure accuracy before submitting.",
+        );
       }
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to extract data.');
+      setError(err.response?.data?.message || "Failed to extract data.");
     } finally {
       setExtracting(false);
     }
@@ -206,9 +234,16 @@ export default function NewInfPage() {
 
   return (
     <DashboardLayout>
-      <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+      <Box
+        sx={{
+          mb: 3,
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "flex-start",
+        }}
+      >
         <Box>
-          <Typography variant="h5" sx={{ fontWeight: 700, color: '#003366' }}>
+          <Typography variant="h5" sx={{ fontWeight: 700, color: "#003366" }}>
             New Intern Notification Form
           </Typography>
           {infCode && (
@@ -217,7 +252,7 @@ export default function NewInfPage() {
             </Typography>
           )}
         </Box>
-        <Box sx={{ display: 'flex', gap: 2 }}>
+        <Box sx={{ display: "flex", gap: 2 }}>
           <Button
             component="label"
             variant="contained"
@@ -225,28 +260,60 @@ export default function NewInfPage() {
             startIcon={<UploadFileIcon />}
             size="small"
             disabled={extracting}
-            sx={{ background: '#C8922A', '&:hover': { background: '#A0721A' } }}
+            sx={{ background: "#C8922A", "&:hover": { background: "#A0721A" } }}
           >
-            {extracting ? 'Extracting...' : 'Autofill from PDF'}
-            <input hidden accept="application/pdf" type="file" onChange={e => {
-              if (e.target.files && e.target.files[0]) handleAutofillPdf(e.target.files[0]);
-            }} />
+            {extracting ? "Extracting..." : "Autofill from PDF"}
+            <input
+              hidden
+              accept="application/pdf"
+              type="file"
+              onChange={(e) => {
+                if (e.target.files && e.target.files[0])
+                  handleAutofillPdf(e.target.files[0]);
+              }}
+            />
           </Button>
-          <Button variant="outlined" size="small" onClick={() => router.push('/dashboard')}>
+          <Button
+            variant="outlined"
+            size="small"
+            onClick={() => router.push("/dashboard")}
+          >
             Back to Dashboard
           </Button>
         </Box>
       </Box>
 
-      {error   && <Alert severity="error"   sx={{ mb: 2 }} onClose={() => setError('')}>{error}</Alert>}
-      {success && <Alert severity="success" sx={{ mb: 2 }} onClose={() => setSuccess('')}>{success}</Alert>}
+      {error && (
+        <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError("")}>
+          {error}
+        </Alert>
+      )}
+      {success && (
+        <Alert severity="success" sx={{ mb: 2 }} onClose={() => setSuccess("")}>
+          {success}
+        </Alert>
+      )}
 
       <Card>
-        <Box sx={{ p: 4, pb: 6, borderBottom: '2px solid', borderColor: '#e0e0e0', background: '#FAFAFA' }}>
-          <Stepper alternativeLabel activeStep={activeTab} connector={<ColorlibConnector />}>
+        <Box
+          sx={{
+            p: 4,
+            pb: 6,
+            borderBottom: "2px solid",
+            borderColor: "#e0e0e0",
+            background: "#FAFAFA",
+          }}
+        >
+          <Stepper
+            alternativeLabel
+            activeStep={activeTab}
+            connector={<ColorlibConnector />}
+          >
             {tabs.map((label) => (
               <Step key={label}>
-                <StepLabel StepIconComponent={ColorlibStepIcon}>{label}</StepLabel>
+                <StepLabel StepIconComponent={ColorlibStepIcon}>
+                  {label}
+                </StepLabel>
               </Step>
             ))}
           </Stepper>
@@ -254,38 +321,50 @@ export default function NewInfPage() {
 
         <CardContent sx={{ p: { xs: 2, md: 4 } }}>
           {!initialized ? (
-            <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
+            <Box sx={{ display: "flex", justifyContent: "center", py: 6 }}>
               <CircularProgress />
             </Box>
           ) : (
             <>
               {activeTab === 0 && (
-                <InternProfileTab saving={saving}
+                <InternProfileTab
+                  saving={saving}
                   initialData={existingData}
-                  onSave={d => handleTabSave(0, d, 'intern-profile')}
-                  onBack={() => router.push('/dashboard')} />
+                  onSave={(d) => handleTabSave(0, d, "intern-profile")}
+                  onBack={() => router.push("/dashboard")}
+                />
               )}
               {activeTab === 1 && (
-                <EligibilityTab saving={saving}
+                <EligibilityTab
+                  saving={saving}
                   initialData={existingData}
-                  onSave={d => handleTabSave(1, d, 'eligibility')}
-                  onBack={() => setActiveTab(0)} />
+                  onSave={(d) => handleTabSave(1, d, "eligibility")}
+                  onBack={() => setActiveTab(0)}
+                />
               )}
               {activeTab === 2 && (
-                <StipendTab saving={saving}
+                <StipendTab
+                  saving={saving}
                   initialData={existingData}
-                  onSave={d => handleTabSave(2, d, 'stipend')}
-                  onBack={() => setActiveTab(1)} />
+                  onSave={(d) => handleTabSave(2, d, "stipend")}
+                  onBack={() => setActiveTab(1)}
+                />
               )}
               {activeTab === 3 && (
-                <SelectionTab saving={saving}
+                <SelectionTab
+                  saving={saving}
                   initialData={existingData}
-                  onSave={d => handleTabSave(3, d, 'selection')}
-                  onBack={() => setActiveTab(2)} />
+                  onSave={(d) => handleTabSave(3, d, "selection")}
+                  onBack={() => setActiveTab(2)}
+                />
               )}
               {activeTab === 4 && (
-                <DeclarationTab saving={saving} onSubmit={handleSubmit}
-                  onBack={() => setActiveTab(3)} formData={existingData} />
+                <DeclarationTab
+                  saving={saving}
+                  onSubmit={handleSubmit}
+                  onBack={() => setActiveTab(3)}
+                  formData={existingData}
+                />
               )}
             </>
           )}

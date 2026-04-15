@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
@@ -22,7 +23,7 @@ class ExtractionController extends Controller
 
             // Prepare the prompt based on the type
             $prompt = $this->getPrompt($request->type);
-            
+
             // Send to Gemini API
             $apiKey = env('GEMINI_API_KEY');
             if (empty($apiKey)) {
@@ -34,14 +35,18 @@ class ExtractionController extends Controller
 
             $response = Http::withHeaders([
                 'Content-Type' => 'application/json'
-            ])->post("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent?key={$apiKey}", [
+            ])->post("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={$apiKey}", [
                 'contents' => [
                     [
                         'parts' => [
                             ['text' => $prompt],
-                            ['text' => "Here is the raw text extracted from the PDF:\n\n" . substr($text, 0, 15000)]
+                            ['text' => "Here is the raw text extracted from the PDF:\n\n" . substr($text, 0, 100000)]
                         ]
                     ]
+                ],
+                'generationConfig' => [
+                    'temperature' => 0.1,
+                    'responseMimeType' => 'application/json',
                 ]
             ]);
 
@@ -52,12 +57,11 @@ class ExtractionController extends Controller
 
             $data = $response->json();
             $jsonText = $data['candidates'][0]['content']['parts'][0]['text'] ?? '{}';
-            
+
             return response()->json([
                 'success' => true,
                 'data' => json_decode($jsonText, true)
             ]);
-
         } catch (\Exception $e) {
             Log::error('Extraction Error: ' . $e->getMessage());
             return response()->json(['success' => false, 'message' => 'Failed to extract data: ' . $e->getMessage()], 500);
@@ -105,8 +109,8 @@ class ExtractionController extends Controller
                 "  \"selection_process\": {\n" .
                 "    \"rounds\": [{\"round_order\": 1, \"round_type\": \"resume|test|gd|interview\", \"mode\": \"online|offline|hybrid\", \"description\": \"\"}],\n" .
                 "    \"infrastructure\": {\n" .
-                "      \"rooms_required\": \"\",\n" .
-                "      \"team_members_required\": \"\",\n" .
+                "      \"rooms_required\": \"(number only)\",\n" .
+                "      \"team_members_required\": \"(number only)\",\n" .
                 "      \"other_screening\": \"\"\n" .
                 "    }\n" .
                 "  }\n" .
@@ -133,8 +137,8 @@ class ExtractionController extends Controller
                 "  \"selection_process\": {\n" .
                 "    \"rounds\": [{\"round_order\": 1, \"round_type\": \"resume|test|gd|interview\", \"mode\": \"online|offline|hybrid\", \"description\": \"\"}],\n" .
                 "    \"infrastructure\": {\n" .
-                "      \"rooms_required\": \"\",\n" .
-                "      \"team_members_required\": \"\",\n" .
+                "      \"rooms_required\": \"(number only)\",\n" .
+                "      \"team_members_required\": \"(number only)\",\n" .
                 "      \"other_screening\": \"\"\n" .
                 "    }\n" .
                 "  }\n" .

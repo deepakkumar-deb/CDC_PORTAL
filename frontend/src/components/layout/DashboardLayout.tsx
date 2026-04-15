@@ -62,7 +62,7 @@ export default function DashboardLayout({
       <Box
         sx={{
           pt: 4,
-          pb: 3,
+          pb: 2,
           px: 2.5,
           background: "linear-gradient(135deg, #001028 0%, #003366 100%)",
           position: "relative",
@@ -143,12 +143,12 @@ export default function DashboardLayout({
         {navItems.map((item) => {
           const active = pathname === item.href;
           return (
-            <ListItem key={item.label} disablePadding sx={{ mb: 1 }}>
+            <ListItem key={item.label} disablePadding sx={{ mb: 0.5 }}>
               <ListItemButton
                 onClick={() => router.push(item.href)}
                 sx={{
                   borderRadius: "12px",
-                  py: 1.5,
+                  py: 1,
                   px: 2,
                   background: active 
                     ? "linear-gradient(90deg, rgba(0,51,102,0.08) 0%, rgba(0,51,102,0.02) 100%)" 
@@ -201,12 +201,12 @@ export default function DashboardLayout({
         })}
 
         {["admin", "superadmin"].includes(session?.user?.role ?? "") && (
-          <ListItem disablePadding sx={{ mb: 1 }}>
+          <ListItem disablePadding sx={{ mb: 0.5 }}>
             <ListItemButton
               onClick={() => router.push("/admin")}
               sx={{
                 borderRadius: "12px",
-                py: 1.5,
+                py: 1,
                 px: 2,
                 background:
                   pathname === "/admin" 

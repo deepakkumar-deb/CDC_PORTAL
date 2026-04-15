@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
@@ -14,6 +15,7 @@ use App\Models\JnfAllowedCategory;
 use App\Models\SelectionRound;
 use App\Models\SelectionInfrastructure;
 use App\Models\ApprovalHistory;
+use App\Models\ProgramDeptMap;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Mail;
 
@@ -28,8 +30,14 @@ class InfController extends Controller
         $infs = Jnf::where('company_id', $company->id)
             ->where('opportunity_type', 'internship')
             ->orderBy('created_at', 'desc')
-            ->get(['id','jnf_code','internship_title',
-                   'status','recruitment_cycle','created_at']);
+            ->get([
+                'id',
+                'jnf_code',
+                'internship_title',
+                'status',
+                'recruitment_cycle',
+                'created_at'
+            ]);
 
         return response()->json(['success' => true, 'infs' => $infs]);
     }
@@ -42,12 +50,16 @@ class InfController extends Controller
             ->where('company_id', $company->id)
             ->where('opportunity_type', 'internship')
             ->with([
-                'skills', 'attachments', 'eligibilityRule',
-                'infDetail', 'infStipendBreakdowns',
+                'skills',
+                'attachments',
+                'eligibilityRule',
+                'infDetail',
+                'infStipendBreakdowns',
                 'infCompensationPerks',
                 'allowedPrograms.programDeptMap.program',
                 'allowedPrograms.programDeptMap.department',
-                'selectionRounds', 'selectionInfrastructure',
+                'selectionRounds',
+                'selectionInfrastructure',
             ])
             ->first();
 
@@ -85,7 +97,7 @@ class InfController extends Controller
             'status'            => 'draft',
             'jnf_code'          => 'INF-' . strtoupper(Str::random(8)),
             'recruitment_cycle' => $request->recruitment_cycle
-                                    ?? date('Y') . '-' . (date('Y') + 1),
+                ?? date('Y') . '-' . (date('Y') + 1),
         ]);
 
         return response()->json([
@@ -137,7 +149,7 @@ class InfController extends Controller
                 'accommodation_provided'  => $request->accommodation_provided ?? false,
                 'accommodation_details'   => $request->accommodation_details,
                 'travel_allowance'        => $request->travel_allowance ?? false,
-                'travel_allowance_details'=> $request->travel_allowance_details,
+                'travel_allowance_details' => $request->travel_allowance_details,
                 'certificate_provided'    => $request->certificate_provided ?? true,
                 'work_from_home_allowed'  => $request->work_from_home_allowed ?? false,
             ]
@@ -189,7 +201,9 @@ class InfController extends Controller
 
         if ($request->has('program_dept_map_ids')) {
             JnfAllowedProgram::where('jnf_id', $id)->delete();
-            foreach ($request->program_dept_map_ids as $mapId) {
+            // Filter out non-existent program_dept_map IDs
+            $validMapIds = ProgramDeptMap::whereIn('id', $request->program_dept_map_ids)->pluck('id')->toArray();
+            foreach ($validMapIds as $mapId) {
                 JnfAllowedProgram::create([
                     'jnf_id'              => $id,
                     'program_dept_map_id' => $mapId,
@@ -221,6 +235,16 @@ class InfController extends Controller
             'stipend_breakdowns.*.programme_type' => 'required|string',
         ]);
 
+        // Helper function to sanitize numeric values
+        $sanitizeNumber = function ($value) {
+            if ($value === null || $value === '' || $value === '?') {
+                return null;
+            }
+            // Remove commas, spaces, and currency text
+            $cleaned = preg_replace('/[^\d.]/', '', (string)$value);
+            return is_numeric($cleaned) ? (float)$cleaned : null;
+        };
+
         InfStipendBreakdown::where('jnf_id', $id)->delete();
 
         foreach ($request->stipend_breakdowns as $row) {
@@ -228,11 +252,11 @@ class InfController extends Controller
                 'jnf_id'           => $id,
                 'programme_type'   => $row['programme_type'],
                 'currency'         => $row['currency'] ?? 'INR',
-                'base_stipend'     => $row['base_stipend'] ?? null,
-                'hra_housing'      => $row['hra_housing'] ?? null,
-                'variable_pay'     => $row['variable_pay'] ?? null,
-                'other_allowance'  => $row['other_allowance'] ?? null,
-                'total_stipend'    => $row['total_stipend'] ?? null,
+                'base_stipend'     => $sanitizeNumber($row['base_stipend'] ?? null),
+                'hra_housing'      => $sanitizeNumber($row['hra_housing'] ?? null),
+                'variable_pay'     => $sanitizeNumber($row['variable_pay'] ?? null),
+                'other_allowance'  => $sanitizeNumber($row['other_allowance'] ?? null),
+                'total_stipend'    => $sanitizeNumber($row['total_stipend'] ?? null),
             ]);
         }
 
@@ -244,7 +268,7 @@ class InfController extends Controller
                     'jnf_id'          => $id,
                     'programme_type'  => $perk['programme_type'],
                     'perk_label'      => $perk['perk_label'],
-                    'perk_value'      => $perk['perk_value'] ?? null,
+                    'perk_value'      => $sanitizeNumber($perk['perk_value'] ?? null),
                     'display_order'   => $index,
                 ]);
             }
@@ -259,6 +283,16 @@ class InfController extends Controller
         $jnf = $this->getInf($request, $id);
         if (!$jnf) return $this->notFound();
 
+        // Helper function to sanitize numeric values
+        $sanitizeNumber = function ($value) {
+            if ($value === null || $value === '' || $value === '?') {
+                return null;
+            }
+            // Remove commas, spaces, and currency text
+            $cleaned = preg_replace('/[^\d.]/', '', (string)$value);
+            return is_numeric($cleaned) ? (int)(float)$cleaned : null;
+        };
+
         if ($request->has('rounds')) {
             SelectionRound::where('jnf_id', $id)->delete();
             foreach ($request->rounds as $round) {
@@ -271,7 +305,7 @@ class InfController extends Controller
                     'interview_mode'       => $round['interview_mode'] ?? null,
                     'description'          => $round['description'] ?? null,
                     'tentative_date'       => $round['tentative_date'] ?? null,
-                    'duration_minutes'     => $round['duration_minutes'] ?? null,
+                    'duration_minutes'     => $sanitizeNumber($round['duration_minutes']),
                     'is_elimination_round' => $round['is_elimination_round'] ?? false,
                 ]);
             }
@@ -280,8 +314,8 @@ class InfController extends Controller
         SelectionInfrastructure::updateOrCreate(
             ['jnf_id' => $id],
             [
-                'rooms_required'        => $request->rooms_required,
-                'team_members_required' => $request->team_members_required,
+                'rooms_required'        => $sanitizeNumber($request->rooms_required),
+                'team_members_required' => $sanitizeNumber($request->team_members_required),
                 'psychometric_test'     => $request->psychometric_test ?? false,
                 'medical_test'          => $request->medical_test ?? false,
                 'proctoring_required'   => $request->proctoring_required ?? false,
@@ -294,37 +328,37 @@ class InfController extends Controller
 
     // ── Submit INF ────────────────────────────────────────────
     public function submit(Request $request, $id)
-{
-    $jnf = $this->getInf($request, $id);
-    if (!$jnf) return $this->notFound();
+    {
+        $jnf = $this->getInf($request, $id);
+        if (!$jnf) return $this->notFound();
 
-    if ($jnf->status !== 'draft') {
-        return response()->json([
-            'success' => false,
-            'message' => 'INF already submitted.',
-        ], 409);
+        if ($jnf->status !== 'draft') {
+            return response()->json([
+                'success' => false,
+                'message' => 'INF already submitted.',
+            ], 409);
+        }
+
+        $jnf->update([
+            'status' => 'submitted',
+            'submitted_at' => now(),
+        ]);
+
+        ApprovalHistory::create([
+            'jnf_id' => $id,
+            'action_by_user_id' => $request->user()->id,
+            'old_status' => 'draft',
+            'new_status' => 'submitted',
+            'remarks' => 'INF submitted by recruiter.',
+        ]);
+
+        // ✅ SEND EMAIL TO ADMIN
+        $this->sendAdminNotification($jnf);
+
+        return $this->success('INF submitted. CDC will review it shortly.');
     }
 
-    $jnf->update([
-        'status' => 'submitted',
-        'submitted_at' => now(),
-    ]);
-
-    ApprovalHistory::create([
-        'jnf_id' => $id,
-        'action_by_user_id' => $request->user()->id,
-        'old_status' => 'draft',
-        'new_status' => 'submitted',
-        'remarks' => 'INF submitted by recruiter.',
-    ]);
-
-    // ✅ SEND EMAIL TO ADMIN
-    $this->sendAdminNotification($jnf);
-
-    return $this->success('INF submitted. CDC will review it shortly.');
-}
-
-// ── Request Edit (recruiter emails admin to request changes) ─
+    // ── Request Edit (recruiter emails admin to request changes) ─
     public function requestEdit(Request $request, $id)
     {
         $jnf = $this->getInf($request, $id);
@@ -358,14 +392,14 @@ class InfController extends Controller
 
         Mail::raw($body, function ($mail) use ($adminEmail, $recruiter, $subject) {
             $mail->to($adminEmail)
-                 ->replyTo($recruiter->email, $recruiter->name)
-                 ->subject($subject);
+                ->replyTo($recruiter->email, $recruiter->name)
+                ->subject($subject);
         });
 
         return $this->success('Your edit request has been sent to the CDC admin.');
     }
 
-// ── Send admin notification on new INF submission ────────
+    // ── Send admin notification on new INF submission ────────
     private function sendAdminNotification($jnf)
     {
         $adminEmail = env('ADMIN_EMAIL', 'deepakk51688@gmail.com');
@@ -385,7 +419,7 @@ class InfController extends Controller
 
         Mail::raw($body, function ($mail) use ($adminEmail, $subject) {
             $mail->to($adminEmail)
-                 ->subject($subject);
+                ->subject($subject);
         });
     }
 

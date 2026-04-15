@@ -223,7 +223,7 @@ export default function AdminFormDetailPage() {
       </Box>
 
       {form.is_edit_requested && form.edit_reason && (
-        <Alert severity="secondary" sx={{ mb: 3, border: '1px solid #9c27b0', bgcolor: 'rgba(156, 39, 176, 0.04)' }}>
+        <Alert severity="info" sx={{ mb: 3, border: '1px solid #9c27b0', bgcolor: 'rgba(156, 39, 176, 0.04)' }}>
           <Typography variant="subtitle2" sx={{ color: '#9c27b0', fontWeight: 600 }}>
             ✏️ Edit Request from Recruiter:
           </Typography>

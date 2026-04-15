@@ -27,7 +27,7 @@ export default function InternProfileTab({
     ppo_ctc_expected: '', registration_link: '',
     accommodation_provided: false, travel_allowance: false,
     certificate_provided: true, work_from_home_allowed: false,
-    additional_info: '',
+    additional_info: '', responsibilities: '',
   });
 
   const [skills, setSkills]    = useState<string[]>([]);
@@ -137,6 +137,14 @@ export default function InternProfileTab({
             label="Internship Description *"
             value={form.job_description}
             onChange={e => set('job_description', e.target.value)}
+          />
+        </Grid>
+        <Grid item xs={12}>
+          <TextField
+            fullWidth multiline rows={3}
+            label="Responsibilities"
+            value={form.responsibilities}
+            onChange={e => set('responsibilities', e.target.value)}
           />
         </Grid>
         <Grid item xs={12} md={4}>
