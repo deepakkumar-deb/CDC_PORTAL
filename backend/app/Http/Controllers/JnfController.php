@@ -27,9 +27,11 @@ class JnfController extends Controller
 
         if (!$company) {
             return response()->json([
-                'success' => false,
+                'success' => true,
+                'jnfs'    => [],
+                'profile_completed' => false,
                 'message' => 'Please complete your company profile first.',
-            ], 404);
+            ], 200);
         }
 
         $jnfs = Jnf::where('company_id', $company->id)
@@ -72,8 +74,7 @@ class JnfController extends Controller
                 'allowedPrograms.programDeptMap.program',
                 'allowedPrograms.programDeptMap.department',
                 'allowedCategories.category',
-                'deptCgpa.programDeptMap.department',
-                'deptCgpa.programDeptMap.program',
+                'deptCgpa.programDeptMap',
                 'selectionRounds',
                 'selectionInfrastructure',
             ])
@@ -170,10 +171,12 @@ class JnfController extends Controller
         if ($request->has('skills')) {
             JnfSkill::where('jnf_id', $id)->delete();
             foreach ($request->skills as $skill) {
-                JnfSkill::create([
-                    'jnf_id'     => $id,
-                    'skill_name' => $skill,
-                ]);
+                if (!is_null($skill) && trim($skill) !== '') {
+                    JnfSkill::create([
+                        'jnf_id'     => $id,
+                        'skill_name' => trim($skill),
+                    ]);
+                }
             }
         }
 
@@ -545,10 +548,12 @@ class JnfController extends Controller
 
         // Copy skills
         foreach ($original->skills as $skill) {
-            \App\Models\JnfSkill::create([
-                'jnf_id'     => $new->id,
-                'skill_name' => $skill->skill_name,
-            ]);
+            if (!is_null($skill->skill_name) && trim($skill->skill_name) !== '') {
+                \App\Models\JnfSkill::create([
+                    'jnf_id'     => $new->id,
+                    'skill_name' => trim($skill->skill_name),
+                ]);
+            }
         }
 
         // Copy eligibility rules

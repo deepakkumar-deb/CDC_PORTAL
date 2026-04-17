@@ -7,6 +7,8 @@ import {
   DialogActions,
 } from '@mui/material';
 import VisibilityIcon from '@mui/icons-material/Visibility';
+import SaveIcon from '@mui/icons-material/Save';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import PrintableJnf from '../common/PrintableJnf';
 
 const declarations = [
@@ -17,13 +19,16 @@ const declarations = [
   "I/We confirm that the information pertaining to the posted job profile is accurate and verified to the best of our knowledge. The company commits to adhere to the terms and conditions outlined in these job profiles while extending offers. No additional clauses or changes will be introduced in the final offers extended to the candidates selected for the respective profiles. All relevant details have been clearly outlined in the Job Notification Form. In the event of any discrepancies in the final offers, the company will be subject to strict action as per the AIPC guidelines.",
 ];
 
+const isInf = (formData: any) => formData?.opportunity_type === 'internship';
+
 export default function DeclarationTab({
-  saving, onSubmit, onBack, formData,
+  saving, onSubmit, onBack, formData, onSave,
 }: {
   saving: boolean;
   onSubmit: () => void;
   onBack?: () => void;
   formData?: any;
+  onSave?: () => Promise<void>;
 }) {
   const [checked, setChecked] = useState<boolean[]>(
     new Array(declarations.length).fill(false)
@@ -31,6 +36,7 @@ export default function DeclarationTab({
   const [signatory, setSignatory] = useState('');
   const [sigDesig, setSigDesig]   = useState('');
   const [previewOpen, setPreviewOpen] = useState(false);
+  const [savingPreview, setSavingPreview] = useState(false);
 
   const toggle = (i: number) => {
     setChecked(prev => prev.map((v, idx) => idx === i ? !v : v));
@@ -39,13 +45,28 @@ export default function DeclarationTab({
   const allChecked = checked.every(Boolean);
   const canSubmit  = allChecked && signatory.trim() !== '';
 
+  // Save first, then open preview
+  const handleSaveAndPreview = async () => {
+    if (onSave) {
+      setSavingPreview(true);
+      try {
+        await onSave();
+      } finally {
+        setSavingPreview(false);
+      }
+    }
+    setPreviewOpen(true);
+  };
+
+  const label = isInf(formData) ? 'INF' : 'JNF';
+
   return (
     <Box>
       <Typography variant="h6" sx={{ fontWeight: 600, mb: 1, color: '#003366' }}>
-        Declaration & Submit
+        Declaration &amp; Submit
       </Typography>
       <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-        Please read and accept all declarations before submitting your JNF.{' '}
+        Please read and accept all declarations before submitting your {label}.{' '}
         <a href="/AIPC_Guidelines.pdf" target="_blank" rel="noreferrer" style={{ color: '#003366', fontWeight: 600, textDecoration: 'underline' }}>
           Read AIPC Guidelines (PDF)
         </a>
@@ -106,40 +127,45 @@ export default function DeclarationTab({
 
       <Box sx={{ mt: 4, mb: 3 }}>
         <Typography variant="caption" sx={{ color: '#d32f2f', fontWeight: 600, display: 'block', mb: 1 }}>
-          Note: Student's choices will be governed by the information you provide in this form. Therefore, please be as clear and detailed as possible. Before filling the form kindly refer to the placement brochure and placement website for the selection process and rules & regulations.
+          Note: Student's choices will be governed by the information you provide in this form. Therefore, please be as clear and detailed as possible. Before filling the form kindly refer to the placement brochure and placement website for the selection process and rules &amp; regulations.
         </Typography>
       </Box>
 
-      <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
+      {/* Action buttons */}
+      <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, flexWrap: 'wrap' }}>
         {onBack && (
           <Button variant="outlined" size="large" onClick={onBack}>
             Back
           </Button>
         )}
-        
+
+        {/* Save & Preview */}
         <Button
           variant="outlined"
-          color="secondary"
           size="large"
-          startIcon={<VisibilityIcon />}
-          onClick={() => setPreviewOpen(true)}
+          startIcon={savingPreview ? <CircularProgress size={18} /> : <SaveIcon />}
+          onClick={handleSaveAndPreview}
+          disabled={savingPreview}
           sx={{ borderColor: '#003366', color: '#003366' }}
         >
-          Preview JNF
+          {savingPreview ? 'Saving…' : `Save & Preview ${label}`}
         </Button>
 
+        {/* Submit — enabled only after all checked */}
         <Button
-          variant="contained" size="large"
+          variant="contained"
+          size="large"
           onClick={onSubmit}
           disabled={saving || !canSubmit}
+          startIcon={saving ? <CircularProgress size={18} color="inherit" /> : <CheckCircleIcon />}
           sx={{
-            background: canSubmit ? 'linear-gradient(135deg, #003366, #1a5799)' : undefined,
-            px: 5,
+            background: canSubmit
+              ? 'linear-gradient(135deg, #003366, #1a5799)'
+              : undefined,
+            px: 4,
           }}
         >
-          {saving
-            ? <CircularProgress size={22} color="inherit" />
-            : 'Submit JNF to CDC'}
+          {saving ? 'Submitting…' : `Submit ${label} to CDC`}
         </Button>
       </Box>
 
@@ -150,17 +176,48 @@ export default function DeclarationTab({
         maxWidth="lg"
         fullWidth
       >
-        <DialogTitle sx={{ fontWeight: 700, color: '#003366' }}>
-          Preview Submission
+        <DialogTitle sx={{ fontWeight: 700, color: '#003366', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          Preview {label} Submission
+          <Typography variant="caption" color="text.secondary">
+            Review carefully before submitting
+          </Typography>
         </DialogTitle>
+
         <DialogContent dividers>
           <Box sx={{ background: '#f5f5f5', p: { xs: 1, md: 3 } }}>
-            <PrintableJnf form={formData} showDownloadButton={false} />
+            <PrintableJnf
+              form={formData}
+              showDownloadButton={true}
+              checkedClauses={checked}
+              onToggleClause={toggle}
+            />
           </Box>
         </DialogContent>
-        <DialogActions sx={{ p: 2 }}>
-          <Button variant="contained" onClick={() => setPreviewOpen(false)}>
+
+        <DialogActions sx={{ p: 2, gap: 2, justifyContent: 'space-between' }}>
+          <Button variant="outlined" onClick={() => setPreviewOpen(false)}>
             Close Preview
+          </Button>
+
+          {/* Submit directly from preview dialog */}
+          <Button
+            variant="contained"
+            size="large"
+            onClick={() => { setPreviewOpen(false); onSubmit(); }}
+            disabled={saving || !canSubmit}
+            startIcon={saving ? <CircularProgress size={18} color="inherit" /> : <CheckCircleIcon />}
+            sx={{
+              background: canSubmit
+                ? 'linear-gradient(135deg, #1b5e20, #2e7d32)'
+                : undefined,
+              px: 4,
+            }}
+          >
+            {saving
+              ? 'Submitting…'
+              : canSubmit
+                ? `Confirm & Submit ${label} to CDC`
+                : `Accept all declarations to submit`}
           </Button>
         </DialogActions>
       </Dialog>

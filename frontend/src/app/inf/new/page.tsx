@@ -364,6 +364,10 @@ export default function NewInfPage() {
                   onSubmit={handleSubmit}
                   onBack={() => setActiveTab(3)}
                   formData={existingData}
+                  onSave={jnfId
+                    ? () => api.get(`/inf/${jnfId}`).then(r => setExistingData(r.data.inf))
+                    : undefined
+                  }
                 />
               )}
             </>

@@ -49,6 +49,10 @@ export default function JnfDetailPage() {
   const [editSuccess, setEditSuccess] = useState("");
   const [editError, setEditError] = useState("");
   const [showPreview, setShowPreview] = useState(false);
+  // Pre-check all declarations — form was already submitted with these agreed
+  const [declarationChecked, setDeclarationChecked] = useState<boolean[]>([true, true, true, true, true]);
+  const toggleDeclaration = (i: number) =>
+    setDeclarationChecked(prev => prev.map((v, idx) => idx === i ? !v : v));
 
   useEffect(() => {
     api
@@ -480,11 +484,17 @@ export default function JnfDetailPage() {
           </Button>
         </Box>
 
-        {showPreview && (
-          <Card variant="outlined" sx={{ p: 1, background: '#f5f5f5' }}>
-            <PrintableJnf form={jnf} />
-          </Card>
-        )}
+        {/* Always mounted — toggled via display so checkbox state persists */}
+        <Card
+          variant="outlined"
+          sx={{ p: 1, background: '#f5f5f5', display: showPreview ? 'block' : 'none' }}
+        >
+          <PrintableJnf
+            form={jnf}
+            checkedClauses={declarationChecked}
+            onToggleClause={toggleDeclaration}
+          />
+        </Card>
       </Box>
     </DashboardLayout>
   );

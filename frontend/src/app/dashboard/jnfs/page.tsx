@@ -30,10 +30,12 @@ export default function MyJnfsPage() {
     const fetchJnfs = async () => {
       try {
         const res = await api.get('/jnf');
-        setJnfs(res.data.jnfs || []);
-        setFilteredJnfs(res.data.jnfs || []);
+        const data = Array.isArray(res.data?.jnfs) ? res.data.jnfs : [];
+        setJnfs(data);
+        setFilteredJnfs(data);
       } catch (err: any) {
-        setError(err.response?.data?.message || 'Failed to load JNFs.');
+        console.error('Error fetching JNFs:', err);
+        setError(err.response?.data?.message || 'We are having trouble loading your Job Forms. Please try again later.');
       } finally {
         setLoading(false);
       }
@@ -99,7 +101,15 @@ export default function MyJnfsPage() {
       field: 'created_at',
       headerName: 'Created',
       width: 120,
-      renderCell: (params) => params.value ? new Date(params.value).toLocaleDateString() : 'N/A',
+      renderCell: (params) => {
+        if (!params.value) return 'N/A';
+        try {
+          const date = new Date(params.value);
+          return isNaN(date.getTime()) ? 'N/A' : date.toLocaleDateString();
+        } catch {
+          return 'N/A';
+        }
+      },
     },
     {
       field: 'actions',
@@ -165,7 +175,12 @@ export default function MyJnfsPage() {
 
       {/* Error Alert */}
       {error && (
-        <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError('')}>
+        <Alert 
+          severity="error" 
+          variant="outlined"
+          sx={{ mb: 3, borderRadius: 2, bgcolor: 'error.main' + '08' }} 
+          onClose={() => setError('')}
+        >
           {error}
         </Alert>
       )}

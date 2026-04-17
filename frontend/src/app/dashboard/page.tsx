@@ -11,6 +11,7 @@ import {
   Button,
   Chip,
   CircularProgress,
+  Alert,
 } from "@mui/material";
 import WorkIcon from "@mui/icons-material/Work";
 import SchoolIcon from "@mui/icons-material/School";
@@ -36,6 +37,7 @@ export default function DashboardPage() {
   const [infs, setInfs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [duplicatingId, setDuplicatingId] = useState<number | null>(null);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     if (status === "unauthenticated") router.push("/auth/login");
@@ -49,10 +51,17 @@ export default function DashboardPage() {
           api.get("/jnf"),
           api.get("/inf"),
         ]);
-        setJnfs(jnfRes.data.jnfs ?? []);
-        setInfs(infRes.data.infs ?? []);
-      } catch {
-        // company profile not created yet — that's fine
+        
+        const isRecruiter = session?.user?.role === "recruiter";
+        if (isRecruiter && (jnfRes.data.profile_completed === false || infRes.data.profile_completed === false)) {
+           setError(jnfRes.data.message || "Please complete your company profile to start creating forms.");
+        }
+
+        setJnfs(Array.isArray(jnfRes.data?.jnfs) ? jnfRes.data.jnfs : []);
+        setInfs(Array.isArray(infRes.data?.infs) ? infRes.data.infs : []);
+      } catch (err: any) {
+        console.error("Dashboard fetch error:", err);
+        setError("Failed to load dashboard data. Please try again later.");
       } finally {
         setLoading(false);
       }
@@ -91,13 +100,31 @@ export default function DashboardPage() {
 
   return (
     <DashboardLayout>
+      {/* Error Alert */}
+      {error && (
+        <Alert
+          severity="info"
+          variant="outlined"
+          sx={{ mb: 3, borderRadius: 2, bgcolor: "info.main" + "08" }}
+          action={
+            error.toLowerCase().includes("profile") && (
+              <Button color="inherit" size="small" onClick={() => router.push("/profile")}>
+                Complete Profile
+              </Button>
+            )
+          }
+        >
+          {error}
+        </Alert>
+      )}
+
       {/* Welcome */}
       <Box sx={{ mb: 4 }}>
         <Typography
           variant="h4"
           sx={{ fontWeight: 700, color: "#003366", mb: 0.5 }}
         >
-          Welcome back, {session?.user?.name?.split(" ")[0]} 👋
+          Welcome back, {session?.user?.name?.split(" ")[0] || "Recruiter"} 👋
         </Typography>
         <Typography variant="body2" color="text.secondary">
           Manage your Job and Internship Notification Forms from here.

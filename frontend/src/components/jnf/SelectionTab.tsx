@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import {
   Box, TextField, Grid, Typography, Button,
   MenuItem, CircularProgress, IconButton,
-  Switch, FormControlLabel, Divider,
+  Switch, FormControlLabel, Divider, Alert,
 } from '@mui/material';
 import AddIcon    from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -34,6 +34,8 @@ export default function SelectionTab({
     psychometric_test: false, medical_test: false,
     proctoring_required: false, other_screening: '',
   });
+  const [validationError, setValidationError] = useState('');
+  const [showErrors, setShowErrors] = useState(false);
 
   // Pre-fill from initialData (duplicated JNF)
   useEffect(() => {
@@ -84,6 +86,12 @@ export default function SelectionTab({
     setInfra(p => ({ ...p, [k]: v }));
 
   const handleSave = () => {
+    setShowErrors(true);
+    if (!infra.rooms_required || !infra.team_members_required) {
+      setValidationError('Please fill out all required infrastructure fields marked with *');
+      return;
+    }
+    setValidationError('');
     onSave({ rounds, ...infra });
   };
 
@@ -217,6 +225,7 @@ export default function SelectionTab({
             fullWidth size="small" label="Rooms Required *"
             type="number" value={infra.rooms_required}
             onChange={e => setI('rooms_required', e.target.value)}
+            error={showErrors && !infra.rooms_required}
           />
         </Grid>
         <Grid item xs={12} sm={6} md={3}>
@@ -224,6 +233,7 @@ export default function SelectionTab({
             fullWidth size="small" label="Team Members Required *"
             type="number" value={infra.team_members_required}
             onChange={e => setI('team_members_required', e.target.value)}
+            error={showErrors && !infra.team_members_required}
           />
         </Grid>
         <Grid item xs={12} sm={6} md={2}>
@@ -257,6 +267,12 @@ export default function SelectionTab({
           />
         </Grid>
       </Grid>
+      
+      {validationError && (
+        <Alert severity="error" sx={{ mt: 3, borderRadius: 2 }}>
+          {validationError}
+        </Alert>
+      )}
 
       <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 4, gap: 2 }}>
         {onBack && (

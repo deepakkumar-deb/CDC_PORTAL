@@ -27,6 +27,7 @@ export default function JobDetailsTab({
   const [locations, setLocations] = useState<string[]>([]);
   const [locationInput, setLocationInput] = useState('');
   const [validationError, setValidationError] = useState('');
+  const [showErrors, setShowErrors] = useState(false);
 
   // Pre-fill from initialData (e.g. from a duplicated JNF)
   useEffect(() => {
@@ -69,6 +70,7 @@ export default function JobDetailsTab({
   };
 
   const handleSave = () => {
+    setShowErrors(true);
     if (!form.designation.trim() || !form.job_description.trim() || !form.location_type || !String(form.openings_count).trim()) {
       setValidationError('Please fill out all required fields marked with *');
       return;
@@ -90,6 +92,7 @@ export default function JobDetailsTab({
             fullWidth label="Job Designation / Title *"
             value={form.designation}
             onChange={e => set('designation', e.target.value)}
+            error={showErrors && !form.designation.trim()}
           />
         </Grid>
         <Grid item xs={12} md={6}>
@@ -106,6 +109,7 @@ export default function JobDetailsTab({
             value={form.job_description}
             onChange={e => set('job_description', e.target.value)}
             helperText="Describe the role, responsibilities, and expectations"
+            error={showErrors && !form.job_description.trim()}
           />
         </Grid>
         <Grid item xs={12}>
@@ -141,9 +145,9 @@ export default function JobDetailsTab({
             <Button variant="outlined" onClick={addLocation} sx={{ height: 40 }}>Add</Button>
           </Box>
           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-            {locations.map(loc => (
+            {locations.map((loc, idx) => (
               <Chip
-                key={loc} label={loc} size="small"
+                key={`loc-${idx}`} label={loc} size="small"
                 onDelete={() => setLocations(s => s.filter(x => x !== loc))}
                 sx={{ background: 'rgba(0,51,102,0.08)', color: '#003366' }}
               />
@@ -155,6 +159,7 @@ export default function JobDetailsTab({
             fullWidth type="number" label="Expected Hires *"
             value={form.openings_count}
             onChange={e => set('openings_count', e.target.value)}
+            error={showErrors && !String(form.openings_count).trim()}
           />
         </Grid>
         <Grid item xs={12} md={6}>
@@ -178,9 +183,9 @@ export default function JobDetailsTab({
             <Button variant="outlined" onClick={addSkill} sx={{ height: 40 }}>Add</Button>
           </Box>
           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-            {skills.map(skill => (
+            {skills.map((skill, idx) => (
               <Chip
-                key={skill} label={skill} size="small"
+                key={`skill-${idx}`} label={skill} size="small"
                 onDelete={() => setSkills(s => s.filter(x => x !== skill))}
                 sx={{ background: 'rgba(0,51,102,0.08)', color: '#003366' }}
               />

@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class JnfDeptCgpa extends Model
 {
     public $timestamps = false;
-    protected $table = 'jnf_dept_cgpa'; // ← add this line
+    protected $table = 'jnf_dept_cgpa';
 
     protected $fillable = [
         'jnf_id',
@@ -15,6 +15,14 @@ class JnfDeptCgpa extends Model
         'min_cgpa',
         'active_backlogs_allowed',
     ];
+
+    // Always include branch_name in JSON output
+    protected $appends = ['branch_name'];
+
+    public function getBranchNameAttribute(): string
+    {
+        return optional($this->programDeptMap)->display_name ?? '';
+    }
 
     public function jnf()
     {

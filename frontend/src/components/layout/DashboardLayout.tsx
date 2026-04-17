@@ -1,7 +1,8 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useSession, signOut } from "next-auth/react";
 import { useRouter, usePathname } from "next/navigation";
+import api from "@/lib/api";
 import {
   Box,
   Drawer,
@@ -17,6 +18,7 @@ import {
   Toolbar,
   Divider,
   Button,
+  Badge,
 } from "@mui/material";
 import DashboardIcon from "@mui/icons-material/Dashboard";
 import WorkIcon from "@mui/icons-material/Work";
@@ -50,6 +52,24 @@ export default function DashboardLayout({
   const router = useRouter();
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [hasAdminNotifications, setHasAdminNotifications] = useState(false);
+
+  useEffect(() => {
+    if (["admin", "superadmin"].includes(session?.user?.role ?? "")) {
+      const checkStats = async () => {
+        try {
+          const res = await api.get("/admin/stats");
+          const { total_submitted, total_requests } = res.data.stats;
+          setHasAdminNotifications(total_submitted > 0 || total_requests > 0);
+        } catch (err) {
+          console.error("Failed to fetch admin stats:", err);
+        }
+      };
+      checkStats();
+      const interval = setInterval(checkStats, 60000); // Check every minute
+      return () => clearInterval(interval);
+    }
+  }, [session]);
 
   const handleLogout = async () => {
     await signOut({ redirect: false });
@@ -243,7 +263,14 @@ export default function DashboardLayout({
                   transition: "transform 0.2s ease-in-out",
                 }}
               >
-                <AdminPanelSettingsIcon />
+                <Badge 
+                  color="error" 
+                  variant="dot" 
+                  invisible={!hasAdminNotifications}
+                  sx={{ "& .MuiBadge-badge": { top: 2, right: 2 } }}
+                >
+                  <AdminPanelSettingsIcon />
+                </Badge>
               </ListItemIcon>
               <ListItemText
                 primary="Admin Panel"

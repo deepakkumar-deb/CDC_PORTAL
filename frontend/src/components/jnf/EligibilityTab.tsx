@@ -4,6 +4,7 @@ import {
   Box, TextField, Grid, MenuItem, Typography,
   Button, CircularProgress, Switch, FormControlLabel,
   Accordion, AccordionSummary, AccordionDetails, Checkbox as MuiCheckbox,
+  Alert,
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import React, { memo } from 'react';
@@ -153,6 +154,8 @@ export default function EligibilityTab({
   const [selectedPrograms, setSelectedPrograms] = useState<number[]>([]);
   const [useBranchWise, setUseBranchWise] = useState(false);
   const [branchWiseData, setBranchWiseData] = useState<Record<number, { min_cgpa: string, active_backlogs_allowed: boolean }>>({});
+  const [validationError, setValidationError] = useState('');
+  const [showErrors, setShowErrors] = useState(false);
   
   const [programmes, setProgrammes] = useState<any[]>(DEFAULT_PROGRAMMES);
   const [degrees, setDegrees] = useState<string[]>(DEFAULT_DEGREES);
@@ -223,7 +226,33 @@ export default function EligibilityTab({
     }
   };
 
+  // Toggle all programmes within a single degree group
+  const toggleDegree = (degree: string) => {
+    const groupIds = programmes.filter(p => p.degree === degree).map(p => p.id);
+    const allSelected = groupIds.every(id => selectedPrograms.includes(id));
+    if (allSelected) {
+      // Deselect all in this group
+      setSelectedPrograms(prev => prev.filter(id => !groupIds.includes(id)));
+    } else {
+      // Select all in this group (add missing ones)
+      setSelectedPrograms(prev => Array.from(new Set([...prev, ...groupIds])));
+    }
+  };
+
   const handleSave = () => {
+    setShowErrors(true);
+    // Basic validation
+    if (!form.min_cgpa || !form.max_backlogs_allowed || !form.allowed_gender) {
+      setValidationError('Please fill out all required global eligibility fields marked with *');
+      return;
+    }
+
+    if (selectedPrograms.length === 0 && !form.hiring_ma && !form.hiring_phd) {
+      setValidationError('Please select at least one eligible program or special hiring interest.');
+      return;
+    }
+
+    setValidationError('');
     const dept_cgpa = selectedPrograms.map(id => ({
       program_dept_map_id: id,
       min_cgpa: branchWiseData[id]?.min_cgpa || form.min_cgpa || '0',
@@ -250,6 +279,7 @@ export default function EligibilityTab({
             type="number" value={form.min_cgpa}
             onChange={e => set('min_cgpa', e.target.value)}
             inputProps={{ step: 0.1, min: 0, max: 10 }}
+            error={showErrors && !form.min_cgpa}
           />
         </Grid>
         <Grid item xs={12} md={4}>
@@ -257,6 +287,7 @@ export default function EligibilityTab({
             fullWidth label="Max Backlogs Allowed *"
             type="number" value={form.max_backlogs_allowed}
             onChange={e => set('max_backlogs_allowed', e.target.value)}
+            error={showErrors && !form.max_backlogs_allowed}
           />
         </Grid>
         <Grid item xs={12} md={4}>
@@ -264,6 +295,7 @@ export default function EligibilityTab({
             fullWidth select label="Gender Filter *"
             value={form.allowed_gender}
             onChange={e => set('allowed_gender', e.target.value)}
+            error={showErrors && !form.allowed_gender}
           >
             {genderOptions.map(g => (
               <MenuItem key={g} value={g} sx={{ textTransform: 'capitalize' }}>
@@ -310,44 +342,79 @@ export default function EligibilityTab({
           </Box>
 
           <Box>
-            {degrees.map(degree => (
-              <Accordion
-                key={degree}
-                sx={{
-                  mb: 1,
-                  border: '1px solid rgba(0,0,0,0.1)',
-                  boxShadow: 'none',
-                  '&:before': { display: 'none' }
-                }}
-              >
-                <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                  <Typography sx={{ fontWeight: 600 }}>{degree} Programmes</Typography>
-                  <Typography sx={{ ml: 2, color: 'text.secondary', fontSize: '0.8rem' }}>
-                    ({programmes.filter(p => p.degree === degree && selectedPrograms.includes(p.id)).length} selected)
-                  </Typography>
-                </AccordionSummary>
-                <AccordionDetails sx={{ p: 0 }}>
-                  {programmes
-                    .filter(p => p.degree === degree)
-                    .sort((a, b) => a.label.localeCompare(b.label))
-                    .map(prog => (
-                      <ProgramRow
-                        key={prog.id}
-                        prog={prog}
-                        isSelected={selectedPrograms.includes(prog.id)}
-                        bdata={branchWiseData[prog.id] || {
-                          min_cgpa: form.min_cgpa,
-                          active_backlogs_allowed: form.active_backlogs_allowed
-                        }}
-                        onToggle={toggleProgram}
-                        onBranchDataChange={(id: number, newData: any) => 
-                          setBranchWiseData(prev => ({ ...prev, [id]: newData }))
-                        }
-                      />
-                    ))}
-                </AccordionDetails>
-              </Accordion>
-            ))}
+            {degrees.map(degree => {
+              const groupProgs = programmes.filter(p => p.degree === degree);
+              const selectedCount = groupProgs.filter(p => selectedPrograms.includes(p.id)).length;
+              const allGroupSelected = selectedCount === groupProgs.length;
+
+              return (
+                <Accordion
+                  key={degree}
+                  sx={{
+                    mb: 1,
+                    border: '1px solid rgba(0,0,0,0.1)',
+                    boxShadow: 'none',
+                    '&:before': { display: 'none' }
+                  }}
+                >
+                  <AccordionSummary
+                    expandIcon={<ExpandMoreIcon />}
+                    sx={{ '& .MuiAccordionSummary-content': { alignItems: 'center', gap: 1 } }}
+                  >
+                    <Typography sx={{ fontWeight: 600, flex: 1 }}>{degree} Programmes</Typography>
+                    <Typography sx={{ color: 'text.secondary', fontSize: '0.8rem', whiteSpace: 'nowrap' }}>
+                      ({selectedCount} selected)
+                    </Typography>
+                    {/* Per-group select toggle — stop propagation so accordion doesn't toggle */}
+                    <Box
+                      component="span"
+                      onClick={e => { e.stopPropagation(); toggleDegree(degree); }}
+                      sx={{
+                        ml: 1.5,
+                        px: 1.5,
+                        py: 0.3,
+                        fontSize: '0.72rem',
+                        fontWeight: 600,
+                        border: '1px solid',
+                        borderColor: allGroupSelected ? '#c62828' : '#003366',
+                        color: allGroupSelected ? '#c62828' : '#003366',
+                        borderRadius: '4px',
+                        cursor: 'pointer',
+                        userSelect: 'none',
+                        whiteSpace: 'nowrap',
+                        background: 'transparent',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        '&:hover': {
+                          background: allGroupSelected ? 'rgba(198,40,40,0.06)' : 'rgba(0,51,102,0.06)',
+                        },
+                      }}
+                    >
+                      {allGroupSelected ? 'Deselect All' : 'Select All'}
+                    </Box>
+                  </AccordionSummary>
+                  <AccordionDetails sx={{ p: 0 }}>
+                    {groupProgs
+                      .sort((a, b) => a.label.localeCompare(b.label))
+                      .map(prog => (
+                        <ProgramRow
+                          key={prog.id}
+                          prog={prog}
+                          isSelected={selectedPrograms.includes(prog.id)}
+                          bdata={branchWiseData[prog.id] || {
+                            min_cgpa: form.min_cgpa,
+                            active_backlogs_allowed: form.active_backlogs_allowed
+                          }}
+                          onToggle={toggleProgram}
+                          onBranchDataChange={(id: number, newData: any) =>
+                            setBranchWiseData(prev => ({ ...prev, [id]: newData }))
+                          }
+                        />
+                      ))}
+                  </AccordionDetails>
+                </Accordion>
+              );
+            })}
           </Box>
 
           <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
@@ -425,6 +492,12 @@ export default function EligibilityTab({
           />
         </Grid>
       </Grid>
+      
+      {validationError && (
+        <Alert severity="error" sx={{ mt: 3, borderRadius: 2 }}>
+          {validationError}
+        </Alert>
+      )}
 
       <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 4, gap: 2 }}>
         {onBack && (

@@ -33,6 +33,7 @@ export default function InternProfileTab({
   const [skills, setSkills]    = useState<string[]>([]);
   const [skillInput, setSkill] = useState('');
   const [validationError, setValidationError] = useState('');
+  const [showErrors, setShowErrors] = useState(false);
 
   // Pre-fill from initialData (e.g. from a PDF Autofill or saved draft)
   useEffect(() => {
@@ -75,6 +76,7 @@ export default function InternProfileTab({
   };
 
   const handleSave = () => {
+    setShowErrors(true);
     if (!form.internship_title.trim() || !form.job_description.trim() || !String(form.openings_count).trim()) {
       setValidationError('Please fill out all required fields marked with *');
       return;
@@ -95,6 +97,7 @@ export default function InternProfileTab({
             fullWidth label="Internship Title *"
             value={form.internship_title}
             onChange={e => set('internship_title', e.target.value)}
+            error={showErrors && !form.internship_title.trim()}
           />
         </Grid>
         <Grid item xs={12} md={6}>
@@ -137,6 +140,7 @@ export default function InternProfileTab({
             label="Internship Description *"
             value={form.job_description}
             onChange={e => set('job_description', e.target.value)}
+            error={showErrors && !form.job_description.trim()}
           />
         </Grid>
         <Grid item xs={12}>
@@ -172,6 +176,7 @@ export default function InternProfileTab({
             fullWidth label="Expected Hires *" type="number"
             value={form.openings_count}
             onChange={e => set('openings_count', e.target.value)}
+            error={showErrors && !String(form.openings_count).trim()}
           />
         </Grid>
 

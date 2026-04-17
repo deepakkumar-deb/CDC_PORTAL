@@ -50,24 +50,41 @@ a {
 
 /* Print Styles */
 @media print {
+  /* Hide everything first */
   body * {
     visibility: hidden;
   }
-  #print-area, #print-area * {
+
+  /* Only show the print area */
+  #print-area,
+  #print-area * {
     visibility: visible;
   }
+
+  /* Full A4 width, no sidebar offset */
   #print-area {
     position: absolute;
-    left: 0;
-    top: 0;
-    width: 100%;
-    visibility: visible;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    box-shadow: none !important;
   }
-  .no-print {
+
+  /* Hide sidebar, nav, download buttons */
+  .no-print,
+  nav,
+  header,
+  aside {
     display: none !important;
   }
-  /* Remove margins and headers/footers added by browser */
+
+  /* A4 page setup */
   @page {
+    size: A4;
     margin: 1cm;
   }
 }
+

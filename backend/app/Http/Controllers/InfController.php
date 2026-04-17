@@ -24,7 +24,14 @@ class InfController extends Controller
     public function index(Request $request)
     {
         $company = $request->user()->company;
-        if (!$company) return $this->noCompany();
+        if (!$company) {
+            return response()->json([
+                'success' => true,
+                'infs'    => [],
+                'profile_completed' => false,
+                'message' => 'Please complete your company profile first.',
+            ], 200);
+        }
 
         $infs = Jnf::where('company_id', $company->id)
             ->where('opportunity_type', 'internship')
@@ -58,6 +65,7 @@ class InfController extends Controller
                 'infCompensationPerks',
                 'allowedPrograms.programDeptMap.program',
                 'allowedPrograms.programDeptMap.department',
+                'deptCgpa.programDeptMap',
                 'selectionRounds',
                 'selectionInfrastructure',
             ])
@@ -67,6 +75,7 @@ class InfController extends Controller
 
         return response()->json(['success' => true, 'inf' => $jnf]);
     }
+
 
     // ── Create new INF ────────────────────────────────────────
     public function store(Request $request)
@@ -159,7 +168,9 @@ class InfController extends Controller
         if ($request->has('skills')) {
             JnfSkill::where('jnf_id', $id)->delete();
             foreach ($request->skills as $skill) {
-                JnfSkill::create(['jnf_id' => $id, 'skill_name' => $skill]);
+                if (!is_null($skill) && trim($skill) !== '') {
+                    JnfSkill::create(['jnf_id' => $id, 'skill_name' => trim($skill)]);
+                }
             }
         }
 

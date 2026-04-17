@@ -7,10 +7,19 @@ import DownloadIcon from '@mui/icons-material/Download';
 interface Props {
   form: any;
   showDownloadButton?: boolean;
+  checkedClauses?: boolean[];
+  onToggleClause?: (i: number) => void;
 }
 
-const PrintableJnf = memo(({ form, showDownloadButton = true }: Props) => {
+const PrintableJnf = memo(({ form, showDownloadButton = true, checkedClauses: externalChecked, onToggleClause }: Props) => {
   const isInf = form.opportunity_type === 'internship';
+
+  // Checkbox state: use parent-provided state if available (persists across hide/show),
+  // otherwise fall back to local state
+  const [localChecked, setLocalChecked] = React.useState<boolean[]>([false, false, false, false, false]);
+  const checkedClauses = externalChecked ?? localChecked;
+  const toggleClause = onToggleClause ??
+    ((i: number) => setLocalChecked(prev => prev.map((v, idx) => idx === i ? !v : v)));
 
   const handlePrint = () => {
     window.print();
@@ -18,8 +27,40 @@ const PrintableJnf = memo(({ form, showDownloadButton = true }: Props) => {
 
   if (!form) return null;
 
+  // Build a lookup: program_dept_map_id → display_name
+  // Preferred: use display_name directly from program_dept_map (always stored in DB)
+  // Fallback: reconstruct from dept + program names
+  const programLookup: Record<number, string> = {};
+  (form.allowed_programs || []).forEach((ap: any) => {
+    const id = ap.program_dept_map_id ?? ap.program_dept_map?.id;
+    if (id) {
+      programLookup[id] =
+        ap.program_dept_map?.display_name ||
+        [ap.program_dept_map?.program?.program_name, ap.program_dept_map?.department?.department_name]
+          .filter(Boolean).join(' — ') ||
+        '';
+    }
+  });
+
   return (
     <>
+      {/* Inject full-width print CSS */}
+      <style>{`
+        @media print {
+          @page { size: A4; margin: 1cm; }
+          body * { visibility: hidden; }
+          #print-area, #print-area * { visibility: visible; }
+          #print-area {
+            position: absolute;
+            left: 0; top: 0;
+            width: 100% !important;
+            max-width: 100% !important;
+          }
+          .no-print { display: none !important; }
+          .MuiDrawer-root, header, nav { display: none !important; }
+        }
+      `}</style>
+
       {/* Download Button — hidden during print */}
       {showDownloadButton && (
         <Box className="no-print" sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
@@ -41,6 +82,9 @@ const PrintableJnf = memo(({ form, showDownloadButton = true }: Props) => {
       <Box id="print-area" sx={{
         background: 'white',
         p: { xs: 2, md: 4 },
+        width: '100%',
+        maxWidth: '100%',
+        boxSizing: 'border-box',
       }}>
         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
           <thead>
@@ -55,6 +99,7 @@ const PrintableJnf = memo(({ form, showDownloadButton = true }: Props) => {
                   alignItems: 'center',
                   justifyContent: 'space-between',
                   mb: 2,
+                  width: '100%',
                 }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                     <Box
@@ -84,7 +129,6 @@ const PrintableJnf = memo(({ form, showDownloadButton = true }: Props) => {
                       Dhanbad, Jharkhand, India, Pin-826004
                     </Typography>
                   </Box>
-                  {/* Centenary Logo Placeholder */}
                   <Box
                     component="img"
                     src="/centenary.webp"
@@ -98,7 +142,7 @@ const PrintableJnf = memo(({ form, showDownloadButton = true }: Props) => {
           <tbody>
             <tr>
               <td>
-                {/* Sub-header for JNF/INF specific info (Only appears once at the top) */}
+                {/* Sub-header */}
                 <Box sx={{
                   display: 'flex',
                   justifyContent: 'space-between',
@@ -121,6 +165,7 @@ const PrintableJnf = memo(({ form, showDownloadButton = true }: Props) => {
                     </Typography>
                   </Box>
                 </Box>
+
                 {/* Company Info */}
                 <Section title="Company Information">
                   <Box sx={{ display: 'flex', gap: 3, alignItems: 'center', mb: 2 }}>
@@ -192,24 +237,42 @@ const PrintableJnf = memo(({ form, showDownloadButton = true }: Props) => {
 
                 <Divider sx={{ my: 2 }} />
 
-                {/* Branches Section */}
+                {/* Branches Section — use display_name for reliable display */}
                 {form.allowed_programs?.length > 0 && (
-                  <Section title="Allowed Branches & Programs">
+                  <Section title="Eligible Branches & Programmes">
                     {(() => {
+                      // Group by programme type (e.g. "B.Tech", "M.Tech") using display_name prefix
                       const grouped: Record<string, string[]> = {};
                       form.allowed_programs.forEach((p: any) => {
-                        const course = p.program_dept_map?.program?.program_name || p.program_dept_map?.program?.course || 'Other';
-                        if (!grouped[course]) grouped[course] = [];
-                        grouped[course].push(p.program_dept_map?.department?.department_name || 'Unknown');
+                        // Use display_name (e.g. "B.Tech - Computer Science") or fallback
+                        const displayName =
+                          p.program_dept_map?.display_name ||
+                          programLookup[p.program_dept_map_id] ||
+                          [p.program_dept_map?.program?.program_name, p.program_dept_map?.department?.department_name]
+                            .filter(Boolean).join(' — ') ||
+                          'Unknown';
+                        // Extract the programme group from the display_name (text before " - ")
+                        const dashIdx = displayName.indexOf(' - ');
+                        const group = dashIdx > 0 ? displayName.substring(0, dashIdx) : 'Other';
+                        const branch = dashIdx > 0 ? displayName.substring(dashIdx + 3) : displayName;
+                        if (!grouped[group]) grouped[group] = [];
+                        grouped[group].push(branch);
                       });
-                      return Object.entries(grouped).map(([course, Depts]) => (
-                        <Box key={course} sx={{ mb: 1, borderLeft: '3px solid #003366', pl: 1.5, py: 0.5 }}>
-                          <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: '#003366', textTransform: 'uppercase' }}>
-                            {course}
+                      return Object.entries(grouped).map(([group, branches]) => (
+                        <Box key={group} sx={{ mb: 1.5, borderLeft: '3px solid #003366', pl: 1.5, py: 0.5 }}>
+                          <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: '#003366', textTransform: 'uppercase', mb: 0.5 }}>
+                            {group}
                           </Typography>
-                          <Typography sx={{ fontSize: '0.8rem', color: '#455A64', lineHeight: 1.4 }}>
-                            {Depts.join(', ')}
-                          </Typography>
+                          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                            {branches.sort().map((b, i) => (
+                              <Chip
+                                key={i}
+                                label={b}
+                                size="small"
+                                sx={{ fontSize: '0.68rem', background: 'rgba(0,51,102,0.07)', color: '#003366', height: 22 }}
+                              />
+                            ))}
+                          </Box>
                         </Box>
                       ));
                     })()}
@@ -240,8 +303,10 @@ const PrintableJnf = memo(({ form, showDownloadButton = true }: Props) => {
                     <Section title="Eligibility Criteria">
                       <Grid container spacing={2}>
                         <Field label="Minimum CGPA" value={form.eligibility_rule.min_cgpa} />
-                        <Field label="Max Backlogs" value={form.eligibility_rule.max_backlogs_allowed} />
-                        <Field label="Active Backlogs Allowed" value={form.eligibility_rule.active_backlogs_allowed ? 'Yes' : 'No'} />
+                        <Field
+                          label="Active Backlogs Allowed"
+                          value={form.eligibility_rule.active_backlogs_allowed ? 'Yes' : 'No'}
+                        />
                         <Field label="Gender Filter" value={form.eligibility_rule.allowed_gender} />
                         <Field label="Min Class 10%" value={form.eligibility_rule.min_class_10_percent} />
                         <Field label="Min Class 12%" value={form.eligibility_rule.min_class_12_percent} />
@@ -251,38 +316,52 @@ const PrintableJnf = memo(({ form, showDownloadButton = true }: Props) => {
                       </Grid>
                     </Section>
 
-                    {/* Department-wise CGPA if any */}
-                    {form.dept_cgpa?.length > 0 && (
-                      <Box sx={{ mt: 1, px: 2, py: 2, background: '#fafafa', borderRadius: 1, border: '1px dashed #ccc' }}>
-                        <Typography variant="caption" sx={{ fontWeight: 700, display: 'block', mb: 1, color: '#003366' }}>
-                          Course-wise CGPA Exceptions:
-                        </Typography>
-                        <Grid container spacing={2}>
-                          {form.dept_cgpa.map((dc: any, idx: number) => {
-                            // Robust lookup: find the branch name from allowed_programs if relations are missing
-                            const branchRef = form.allowed_programs?.find((p: any) => 
-                              p.program_dept_map_id === dc.program_dept_map_id
-                            );
-                            
-                            const branchName = 
-                              (dc.program_dept_map?.program?.program_name || dc.program_dept_map?.program?.course || branchRef?.program_dept_map?.program?.program_name || '') + 
-                              ' - ' + 
-                              (dc.program_dept_map?.department?.department_name || branchRef?.program_dept_map?.department?.department_name || 'Specified Program');
+                    {/* Smart CGPA section:
+                       - If all dept_cgpa match global values → hide the exceptions box
+                       - If some differ → show only those that genuinely differ */}
+                    {(() => {
+                      const globalCgpa = String(form.eligibility_rule?.min_cgpa ?? '');
+                      const globalBacklogs = !!form.eligibility_rule?.active_backlogs_allowed;
+                      const exceptions = (form.dept_cgpa || []).filter((dc: any) =>
+                        String(dc.min_cgpa) !== globalCgpa ||
+                        !!dc.active_backlogs_allowed !== globalBacklogs
+                      );
 
-                            return (
-                              <Grid item xs={12} sm={6} md={4} key={dc.id || idx}>
-                                <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', fontWeight: 600 }}>
-                                  {branchName}:
-                                </Typography>
-                                <Typography sx={{ fontSize: '0.8rem', fontWeight: 700 }}>
-                                  {dc.min_cgpa} CGPA {dc.active_backlogs_allowed ? '(Backlogs ok)' : '(No backlogs)'}
-                                </Typography>
-                              </Grid>
-                            );
-                          })}
-                        </Grid>
-                      </Box>
-                    )}
+                      if (exceptions.length === 0) return null;
+
+                      return (
+                        <Box sx={{ mt: 1, px: 2, py: 2, background: '#fafafa', borderRadius: 1, border: '1px dashed #ccc' }}>
+                          <Typography variant="caption" sx={{ fontWeight: 700, display: 'block', mb: 1, color: '#003366' }}>
+                            Branch-wise CGPA Exceptions (differ from global):
+                          </Typography>
+                          <Grid container spacing={2}>
+                        {exceptions.map((dc: any, idx: number) => {
+                              // Use backend-injected branch_name → programLookup → display_name
+                              // Never fall back to a bare ID
+                              const branchName =
+                                (dc.branch_name && dc.branch_name.trim()) ||
+                                (programLookup[dc.program_dept_map_id] && programLookup[dc.program_dept_map_id].trim()) ||
+                                dc.program_dept_map?.display_name ||
+                                'Unknown Branch';
+                              const backlogText = dc.active_backlogs_allowed
+                                ? '(Active backlogs OK)'
+                                : '(No active backlogs)';
+
+                              return (
+                                <Grid item xs={12} sm={6} md={4} key={dc.id || idx}>
+                                  <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', fontWeight: 600 }}>
+                                    {branchName}:
+                                  </Typography>
+                                  <Typography sx={{ fontSize: '0.8rem', fontWeight: 700 }}>
+                                    {dc.min_cgpa} CGPA {backlogText}
+                                  </Typography>
+                                </Grid>
+                              );
+                            })}
+                          </Grid>
+                        </Box>
+                      );
+                    })()}
 
                     <Divider sx={{ my: 2 }} />
                   </>
@@ -383,6 +462,84 @@ const PrintableJnf = memo(({ form, showDownloadButton = true }: Props) => {
                     ))}
                   </Section>
                 )}
+
+                <Divider sx={{ my: 3 }} />
+
+                {/* ── Uniform Declaration ───────────────────────────── */}
+                <Box sx={{
+                  mt: 2,
+                  p: 2.5,
+                  border: '1.5px solid #003366',
+                  borderRadius: 1,
+                  background: '#f9fbff',
+                }}>
+                  <Typography sx={{
+                    fontWeight: 700, fontSize: '0.95rem', textAlign: 'center',
+                    mb: 2, color: '#003366', textDecoration: 'underline',
+                  }}>
+                    Uniform Declaration
+                  </Typography>
+
+                  {([
+                    <>We have gone through the <strong>AIPC guidelines</strong> thoroughly and agree to abide by the guidelines during the entire process of placement/internship activities. In case of violation of guidelines by us, we understand that an appropriate action may be taken on us as per AIPC guidelines.</>,
+                    <>We declare that we would be providing the shortlisting criteria along with the CV-shortlisted and/or Test-shortlisted candidates. We also assure that the details of final shortlisted candidates will be provided within the 24 to 48 hours after the written test.</>,
+                    <>The information related to various job/intern profiles posted by us is verified and correct to the best of our knowledge, and the company will abide by the terms and conditions as outlined in these job/intern profiles posted while making the offers. No new clauses/changes would be added/made in the final offer rolled out to the candidates selected on the profile(s). All details have already been outlined in the Job/Internship Notification Forms. In the event of any discrepancy in the final offers, the company may be subject to appropriate actions in accordance with the AIPC guidelines.</>,
+                    <>We consent to sharing of company name, logo and email with national ranking agencies and government directives, and to listing company names in social media platforms and press/media.</>,
+                    <>I/We confirm that the information pertaining to the posted job profile is accurate and verified to the best of our knowledge. The company commits to adhere to the terms and conditions outlined in these job profiles while extending offers. No new terms would be added without prior approval from CDC, IIT (ISM) Dhanbad.</>,
+                  ] as React.ReactNode[]).map((clause, i) => (
+                    <Box key={i} sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.5, mb: 1.5 }}>
+                      <input
+                        type="checkbox"
+                        checked={checkedClauses[i]}
+                        onChange={() => toggleClause(i)}
+                        style={{
+                          marginTop: 3,
+                          width: 16,
+                          height: 16,
+                          flexShrink: 0,
+                          cursor: 'pointer',
+                          accentColor: '#003366',
+                        }}
+                      />
+                      <Typography sx={{ fontSize: '0.78rem', lineHeight: 1.6, color: '#222' }}>
+                        {clause}
+                      </Typography>
+                    </Box>
+                  ))}
+
+                  <Box sx={{ mt: 2, pt: 1.5, borderTop: '1px dashed #aaa', display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
+                    <Typography sx={{ fontSize: '0.75rem', fontWeight: 600, color: '#003366' }}>
+                      📎 AIPC Guidelines:
+                    </Typography>
+                    <Typography
+                      component="a"
+                      href="https://www.aipc.org.in/aipc-guidelines"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      sx={{ fontSize: '0.75rem', color: '#1565C0', textDecoration: 'underline', wordBreak: 'break-all' }}
+                    >
+                      https://www.aipc.org.in/aipc-guidelines
+                    </Typography>
+                    <Typography sx={{ fontSize: '0.75rem', color: 'text.secondary' }}>
+                      (Read AIPC guidelines before signing)
+                    </Typography>
+                  </Box>
+                </Box>
+
+                {/* Signature block */}
+                <Grid container spacing={4} sx={{ mt: 3 }}>
+                  <Grid item xs={6}>
+                    <Box sx={{ borderTop: '1px solid #333', pt: 1, mt: 5 }}>
+                      <Typography sx={{ fontSize: '0.75rem', color: '#555' }}>Authorised Signatory</Typography>
+                      <Typography sx={{ fontSize: '0.7rem', color: '#888' }}>Name / Designation / Seal</Typography>
+                    </Box>
+                  </Grid>
+                  <Grid item xs={6}>
+                    <Box sx={{ borderTop: '1px solid #333', pt: 1, mt: 5, textAlign: 'right' }}>
+                      <Typography sx={{ fontSize: '0.75rem', color: '#555' }}>Date</Typography>
+                    </Box>
+                  </Grid>
+                </Grid>
 
                 {/* Footer */}
                 <Box sx={{ mt: 3, pt: 2, borderTop: '1px solid rgba(0,0,0,0.1)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>

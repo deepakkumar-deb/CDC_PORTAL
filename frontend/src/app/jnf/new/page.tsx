@@ -152,6 +152,7 @@ export default function NewJnfPage() {
     tabIndex: number,
     data: any,
     endpoint: string,
+    silent = false,   // if true: don't advance the tab
   ) => {
     setSaving(true);
     setError("");
@@ -166,7 +167,7 @@ export default function NewJnfPage() {
       await api.post(`/jnf/${currentId}/${endpoint}`, data);
       setExistingData((prev: any) => ({ ...(prev || {}), ...data }));
       setSuccess("Saved successfully.");
-      if (tabIndex < tabs.length - 1) setActiveTab(tabIndex + 1);
+      if (!silent && tabIndex < tabs.length - 1) setActiveTab(tabIndex + 1);
     } catch (err: any) {
       setError(err.response?.data?.message || "Failed to save.");
     } finally {
@@ -406,6 +407,10 @@ export default function NewJnfPage() {
                   onSubmit={handleSubmit}
                   onBack={() => setActiveTab(3)}
                   formData={existingData}
+                  onSave={jnfId
+                    ? () => api.get(`/jnf/${jnfId}`).then(r => setExistingData(r.data.jnf))
+                    : undefined
+                  }
                 />
               )}
             </>

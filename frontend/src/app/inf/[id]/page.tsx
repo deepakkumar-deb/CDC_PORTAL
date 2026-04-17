@@ -22,6 +22,7 @@ import EditNoteIcon from "@mui/icons-material/EditNote";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import api from "@/lib/api";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
+import PrintableJnf from "@/components/common/PrintableJnf";
 
 const statusColor: Record<string, any> = {
   draft: "default",
@@ -46,6 +47,11 @@ export default function InfDetailPage() {
   const [editSending, setEditSending] = useState(false);
   const [editSuccess, setEditSuccess] = useState("");
   const [editError, setEditError] = useState("");
+  const [showPreview, setShowPreview] = useState(false);
+  // Pre-check all declarations — form was already submitted with these agreed
+  const [declarationChecked, setDeclarationChecked] = useState<boolean[]>([true, true, true, true, true]);
+  const toggleDeclaration = (i: number) =>
+    setDeclarationChecked(prev => prev.map((v, idx) => idx === i ? !v : v));
 
   useEffect(() => {
     api
@@ -348,6 +354,29 @@ export default function InfDetailPage() {
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* PDF Preview — always mounted so checkbox state persists */}
+      <Box sx={{ mt: 4, display: 'flex', flexDirection: 'column', gap: 2 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+          <Button
+            variant="outlined"
+            onClick={() => setShowPreview(!showPreview)}
+            sx={{ borderRadius: 4, px: 4, borderColor: '#C8922A', color: '#C8922A' }}
+          >
+            {showPreview ? 'Hide PDF Preview' : 'Preview PDF Layout for Download'}
+          </Button>
+        </Box>
+        <Card
+          variant="outlined"
+          sx={{ p: 1, background: '#f5f5f5', display: showPreview ? 'block' : 'none' }}
+        >
+          <PrintableJnf
+            form={inf}
+            checkedClauses={declarationChecked}
+            onToggleClause={toggleDeclaration}
+          />
+        </Card>
+      </Box>
     </DashboardLayout>
   );
 }
