@@ -41,7 +41,9 @@ export default function LoginPage() {
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      background: 'linear-gradient(150deg, #001028 0%, #003366 60%, #0a4a8a 100%)',
+      backgroundImage: 'url("/background_img.jpg")',
+      backgroundSize: 'cover',
+      backgroundPosition: 'center',
       p: 2,
     }}>
       <Card sx={{ width: '100%', maxWidth: 440, borderRadius: 3 }}>
@@ -62,7 +64,7 @@ export default function LoginPage() {
                 display: 'block'
               }}
             />
-            <Typography variant="h5" sx={{ fontWeight: 700, color: '#003366' }}>
+            <Typography variant="h5" sx={{ fontWeight: 700, color: '#660000' }}>
               CDC Portal Login
             </Typography>
             <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
@@ -102,13 +104,21 @@ export default function LoginPage() {
 
           <Divider sx={{ my: 3 }} />
 
-          <Typography variant="body2" textAlign="center" color="text.secondary">
-            Don't have an account?{' '}
-            <Link href="/auth/register"
-              style={{ color: '#003366', fontWeight: 600 }}>
-              Register here
-            </Link>
-          </Typography>
+          <Box sx={{ mt: 2, display: 'flex', flexDirection: 'column', gap: 1, alignItems: 'center' }}>
+            <Typography sx={{ fontSize: '0.95rem', color: 'text.secondary' }}>
+              Don't have an account?{' '}
+              <Link href="/auth/register" style={{ color: '#660000', fontWeight: 600 }}>
+                Register here
+              </Link>
+            </Typography>
+
+            <Typography sx={{ fontSize: '0.95rem', color: 'text.secondary' }}>
+              Apply as an Alumni Mentor?{' '}
+              <Link href="/alumni-mentor" style={{ color: '#660000', fontWeight: 600, textDecoration: 'underline' }}>
+                Click here
+              </Link>
+            </Typography>
+          </Box>
 
         </CardContent>
       </Card>

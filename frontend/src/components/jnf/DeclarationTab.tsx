@@ -62,12 +62,12 @@ export default function DeclarationTab({
 
   return (
     <Box>
-      <Typography variant="h6" sx={{ fontWeight: 600, mb: 1, color: '#003366' }}>
+      <Typography variant="h6" sx={{ fontWeight: 600, mb: 1, color: '#660000' }}>
         Declaration &amp; Submit
       </Typography>
       <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
         Please read and accept all declarations before submitting your {label}.{' '}
-        <a href="/AIPC_Guidelines.pdf" target="_blank" rel="noreferrer" style={{ color: '#003366', fontWeight: 600, textDecoration: 'underline' }}>
+        <a href="/AIPC_Guidelines.pdf" target="_blank" rel="noreferrer" style={{ color: '#660000', fontWeight: 600, textDecoration: 'underline' }}>
           Read AIPC Guidelines (PDF)
         </a>
       </Typography>
@@ -85,8 +85,8 @@ export default function DeclarationTab({
               <Checkbox
                 checked={checked[i]}
                 onChange={() => toggle(i)}
-                sx={{ mt: -0.5, color: '#003366',
-                  '&.Mui-checked': { color: '#003366' } }}
+                sx={{ mt: -0.5, color: '#660000',
+                  '&.Mui-checked': { color: '#660000' } }}
               />
             }
             label={
@@ -126,7 +126,7 @@ export default function DeclarationTab({
       )}
 
       <Box sx={{ mt: 4, mb: 3 }}>
-        <Typography variant="caption" sx={{ color: '#d32f2f', fontWeight: 600, display: 'block', mb: 1 }}>
+        <Typography variant="caption" sx={{ color: '#8B0000', fontWeight: 600, display: 'block', mb: 1 }}>
           Note: Student's choices will be governed by the information you provide in this form. Therefore, please be as clear and detailed as possible. Before filling the form kindly refer to the placement brochure and placement website for the selection process and rules &amp; regulations.
         </Typography>
       </Box>
@@ -146,7 +146,7 @@ export default function DeclarationTab({
           startIcon={savingPreview ? <CircularProgress size={18} /> : <SaveIcon />}
           onClick={handleSaveAndPreview}
           disabled={savingPreview}
-          sx={{ borderColor: '#003366', color: '#003366' }}
+          sx={{ borderColor: '#660000', color: '#660000' }}
         >
           {savingPreview ? 'Saving…' : `Save & Preview ${label}`}
         </Button>
@@ -160,7 +160,7 @@ export default function DeclarationTab({
           startIcon={saving ? <CircularProgress size={18} color="inherit" /> : <CheckCircleIcon />}
           sx={{
             background: canSubmit
-              ? 'linear-gradient(135deg, #003366, #1a5799)'
+              ? '#800000'
               : undefined,
             px: 4,
           }}
@@ -176,7 +176,7 @@ export default function DeclarationTab({
         maxWidth="lg"
         fullWidth
       >
-        <DialogTitle sx={{ fontWeight: 700, color: '#003366', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <DialogTitle sx={{ fontWeight: 700, color: '#660000', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           Preview {label} Submission
           <Typography variant="caption" color="text.secondary">
             Review carefully before submitting
@@ -208,7 +208,7 @@ export default function DeclarationTab({
             startIcon={saving ? <CircularProgress size={18} color="inherit" /> : <CheckCircleIcon />}
             sx={{
               background: canSubmit
-                ? 'linear-gradient(135deg, #1b5e20, #2e7d32)'
+                ? '#800000'
                 : undefined,
               px: 4,
             }}

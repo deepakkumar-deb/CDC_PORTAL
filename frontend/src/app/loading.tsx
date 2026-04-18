@@ -8,7 +8,7 @@ export default function Loading() {
       alignItems: 'center',
       justifyContent: 'center',
     }}>
-      <CircularProgress sx={{ color: '#003366' }} />
+      <CircularProgress sx={{ color: '#660000' }} />
     </Box>
   );
 }

@@ -84,7 +84,7 @@ export default function DashboardLayout({
           pt: 4,
           pb: 2,
           px: 2.5,
-          background: "linear-gradient(135deg, #001028 0%, #003366 100%)",
+          bgcolor: "#800000",
           position: "relative",
           overflow: "hidden",
           display: "flex",
@@ -171,9 +171,9 @@ export default function DashboardLayout({
                   py: 1,
                   px: 2,
                   background: active 
-                    ? "linear-gradient(90deg, rgba(0,51,102,0.08) 0%, rgba(0,51,102,0.02) 100%)" 
+                    ? "linear-gradient(90deg, rgba(128,0,0,0.08) 0%, rgba(128,0,0,0.02) 100%)" 
                     : "transparent",
-                  color: active ? "#003366" : "#5F6368",
+                  color: active ? "#660000" : "#5F6368",
                   position: "relative",
                   "&:hover": { 
                     background: "rgba(0,51,102,0.04)",
@@ -192,14 +192,14 @@ export default function DashboardLayout({
                       top: "20%",
                       bottom: "20%",
                       width: 4,
-                      bgcolor: "#003366",
+                      bgcolor: "#660000",
                       borderRadius: "0 4px 4px 0",
                     }}
                   />
                 )}
                 <ListItemIcon
                   sx={{
-                    color: active ? "#003366" : "#5F6368",
+                    color: active ? "#660000" : "#5F6368",
                     minWidth: 44,
                     transition: "transform 0.2s ease-in-out",
                   }}
@@ -230,9 +230,9 @@ export default function DashboardLayout({
                 px: 2,
                 background:
                   pathname === "/admin" 
-                    ? "linear-gradient(90deg, rgba(0,51,102,0.08) 0%, rgba(0,51,102,0.02) 100%)" 
+                    ? "linear-gradient(90deg, rgba(128,0,0,0.08) 0%, rgba(128,0,0,0.02) 100%)" 
                     : "transparent",
-                color: pathname === "/admin" ? "#003366" : "#5F6368",
+                color: pathname === "/admin" ? "#660000" : "#5F6368",
                 position: "relative",
                 "&:hover": { 
                   background: "rgba(0,51,102,0.04)",
@@ -251,14 +251,14 @@ export default function DashboardLayout({
                     top: "20%",
                     bottom: "20%",
                     width: 4,
-                    bgcolor: "#003366",
+                    bgcolor: "#660000",
                     borderRadius: "0 4px 4px 0",
                   }}
                 />
               )}
               <ListItemIcon
                 sx={{
-                  color: pathname === "/admin" ? "#003366" : "#5F6368",
+                  color: pathname === "/admin" ? "#660000" : "#5F6368",
                   minWidth: 44,
                   transition: "transform 0.2s ease-in-out",
                 }}
@@ -295,7 +295,7 @@ export default function DashboardLayout({
             sx={{
               width: 42,
               height: 42,
-              background: "linear-gradient(135deg, #003366 0%, #001f3f 100%)",
+              bgcolor: "#800000",
               fontSize: "1rem",
               fontWeight: 700,
               boxShadow: "0 2px 8px rgba(0,51,102,0.2)",
@@ -315,7 +315,7 @@ export default function DashboardLayout({
                 textOverflow: "ellipsis",
               }}
             >
-              {session?.user?.name}
+              {session?.user?.name || "User"}
             </Typography>
             <Typography 
               sx={{ 
@@ -340,11 +340,11 @@ export default function DashboardLayout({
             textTransform: "none",
             fontWeight: 700,
             fontFamily: '"Outfit", sans-serif',
-            bgcolor: "#d32f2f",
+            bgcolor: "#8B0000",
             color: "#fff",
             boxShadow: "0 4px 12px rgba(211, 47, 47, 0.2)",
             "&:hover": {
-              bgcolor: "#b71c1c",
+              bgcolor: "#660000",
               boxShadow: "0 6px 16px rgba(211, 47, 47, 0.3)",
             }
           }}
@@ -363,7 +363,7 @@ export default function DashboardLayout({
         elevation={0}
         sx={{
           display: { md: "none" },
-          background: "#003366",
+          background: "#660000",
           width: "100%",
         }}
       >
@@ -423,7 +423,7 @@ export default function DashboardLayout({
           flexGrow: 1,
           // ml: { md: `${DRAWER_WIDTH}px` },
           mt: { xs: "64px", md: 0 },
-          background: "#F8F7F3",
+          background: "#F5F5F5",
           minHeight: "100vh",
           p: { xs: 2, md: 6 },
         }}

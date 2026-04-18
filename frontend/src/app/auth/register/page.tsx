@@ -118,7 +118,7 @@ export default function RegisterPage() {
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      background: 'linear-gradient(150deg, #001028 0%, #003366 60%, #0a4a8a 100%)',
+      bgcolor: '#800000',
       p: 2,
     }}>
       <Card sx={{ width: '100%', maxWidth: 500, borderRadius: 3 }}>
@@ -139,7 +139,7 @@ export default function RegisterPage() {
                 display: 'block'
               }}
             />
-            <Typography variant="h5" sx={{ fontWeight: 700, color: '#003366' }}>
+            <Typography variant="h5" sx={{ fontWeight: 700, color: '#660000' }}>
               Recruiter Registration
             </Typography>
             <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
@@ -293,7 +293,7 @@ export default function RegisterPage() {
           <Typography variant="body2" textAlign="center" color="text.secondary">
             Already registered?{' '}
             <Link href="/auth/login"
-              style={{ color: '#003366', fontWeight: 600 }}>
+              style={{ color: '#660000', fontWeight: 600 }}>
               Login here
             </Link>
           </Typography>

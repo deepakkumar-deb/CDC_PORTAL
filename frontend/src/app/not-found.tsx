@@ -12,7 +12,7 @@ export default function NotFound() {
       flexDirection: 'column',
       alignItems: 'center',
       justifyContent: 'center',
-      background: 'linear-gradient(150deg, #001028 0%, #003366 100%)',
+      bgcolor: '#800000',
       color: 'white',
       textAlign: 'center',
       p: 3,

@@ -97,7 +97,7 @@ export default function SelectionTab({
 
   return (
     <Box>
-      <Typography variant="h6" sx={{ fontWeight: 600, mb: 3, color: '#003366' }}>
+      <Typography variant="h6" sx={{ fontWeight: 600, mb: 3, color: '#660000' }}>
         Selection Process
       </Typography>
 
@@ -108,7 +108,7 @@ export default function SelectionTab({
           borderRadius: 2, background: 'white',
         }}>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-            <Typography sx={{ fontWeight: 600, color: '#003366' }}>
+            <Typography sx={{ fontWeight: 600, color: '#660000' }}>
               Round {round.round_order}
             </Typography>
             {rounds.length > 1 && (
@@ -216,7 +216,7 @@ export default function SelectionTab({
       <Divider sx={{ mb: 3 }} />
 
       {/* Infrastructure */}
-      <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, color: '#003366' }}>
+      <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, color: '#660000' }}>
         Infrastructure Requirements
       </Typography>
       <Grid container spacing={2}>

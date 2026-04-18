@@ -171,7 +171,7 @@ export default function SalaryTab({
 
   return (
     <Box>
-      <Typography variant="h6" sx={{ fontWeight: 600, mb: 1, color: '#003366' }}>
+      <Typography variant="h6" sx={{ fontWeight: 600, mb: 1, color: '#660000' }}>
         Salary Details
       </Typography>
       <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
@@ -182,10 +182,10 @@ export default function SalaryTab({
       {/* Global Salary Setter */}
       <Box sx={{ 
         p: 2, mb: 4, borderRadius: 2, 
-        border: '1px dashed #003366',
+        border: '1px dashed #660000',
         background: 'rgba(0,51,102,0.02)'
       }}>
-        <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 2, color: '#003366' }}>
+        <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 2, color: '#660000' }}>
           Global Salary Setter (Apply to all courses)
         </Typography>
         <Grid container spacing={2} alignItems="center">
@@ -214,7 +214,7 @@ export default function SalaryTab({
             <Button 
               fullWidth variant="contained" 
               onClick={handleApplyAll}
-              sx={{ background: '#003366', height: 40 }}
+              sx={{ background: '#660000', height: 40 }}
             >
               Apply to All
             </Button>
@@ -234,7 +234,7 @@ export default function SalaryTab({
           }}>
             <Box sx={{
               px: 2, py: 0.5, borderRadius: 1,
-              background: '#003366', color: 'white',
+              background: '#660000', color: 'white',
               fontSize: '0.8rem', fontWeight: 600,
             }}>
               {programmeLabels[row.programme_type]}

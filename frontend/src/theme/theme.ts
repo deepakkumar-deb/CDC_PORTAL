@@ -5,9 +5,9 @@ const theme = createTheme({
   palette: {
     mode: "light",
     primary: {
-      main: "#003366",
-      light: "#1a5799",
-      dark: "#001f3f",
+      main: "#800000",
+      light: "#A00000",
+      dark: "#600000",
       contrastText: "#ffffff",
     },
     secondary: {
@@ -17,40 +17,34 @@ const theme = createTheme({
       contrastText: "#ffffff",
     },
     background: {
-      default: "#F8F7F3",
+      default: "#F5F5F5",
       paper: "#ffffff",
     },
   },
   typography: {
-    fontFamily: '"Outfit", "Inter", "Roboto", "Helvetica", "Arial", sans-serif',
-    h1: { fontFamily: '"Outfit", sans-serif', fontWeight: 800, letterSpacing: "-0.02em" },
-    h2: { fontFamily: '"Outfit", sans-serif', fontWeight: 800, letterSpacing: "-0.01em" },
-    h3: { fontFamily: '"Outfit", sans-serif', fontWeight: 700 },
-    h4: { fontFamily: '"Outfit", sans-serif', fontWeight: 700 },
-    h5: { fontFamily: '"Outfit", sans-serif', fontWeight: 600 },
-    h6: { fontFamily: '"Outfit", sans-serif', fontWeight: 600 },
-    subtitle1: { fontFamily: '"Inter", sans-serif', fontWeight: 500 },
-    subtitle2: { fontFamily: '"Inter", sans-serif', fontWeight: 500 },
-    body1: { fontFamily: '"Inter", sans-serif', lineHeight: 1.6 },
-    body2: { fontFamily: '"Inter", sans-serif', lineHeight: 1.6 },
-    button: { textTransform: "none", fontWeight: 700, fontFamily: '"Outfit", sans-serif' },
+    fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
+    h1: { fontWeight: 700 },
+    h2: { fontWeight: 700 },
+    h3: { fontWeight: 600 },
+    h4: { fontWeight: 600 },
+    h5: { fontWeight: 600 },
+    h6: { fontWeight: 600 },
+    button: { textTransform: "none", fontWeight: 600 },
   },
-  shape: { borderRadius: 10 }, // Slightly more rounded for premium feel
+  shape: { borderRadius: 4 }, // Sharp, professional edges
   components: {
     MuiButton: {
       styleOverrides: {
         root: {
-          borderRadius: 8,
-          padding: "10px 24px",
-          fontSize: "0.9rem",
+          borderRadius: 4,
+          padding: "8px 20px",
+          fontWeight: 600,
         },
         containedPrimary: {
-          boxShadow: "0 4px 14px rgba(0,51,102,0.25)",
+          boxShadow: "none",
           "&:hover": {
-            boxShadow: "0 6px 20px rgba(0,51,102,0.35)",
-            transform: "translateY(-1px)",
+            boxShadow: "0 2px 4px rgba(0,0,0,0.15)",
           },
-          transition: "all 0.2s ease",
         },
       },
     },
@@ -60,14 +54,12 @@ const theme = createTheme({
     MuiOutlinedInput: {
       styleOverrides: {
         root: {
+          borderRadius: 4,
           "& .MuiOutlinedInput-notchedOutline": {
-            borderColor: "rgba(0, 0, 0, 0.38)", // Significantly darker than default
-          },
-          "&:hover .MuiOutlinedInput-notchedOutline": {
-            borderColor: "rgba(0, 0, 0, 0.55)",
+            borderColor: "rgba(0, 0, 0, 0.42)", // Standard distinct border
           },
           "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-            borderColor: "#003366",
+            borderColor: "#800000",
             borderWidth: "2px",
           },
         },
@@ -76,9 +68,9 @@ const theme = createTheme({
     MuiCard: {
       styleOverrides: {
         root: {
-          boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
-          border: "1px solid rgba(0,0,0,0.05)",
-          borderRadius: 12,
+          boxShadow: "0 1px 3px rgba(0,0,0,0.12)",
+          border: "1px solid rgba(0,0,0,0.1)",
+          borderRadius: 4,
         },
       },
     },

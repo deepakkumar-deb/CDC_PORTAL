@@ -16,18 +16,20 @@ import {
 import WorkIcon from "@mui/icons-material/Work";
 import SchoolIcon from "@mui/icons-material/School";
 import AddIcon from "@mui/icons-material/Add";
+import PeopleAltIcon from "@mui/icons-material/PeopleAlt";
+import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import api from "@/lib/api";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 
 
 const statusColor: Record<string, "default" | "warning" | "success" | "error"> =
-  {
-    draft: "default",
-    submitted: "warning",
-    approved: "success",
-    rejected: "error",
-  };
+{
+  draft: "default",
+  submitted: "warning",
+  approved: "success",
+  rejected: "error",
+};
 
 export default function DashboardPage() {
   const { data: session, status } = useSession();
@@ -51,10 +53,10 @@ export default function DashboardPage() {
           api.get("/jnf"),
           api.get("/inf"),
         ]);
-        
+
         const isRecruiter = session?.user?.role === "recruiter";
         if (isRecruiter && (jnfRes.data.profile_completed === false || infRes.data.profile_completed === false)) {
-           setError(jnfRes.data.message || "Please complete your company profile to start creating forms.");
+          setError(jnfRes.data.message || "Please complete your company profile to start creating forms.");
         }
 
         setJnfs(Array.isArray(jnfRes.data?.jnfs) ? jnfRes.data.jnfs : []);
@@ -108,7 +110,7 @@ export default function DashboardPage() {
           sx={{ mb: 3, borderRadius: 2, bgcolor: "info.main" + "08" }}
           action={
             error.toLowerCase().includes("profile") && (
-              <Button color="inherit" size="small" onClick={() => router.push("/profile")}>
+              <Button color="inherit" size="small" onClick={() => router.push("/dashboard/company")}>
                 Complete Profile
               </Button>
             )
@@ -122,9 +124,9 @@ export default function DashboardPage() {
       <Box sx={{ mb: 4 }}>
         <Typography
           variant="h4"
-          sx={{ fontWeight: 700, color: "#003366", mb: 0.5 }}
+          sx={{ fontWeight: 700, color: "#660000", mb: 0.5 }}
         >
-          Welcome back, {session?.user?.name?.split(" ")[0] || "Recruiter"} 👋
+          Welcome back, {session?.user?.name?.split(" ")[0] || "Recruiter"}
         </Typography>
         <Typography variant="body2" color="text.secondary">
           Manage your Job and Internship Notification Forms from here.
@@ -134,7 +136,7 @@ export default function DashboardPage() {
       {/* Stats */}
       <Grid container spacing={3} sx={{ mb: 4 }}>
         {[
-          { label: "Total JNFs", value: jnfs.length, color: "#003366" },
+          { label: "Total JNFs", value: jnfs.length, color: "#660000" },
           {
             label: "Approved JNFs",
             value: jnfs.filter((j) => j.status === "approved").length,
@@ -195,7 +197,7 @@ export default function DashboardPage() {
                 gap: 1,
               }}
             >
-              <WorkIcon sx={{ color: "#003366" }} /> Job Notification Forms
+              <WorkIcon sx={{ color: "#660000" }} /> Job Notification Forms
             </Typography>
             <Button
               variant="contained"
@@ -253,7 +255,7 @@ export default function DashboardPage() {
                     variant="outlined"
                     startIcon={<ContentCopyIcon />}
                     onClick={() => handleDuplicate(jnf.id)}
-                    sx={{ borderColor: "#003366", color: "#003366" }}
+                    sx={{ borderColor: "#660000", color: "#660000" }}
                   >
                     Duplicate
                   </Button>

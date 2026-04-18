@@ -202,7 +202,7 @@ export default function AdminFormDetailPage() {
           Back
         </Button>
         <Box sx={{ flex: 1 }}>
-          <Typography variant="h5" sx={{ fontWeight: 700, color: '#003366' }}>
+          <Typography variant="h5" sx={{ fontWeight: 700, color: '#660000' }}>
             {form.designation || form.internship_title || 'Untitled Form'}
           </Typography>
           <Typography variant="caption" color="text.secondary">
@@ -253,7 +253,7 @@ export default function AdminFormDetailPage() {
       {/* Company Info */}
       <Card sx={{ mb: 3 }}>
         <CardContent sx={{ p: { xs: 2, md: 4 } }}>
-          <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, color: '#003366' }}>
+          <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, color: '#660000' }}>
             Company Information
           </Typography>
           <Grid container spacing={2}>
@@ -282,7 +282,7 @@ export default function AdminFormDetailPage() {
       {/* Job / Intern Details */}
       <Card sx={{ mb: 3 }}>
         <CardContent sx={{ p: { xs: 2, md: 4 } }}>
-          <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, color: '#003366' }}>
+          <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, color: '#660000' }}>
             {isInf ? 'Internship Details' : 'Job Details'}
           </Typography>
           <Grid container spacing={2}>
@@ -322,7 +322,7 @@ export default function AdminFormDetailPage() {
                 <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 0.5 }}>
                   {form.skills.map((s: any) => (
                     <Chip key={s.id} label={s.skill_name} size="small"
-                      sx={{ background: 'rgba(0,51,102,0.08)', color: '#003366' }} />
+                      sx={{ background: 'rgba(0,51,102,0.08)', color: '#660000' }} />
                   ))}
                 </Box>
               </Grid>
@@ -335,7 +335,7 @@ export default function AdminFormDetailPage() {
       {form.eligibility_rule && (
         <Card sx={{ mb: 3 }}>
           <CardContent sx={{ p: { xs: 2, md: 4 } }}>
-            <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, color: '#003366' }}>
+            <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, color: '#660000' }}>
               Eligibility Criteria
             </Typography>
             <Grid container spacing={2}>
@@ -364,7 +364,7 @@ export default function AdminFormDetailPage() {
       {form.salary_breakdowns?.length > 0 && (
         <Card sx={{ mb: 3 }}>
           <CardContent sx={{ p: { xs: 2, md: 4 } }}>
-            <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, color: '#003366' }}>
+            <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, color: '#660000' }}>
               Salary Details
             </Typography>
             {form.salary_breakdowns.map((row: any) => (
@@ -374,7 +374,7 @@ export default function AdminFormDetailPage() {
               }}>
                 <Typography sx={{
                   fontWeight: 600, fontSize: '0.85rem',
-                  color: '#003366', mb: 1,
+                  color: '#660000', mb: 1,
                 }}>
                   {row.programme_type?.replace('_', ' / ').toUpperCase()} — {row.currency}
                 </Typography>
@@ -401,7 +401,7 @@ export default function AdminFormDetailPage() {
       {form.inf_stipend_breakdowns?.length > 0 && (
         <Card sx={{ mb: 3 }}>
           <CardContent sx={{ p: { xs: 2, md: 4 } }}>
-            <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, color: '#003366' }}>
+            <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, color: '#660000' }}>
               Stipend Details
             </Typography>
             {form.inf_stipend_breakdowns.map((row: any) => (
@@ -438,7 +438,7 @@ export default function AdminFormDetailPage() {
       {form.selection_rounds?.length > 0 && (
         <Card sx={{ mb: 3 }}>
           <CardContent sx={{ p: { xs: 2, md: 4 } }}>
-            <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, color: '#003366' }}>
+            <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, color: '#660000' }}>
               Selection Process
             </Typography>
             {form.selection_rounds.map((round: any) => (
@@ -449,7 +449,7 @@ export default function AdminFormDetailPage() {
               }}>
                 <Box sx={{
                   minWidth: 32, height: 32, borderRadius: '50%',
-                  background: '#003366', color: 'white',
+                  background: '#660000', color: 'white',
                   display: 'flex', alignItems: 'center',
                   justifyContent: 'center',
                   fontSize: '0.8rem', fontWeight: 700, flexShrink: 0,
@@ -483,7 +483,7 @@ export default function AdminFormDetailPage() {
       {form.approval_history?.length > 0 && (
         <Card sx={{ mb: 3 }}>
           <CardContent sx={{ p: { xs: 2, md: 4 } }}>
-            <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, color: '#003366' }}>
+            <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, color: '#660000' }}>
               Approval History
             </Typography>
             {form.approval_history.map((h: any) => (
@@ -531,9 +531,9 @@ export default function AdminFormDetailPage() {
       </Box>
 
       {/* Admin Action Buttons */}
-      <Card sx={{ mt: 3, border: '2px solid #003366', borderRadius: 3 }}>
+      <Card sx={{ mt: 3, border: '2px solid #660000', borderRadius: 3 }}>
         <CardContent sx={{ p: { xs: 2, md: 3 } }}>
-          <Typography variant="h6" sx={{ fontWeight: 700, color: '#003366', mb: 2 }}>
+          <Typography variant="h6" sx={{ fontWeight: 700, color: '#660000', mb: 2 }}>
             Admin Actions
           </Typography>
           <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
@@ -609,7 +609,7 @@ export default function AdminFormDetailPage() {
       >
         <DialogTitle sx={{ fontWeight: 700, color:
           dialog === 'approve' ? '#2e7d32' :
-          dialog === 'reject'  ? '#c62828' : '#e65100'
+          dialog === 'reject'  ? '#7A0000' : '#e65100'
         }}>
           {dialog === 'approve' && '✅ Approve Form'}
           {dialog === 'reject'  && '❌ Reject Form'}

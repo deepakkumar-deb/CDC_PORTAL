@@ -82,7 +82,7 @@ export default function JobDetailsTab({
 
   return (
     <Box>
-      <Typography variant="h6" sx={{ fontWeight: 600, mb: 3, color: '#003366' }}>
+      <Typography variant="h6" sx={{ fontWeight: 600, mb: 3, color: '#660000' }}>
         Job Profile Details
       </Typography>
 
@@ -149,7 +149,7 @@ export default function JobDetailsTab({
               <Chip
                 key={`loc-${idx}`} label={loc} size="small"
                 onDelete={() => setLocations(s => s.filter(x => x !== loc))}
-                sx={{ background: 'rgba(0,51,102,0.08)', color: '#003366' }}
+                sx={{ background: 'rgba(0,51,102,0.08)', color: '#660000' }}
               />
             ))}
           </Box>
@@ -187,7 +187,7 @@ export default function JobDetailsTab({
               <Chip
                 key={`skill-${idx}`} label={skill} size="small"
                 onDelete={() => setSkills(s => s.filter(x => x !== skill))}
-                sx={{ background: 'rgba(0,51,102,0.08)', color: '#003366' }}
+                sx={{ background: 'rgba(0,51,102,0.08)', color: '#660000' }}
               />
             ))}
           </Box>

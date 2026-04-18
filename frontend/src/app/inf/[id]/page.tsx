@@ -123,7 +123,7 @@ export default function InfDetailPage() {
           Back
         </Button>
         <Box sx={{ flex: 1 }}>
-          <Typography variant="h5" sx={{ fontWeight: 700, color: "#003366" }}>
+          <Typography variant="h5" sx={{ fontWeight: 700, color: "#660000" }}>
             {inf.internship_title || "Untitled INF"}
           </Typography>
           <Typography variant="caption" color="text.secondary">
@@ -157,7 +157,7 @@ export default function InfDetailPage() {
         <CardContent sx={{ p: { xs: 2, md: 4 } }}>
           <Typography
             variant="h6"
-            sx={{ fontWeight: 600, mb: 2, color: "#003366" }}
+            sx={{ fontWeight: 600, mb: 2, color: "#660000" }}
           >
             Internship Details
           </Typography>
@@ -214,7 +214,7 @@ export default function InfDetailPage() {
           <CardContent sx={{ p: { xs: 2, md: 4 } }}>
             <Typography
               variant="h6"
-              sx={{ fontWeight: 600, mb: 2, color: "#003366" }}
+              sx={{ fontWeight: 600, mb: 2, color: "#660000" }}
             >
               Stipend Details
             </Typography>
@@ -312,7 +312,7 @@ export default function InfDetailPage() {
         maxWidth="sm"
         fullWidth
       >
-        <DialogTitle sx={{ fontWeight: 700, color: '#003366' }}>
+        <DialogTitle sx={{ fontWeight: 700, color: '#660000' }}>
           Request Edit for {inf.jnf_code}
         </DialogTitle>
         <DialogContent>

@@ -75,7 +75,7 @@ const ColorlibStepIconRoot = styled("div")<{
   fontSize: "1.2rem",
   border: "3px solid #ccc",
   ...(ownerState.active && {
-    backgroundColor: "#d32f2f", // Red
+    backgroundColor: "#8B0000", // Red
     color: "#fff",
     border: "none",
     boxShadow: "0 4px 10px 0 rgba(0,0,0,.25)",
@@ -282,7 +282,7 @@ export default function NewJnfPage() {
         }}
       >
         <Box>
-          <Typography variant="h5" sx={{ fontWeight: 700, color: "#003366" }}>
+          <Typography variant="h5" sx={{ fontWeight: 700, color: "#660000" }}>
             {editId
               ? "Edit Job Notification Form"
               : "New Job Notification Form"}

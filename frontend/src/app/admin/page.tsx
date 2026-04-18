@@ -89,7 +89,7 @@ export default function AdminPage() {
   return (
     <DashboardLayout>
       <Box sx={{ mb: 3 }}>
-        <Typography variant="h5" sx={{ fontWeight: 700, color: '#003366' }}>
+        <Typography variant="h5" sx={{ fontWeight: 700, color: '#660000' }}>
           Admin Panel
         </Typography>
         <Typography variant="body2" color="text.secondary">
@@ -106,8 +106,8 @@ export default function AdminPage() {
             { label: 'Pending Review', value: stats.total_submitted, color: '#ed6c02' },
             { label: 'Edit Requests', value: stats.total_requests, color: '#9c27b0' },
             { label: 'Approved', value: stats.total_approved, color: '#2e7d32' },
-            { label: 'Rejected', value: stats.total_rejected, color: '#d32f2f' },
-            { label: 'Total JNFs', value: stats.total_jnf, color: '#003366' },
+            { label: 'Rejected', value: stats.total_rejected, color: '#8B0000' },
+            { label: 'Total JNFs', value: stats.total_jnf, color: '#660000' },
             { label: 'Total INFs', value: stats.total_inf, color: '#C8922A' },
           ].map(s => (
             <Grid item xs={6} sm={4} md={2} key={s.label}>

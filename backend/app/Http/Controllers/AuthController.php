@@ -118,6 +118,16 @@ class AuthController extends Controller
             'is_active'          => true,
         ]);
 
+        // Send Registration Confirmation Email
+        $portalUrl = env('FRONTEND_URL', 'http://localhost:3000');
+        Mail::send('emails.registration', [
+            'email' => $request->email,
+            'portal_url' => $portalUrl
+        ], function ($message) use ($request) {
+            $message->to($request->email)
+                    ->subject('IIT (ISM) Dhanbad Recruitment Drive | Registration Confirmation');
+        });
+
         $token = $user->createToken('cdc_portal')->plainTextToken;
 
         return response()->json([

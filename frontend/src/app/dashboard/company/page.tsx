@@ -275,7 +275,7 @@ export default function CompanyProfilePage() {
   return (
     <DashboardLayout>
       <Box sx={{ mb: 3 }}>
-        <Typography variant="h5" sx={{ fontWeight: 700, color: "#003366" }}>
+        <Typography variant="h5" sx={{ fontWeight: 700, color: "#660000" }}>
           Company Profile
         </Typography>
         <Typography variant="body2" color="text.secondary">
@@ -319,7 +319,7 @@ export default function CompanyProfilePage() {
         <CardContent sx={{ p: { xs: 2, md: 4 } }}>
           <Typography
             variant="h6"
-            sx={{ fontWeight: 600, mb: 3, color: "#003366" }}
+            sx={{ fontWeight: 600, mb: 3, color: "#660000" }}
           >
             Basic Information
           </Typography>
@@ -484,7 +484,7 @@ export default function CompanyProfilePage() {
                     onDelete={() =>
                       setIndustryTags((t) => t.filter((x) => x !== tag))
                     }
-                    sx={{ background: "rgba(0,51,102,0.08)", color: "#003366" }}
+                    sx={{ background: "rgba(0,51,102,0.08)", color: "#660000" }}
                   />
                 ))}
               </Box>
@@ -498,7 +498,7 @@ export default function CompanyProfilePage() {
         <CardContent sx={{ p: { xs: 2, md: 4 } }}>
           <Typography
             variant="h6"
-            sx={{ fontWeight: 600, mb: 3, color: "#003366" }}
+            sx={{ fontWeight: 600, mb: 3, color: "#660000" }}
           >
             Address & Size
           </Typography>
@@ -590,7 +590,7 @@ export default function CompanyProfilePage() {
         <CardContent sx={{ p: { xs: 2, md: 4 } }}>
           <Typography
             variant="h6"
-            sx={{ fontWeight: 600, mb: 3, color: "#003366" }}
+            sx={{ fontWeight: 600, mb: 3, color: "#660000" }}
           >
             Contact Persons
           </Typography>

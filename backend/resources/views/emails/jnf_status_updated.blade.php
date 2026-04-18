@@ -9,7 +9,7 @@
         .footer { font-size: 0.8rem; color: #777; text-align: center; margin-top: 20px; }
         .status-badge { display: inline-block; padding: 5px 12px; border-radius: 4px; font-weight: bold; color: white; }
         .approved { background-color: #2e7d32; }
-        .rejected { background-color: #d32f2f; }
+        .rejected { background-color: #8B0000; }
     </style>
 </head>
 <body>
@@ -32,7 +32,7 @@
             @elseif($status === 'rejected')
                 <p>Unfortunately, your form needs revisions before it can be processed further.</p>
                 <p><strong>Reason for Rejection:</strong><br>
-                <span style="color: #d32f2f;">{{ $reason }}</span></p>
+                <span style="color: #8B0000;">{{ $reason }}</span></p>
                 <p>You can login to the portal, edit the form, and resubmit it.</p>
             @elseif($status === 'draft')
                 <p>CDC admin has enabled editing for your form. You can now make the necessary adjustments.</p>

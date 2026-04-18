@@ -157,7 +157,7 @@ export default function MyJnfsPage() {
       {/* Header */}
       <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <Box>
-          <Typography variant="h5" sx={{ fontWeight: 700, color: '#003366' }}>
+          <Typography variant="h5" sx={{ fontWeight: 700, color: '#660000' }}>
             My Job Notification Forms
           </Typography>
           <Typography variant="body2" color="text.secondary">

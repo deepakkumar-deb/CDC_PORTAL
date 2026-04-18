@@ -10,7 +10,10 @@ use App\Http\Controllers\ExtractionController;
 use App\Http\Controllers\MetadataController;
 use App\Http\Middleware\AdminMiddleware;
 
+use App\Http\Controllers\AlumniMentorController;
+
 // ── Public routes (no login needed) ──────────────────────────
+Route::post('/alumni-mentor', [AlumniMentorController::class, 'store']);
 Route::get('/metadata/programs', [MetadataController::class, 'programs']);
 
 Route::prefix('auth')->group(function () {

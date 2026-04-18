@@ -69,7 +69,7 @@ const PrintableJnf = memo(({ form, showDownloadButton = true, checkedClauses: ex
             startIcon={<DownloadIcon />}
             onClick={handlePrint}
             sx={{
-              background: '#003366',
+              background: '#660000',
               '&:hover': { background: '#001f3f' },
             }}
           >
@@ -109,7 +109,7 @@ const PrintableJnf = memo(({ form, showDownloadButton = true, checkedClauses: ex
                     />
                   </Box>
                   <Box sx={{ textAlign: 'center', flex: 1, px: 2 }}>
-                    <Typography sx={{ color: '#D32F2F', fontWeight: 700, fontSize: '1.2rem', lineHeight: 1.1 }}>
+                    <Typography sx={{ color: '#8B0000', fontWeight: 700, fontSize: '1.2rem', lineHeight: 1.1 }}>
                       कैरियर विकास केंद्र
                     </Typography>
                     <Typography sx={{ color: '#1565C0', fontWeight: 600, fontSize: '0.85rem', lineHeight: 1.1 }}>
@@ -119,7 +119,7 @@ const PrintableJnf = memo(({ form, showDownloadButton = true, checkedClauses: ex
                       धनबाद, झारखंड, भारत, पिन-826004
                     </Typography>
 
-                    <Typography sx={{ color: '#D32F2F', fontWeight: 700, fontSize: '1.4rem', lineHeight: 1.1 }}>
+                    <Typography sx={{ color: '#8B0000', fontWeight: 700, fontSize: '1.4rem', lineHeight: 1.1 }}>
                       Career Development Centre
                     </Typography>
                     <Typography sx={{ color: '#1565C0', fontWeight: 600, fontSize: '1rem', lineHeight: 1.1 }}>
@@ -149,15 +149,15 @@ const PrintableJnf = memo(({ form, showDownloadButton = true, checkedClauses: ex
                   alignItems: 'flex-start',
                   mb: 3,
                   pb: 1,
-                  borderBottom: '2px solid #003366',
+                  borderBottom: '2px solid #660000',
                 }}>
                   <Box>
-                    <Typography sx={{ color: '#003366', fontWeight: 700, fontSize: '1rem', textTransform: 'uppercase' }}>
+                    <Typography sx={{ color: '#660000', fontWeight: 700, fontSize: '1rem', textTransform: 'uppercase' }}>
                       {isInf ? 'Intern Notification Form' : 'Job Notification Form'}
                     </Typography>
                   </Box>
                   <Box sx={{ textAlign: 'right' }}>
-                    <Typography sx={{ fontWeight: 700, fontSize: '1rem', color: '#003366' }}>
+                    <Typography sx={{ fontWeight: 700, fontSize: '1rem', color: '#660000' }}>
                       {form.jnf_code}
                     </Typography>
                     <Typography variant="caption" color="text.secondary">
@@ -227,7 +227,7 @@ const PrintableJnf = memo(({ form, showDownloadButton = true, checkedClauses: ex
                         <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mt: 0.5 }}>
                           {form.skills.filter((s: any) => s.skill_name).map((s: any, idx: number) => (
                             <Chip key={s.id || idx} label={s.skill_name} size="small"
-                              sx={{ background: 'rgba(0,51,102,0.08)', color: '#003366' }} />
+                              sx={{ background: 'rgba(0,51,102,0.08)', color: '#660000' }} />
                           ))}
                         </Box>
                       </Grid>
@@ -259,8 +259,8 @@ const PrintableJnf = memo(({ form, showDownloadButton = true, checkedClauses: ex
                         grouped[group].push(branch);
                       });
                       return Object.entries(grouped).map(([group, branches]) => (
-                        <Box key={group} sx={{ mb: 1.5, borderLeft: '3px solid #003366', pl: 1.5, py: 0.5 }}>
-                          <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: '#003366', textTransform: 'uppercase', mb: 0.5 }}>
+                        <Box key={group} sx={{ mb: 1.5, borderLeft: '3px solid #660000', pl: 1.5, py: 0.5 }}>
+                          <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: '#660000', textTransform: 'uppercase', mb: 0.5 }}>
                             {group}
                           </Typography>
                           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
@@ -269,7 +269,7 @@ const PrintableJnf = memo(({ form, showDownloadButton = true, checkedClauses: ex
                                 key={i}
                                 label={b}
                                 size="small"
-                                sx={{ fontSize: '0.68rem', background: 'rgba(0,51,102,0.07)', color: '#003366', height: 22 }}
+                                sx={{ fontSize: '0.68rem', background: 'rgba(0,51,102,0.07)', color: '#660000', height: 22 }}
                               />
                             ))}
                           </Box>
@@ -331,7 +331,7 @@ const PrintableJnf = memo(({ form, showDownloadButton = true, checkedClauses: ex
 
                       return (
                         <Box sx={{ mt: 1, px: 2, py: 2, background: '#fafafa', borderRadius: 1, border: '1px dashed #ccc' }}>
-                          <Typography variant="caption" sx={{ fontWeight: 700, display: 'block', mb: 1, color: '#003366' }}>
+                          <Typography variant="caption" sx={{ fontWeight: 700, display: 'block', mb: 1, color: '#660000' }}>
                             Branch-wise CGPA Exceptions (differ from global):
                           </Typography>
                           <Grid container spacing={2}>
@@ -372,7 +372,7 @@ const PrintableJnf = memo(({ form, showDownloadButton = true, checkedClauses: ex
                   <Section title="Salary Details">
                     {form.salary_breakdowns.filter((row: any) => row.ctc_annual || row.base_fixed).map((row: any, idx: number) => (
                       <Box key={row.id || idx} sx={{ mb: 2, p: 2, border: '1px solid rgba(0,0,0,0.1)', borderRadius: 1 }}>
-                        <Typography sx={{ fontWeight: 700, fontSize: '0.8rem', color: '#003366', mb: 1, textTransform: 'uppercase' }}>
+                        <Typography sx={{ fontWeight: 700, fontSize: '0.8rem', color: '#660000', mb: 1, textTransform: 'uppercase' }}>
                           {row.programme_type?.replace(/_/g, ' / ')} — {row.currency}
                         </Typography>
                         <Grid container spacing={1}>
@@ -410,7 +410,7 @@ const PrintableJnf = memo(({ form, showDownloadButton = true, checkedClauses: ex
                   <Section title="Stipend Details">
                     {form.inf_stipend_breakdowns.map((row: any, idx: number) => (
                       <Box key={row.id || idx} sx={{ mb: 2, p: 2, border: '1px solid rgba(0,0,0,0.1)', borderRadius: 1 }}>
-                        <Typography sx={{ fontWeight: 700, fontSize: '0.8rem', color: '#003366', mb: 1, textTransform: 'uppercase' }}>
+                        <Typography sx={{ fontWeight: 700, fontSize: '0.8rem', color: '#660000', mb: 1, textTransform: 'uppercase' }}>
                           {row.programme_type?.replace(/_/g, ' / ')} — {row.currency}
                         </Typography>
                         <Grid container spacing={1}>
@@ -448,7 +448,7 @@ const PrintableJnf = memo(({ form, showDownloadButton = true, checkedClauses: ex
                     </Grid>
                     {form.selection_rounds.map((round: any, idx: number) => (
                       <Box key={round.id || idx} sx={{ display: 'flex', gap: 2, py: 1.5, borderBottom: '1px solid rgba(0,0,0,0.06)', '&:last-child': { borderBottom: 'none' } }}>
-                        <Box sx={{ minWidth: 28, height: 28, borderRadius: '50%', background: '#003366', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.75rem', fontWeight: 700, flexShrink: 0 }}>
+                        <Box sx={{ minWidth: 28, height: 28, borderRadius: '50%', background: '#660000', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.75rem', fontWeight: 700, flexShrink: 0 }}>
                           {round.round_order}
                         </Box>
                         <Box>
@@ -469,13 +469,13 @@ const PrintableJnf = memo(({ form, showDownloadButton = true, checkedClauses: ex
                 <Box sx={{
                   mt: 2,
                   p: 2.5,
-                  border: '1.5px solid #003366',
+                  border: '1.5px solid #660000',
                   borderRadius: 1,
                   background: '#f9fbff',
                 }}>
                   <Typography sx={{
                     fontWeight: 700, fontSize: '0.95rem', textAlign: 'center',
-                    mb: 2, color: '#003366', textDecoration: 'underline',
+                    mb: 2, color: '#660000', textDecoration: 'underline',
                   }}>
                     Uniform Declaration
                   </Typography>
@@ -498,7 +498,7 @@ const PrintableJnf = memo(({ form, showDownloadButton = true, checkedClauses: ex
                           height: 16,
                           flexShrink: 0,
                           cursor: 'pointer',
-                          accentColor: '#003366',
+                          accentColor: '#660000',
                         }}
                       />
                       <Typography sx={{ fontSize: '0.78rem', lineHeight: 1.6, color: '#222' }}>
@@ -508,7 +508,7 @@ const PrintableJnf = memo(({ form, showDownloadButton = true, checkedClauses: ex
                   ))}
 
                   <Box sx={{ mt: 2, pt: 1.5, borderTop: '1px dashed #aaa', display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
-                    <Typography sx={{ fontSize: '0.75rem', fontWeight: 600, color: '#003366' }}>
+                    <Typography sx={{ fontSize: '0.75rem', fontWeight: 600, color: '#660000' }}>
                       📎 AIPC Guidelines:
                     </Typography>
                     <Typography
@@ -565,7 +565,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
     <Box sx={{ mb: 2 }}>
       <Typography sx={{
         fontWeight: 700, fontSize: '0.95rem',
-        color: '#003366', mb: 1.5,
+        color: '#660000', mb: 1.5,
         textTransform: 'uppercase',
         letterSpacing: '0.05em',
       }}>

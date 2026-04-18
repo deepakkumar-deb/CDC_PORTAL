@@ -13,7 +13,7 @@ export const authOptions: AuthOptions = {
       async authorize(credentials) {
         try {
           const res = await axios.post(
-            `${process.env.NEXT_PUBLIC_API_URL}/auth/login`,
+            `http://127.0.0.1:8000/api/auth/login`,
             {
               email:    credentials?.email,
               password: credentials?.password,
@@ -31,7 +31,8 @@ export const authOptions: AuthOptions = {
             };
           }
           return null;
-        } catch {
+        } catch (error: any) {
+          console.error("Login failed:", error.message, error.response?.data);
           return null;
         }
       },

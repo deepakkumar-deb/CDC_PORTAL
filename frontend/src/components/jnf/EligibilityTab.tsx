@@ -268,7 +268,7 @@ export default function EligibilityTab({
 
   return (
     <Box>
-      <Typography variant="h6" sx={{ fontWeight: 600, mb: 3, color: '#003366' }}>
+      <Typography variant="h6" sx={{ fontWeight: 600, mb: 3, color: '#660000' }}>
         Eligibility Criteria
       </Typography>
 
@@ -333,7 +333,7 @@ export default function EligibilityTab({
         {/* Programme selection */}
         <Grid item xs={12}>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2, mt: 2 }}>
-            <Typography variant="body1" sx={{ fontWeight: 700, color: '#003366' }}>
+            <Typography variant="body1" sx={{ fontWeight: 700, color: '#660000' }}>
               Eligible Programmes & Branch-wise Criteria
             </Typography>
             <Button size="small" variant="outlined" onClick={toggleAll}>
@@ -376,8 +376,8 @@ export default function EligibilityTab({
                         fontSize: '0.72rem',
                         fontWeight: 600,
                         border: '1px solid',
-                        borderColor: allGroupSelected ? '#c62828' : '#003366',
-                        color: allGroupSelected ? '#c62828' : '#003366',
+                        borderColor: allGroupSelected ? '#7A0000' : '#660000',
+                        color: allGroupSelected ? '#7A0000' : '#660000',
                         borderRadius: '4px',
                         cursor: 'pointer',
                         userSelect: 'none',
@@ -424,7 +424,7 @@ export default function EligibilityTab({
 
         <Grid item xs={12}>
           <Box sx={{ mt: 3, p: 3, border: '1px solid #e0e0e0', borderRadius: 2, bgcolor: '#f9f9f9' }}>
-            <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 2, color: '#003366' }}>
+            <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 2, color: '#660000' }}>
               Special Hiring Interests
             </Typography>
             <Grid container spacing={2}>

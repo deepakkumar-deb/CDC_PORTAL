@@ -182,7 +182,7 @@ export default function StipendTab({
 
   return (
     <Box>
-      <Typography variant="h6" sx={{ fontWeight: 600, mb: 1, color: '#003366' }}>
+      <Typography variant="h6" sx={{ fontWeight: 600, mb: 1, color: '#660000' }}>
         Stipend Details
       </Typography>
       <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>

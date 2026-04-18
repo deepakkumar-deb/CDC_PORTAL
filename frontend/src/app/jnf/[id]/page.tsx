@@ -125,7 +125,7 @@ export default function JnfDetailPage() {
           Back
         </Button>
         <Box sx={{ flex: 1 }}>
-          <Typography variant="h5" sx={{ fontWeight: 700, color: "#003366" }}>
+          <Typography variant="h5" sx={{ fontWeight: 700, color: "#660000" }}>
             {jnf.designation || "Untitled JNF"}
           </Typography>
           <Typography variant="caption" color="text.secondary">
@@ -163,7 +163,7 @@ export default function JnfDetailPage() {
         <CardContent sx={{ p: { xs: 2, md: 4 } }}>
           <Typography
             variant="h6"
-            sx={{ fontWeight: 600, mb: 2, color: "#003366" }}
+            sx={{ fontWeight: 600, mb: 2, color: "#660000" }}
           >
             Job Details
           </Typography>
@@ -211,7 +211,7 @@ export default function JnfDetailPage() {
                       size="small"
                       sx={{
                         background: "rgba(0,51,102,0.08)",
-                        color: "#003366",
+                        color: "#660000",
                       }}
                     />
                   ))}
@@ -228,7 +228,7 @@ export default function JnfDetailPage() {
           <CardContent sx={{ p: { xs: 2, md: 4 } }}>
             <Typography
               variant="h6"
-              sx={{ fontWeight: 600, mb: 2, color: "#003366" }}
+              sx={{ fontWeight: 600, mb: 2, color: "#660000" }}
             >
               Eligibility Criteria
             </Typography>
@@ -270,7 +270,7 @@ export default function JnfDetailPage() {
           <CardContent sx={{ p: { xs: 2, md: 4 } }}>
             <Typography
               variant="h6"
-              sx={{ fontWeight: 600, mb: 2, color: "#003366" }}
+              sx={{ fontWeight: 600, mb: 2, color: "#660000" }}
             >
               Salary Details
             </Typography>
@@ -288,7 +288,7 @@ export default function JnfDetailPage() {
                   sx={{
                     fontWeight: 600,
                     fontSize: "0.85rem",
-                    color: "#003366",
+                    color: "#660000",
                     mb: 1,
                   }}
                 >
@@ -323,7 +323,7 @@ export default function JnfDetailPage() {
           <CardContent sx={{ p: { xs: 2, md: 4 } }}>
             <Typography
               variant="h6"
-              sx={{ fontWeight: 600, mb: 2, color: "#003366" }}
+              sx={{ fontWeight: 600, mb: 2, color: "#660000" }}
             >
               Selection Process
             </Typography>
@@ -344,7 +344,7 @@ export default function JnfDetailPage() {
                     minWidth: 32,
                     height: 32,
                     borderRadius: "50%",
-                    background: "#003366",
+                    background: "#660000",
                     color: "white",
                     display: "flex",
                     alignItems: "center",
@@ -394,7 +394,7 @@ export default function JnfDetailPage() {
           startIcon={duplicating ? <CircularProgress size={16} /> : <ContentCopyIcon />}
           onClick={handleDuplicate}
           disabled={duplicating}
-          sx={{ borderColor: '#003366', color: '#003366' }}
+          sx={{ borderColor: '#660000', color: '#660000' }}
         >
           {duplicating ? 'Duplicating...' : 'Duplicate this JNF'}
         </Button>
@@ -431,7 +431,7 @@ export default function JnfDetailPage() {
         maxWidth="sm"
         fullWidth
       >
-        <DialogTitle sx={{ fontWeight: 700, color: '#003366' }}>
+        <DialogTitle sx={{ fontWeight: 700, color: '#660000' }}>
           Request Edit for {jnf.jnf_code}
         </DialogTitle>
         <DialogContent>
@@ -478,7 +478,7 @@ export default function JnfDetailPage() {
           <Button
             variant="outlined"
             onClick={() => setShowPreview(!showPreview)}
-            sx={{ borderRadius: 4, px: 4, borderColor: '#003366', color: '#003366' }}
+            sx={{ borderRadius: 4, px: 4, borderColor: '#660000', color: '#660000' }}
           >
             {showPreview ? 'Hide PDF Preview' : 'Preview PDF Layout for Download'}
           </Button>
