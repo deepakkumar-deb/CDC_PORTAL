@@ -99,6 +99,9 @@ function ColorlibStepIcon(props: StepIconProps) {
 
 export default function NewInfPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const editId = searchParams.get("edit");
+
   const [activeTab, setActiveTab] = useState(0);
   const [jnfId, setJnfId] = useState<number | null>(null);
   const [infCode, setInfCode] = useState("");
@@ -106,12 +109,39 @@ export default function NewInfPage() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [initialized, setInit] = useState(false);
-  const [existingData, setExistingData] = useState<any>(null);
+  const [existingData, setExistingData] = useState<any>({ opportunity_type: "internship" });
   const [extracting, setExtracting] = useState(false);
+
   useEffect(() => {
-    // Lazy creation: don't call backend until first save
-    setInit(true);
-  }, []);
+    if (!editId) {
+      setInit(true);
+      return;
+    }
+
+    let cancelled = false;
+    const initEdit = async () => {
+      try {
+        const res = await api.get(`/inf/${editId}`);
+        if (!cancelled) {
+          const inf = res.data.inf;
+          setJnfId(inf.id);
+          setInfCode(inf.jnf_code);
+          setExistingData({ ...inf, opportunity_type: "internship" });
+        }
+      } catch (err: any) {
+        if (!cancelled) {
+          setError(err.response?.data?.message || "Failed to load INF data.");
+        }
+      } finally {
+        if (!cancelled) setInit(true);
+      }
+    };
+
+    initEdit();
+    return () => {
+      cancelled = true;
+    };
+  }, [editId]);
 
   const handleTabSave = async (
     tabIndex: number,
@@ -137,6 +167,7 @@ export default function NewInfPage() {
       setExistingData((prev: any) => ({
         ...(prev || {}),
         ...data,
+        opportunity_type: "internship",
       }));
 
       setSuccess("Saved successfully.");
