@@ -17,6 +17,7 @@ class AlumniMentorController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|max:255',
+            'std_code' => 'required|string|max:10',
             'phone' => 'nullable|string|max:20',
             'graduation_year' => 'required|string|max:4',
             'branch' => 'required|string|max:255',

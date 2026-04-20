@@ -215,7 +215,7 @@ export default function ProfilePage() {
                     InputProps={{ startAdornment: <Work sx={{ mr: 1, color: 'action.active' }} /> }}
                   />
                 </Grid>
-                <Grid item xs={12} sm={4}>
+                <Grid item xs={4} sm={3}>
                   <FormControl fullWidth>
                     <InputLabel>STD Code</InputLabel>
                     <Select
@@ -230,7 +230,7 @@ export default function ProfilePage() {
                     </Select>
                   </FormControl>
                 </Grid>
-                <Grid item xs={12} sm={8}>
+                <Grid item xs={8} sm={9}>
                   <TextField
                     fullWidth label="Phone Number"
                     name="phone" value={formData.phone} onChange={handleChange}

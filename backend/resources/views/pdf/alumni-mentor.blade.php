@@ -66,7 +66,7 @@
         @if(!empty($data['phone']))
         <tr>
             <th>Mobile Number</th>
-            <td>{{ $data['phone'] }}</td>
+            <td>{{ $data['std_code'] }} {{ $data['phone'] }}</td>
         </tr>
         @endif
         <tr>

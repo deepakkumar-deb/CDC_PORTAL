@@ -267,7 +267,7 @@ export default function RegisterPage() {
               />
 
               <Box sx={{ display: 'flex', gap: 1, mb: 3 }}>
-                <FormControl sx={{ minWidth: 100 }}>
+                <FormControl sx={{ flex: '0 0 100px' }}>
                   <InputLabel>STD</InputLabel>
                   <Select
                     label="STD"

@@ -173,20 +173,20 @@ export default function MyInfsPage() {
       >
         <Box>
           <Typography variant="h5" sx={{ fontWeight: 700, color: "#660000" }}>
-            My Intern Notification Forms
+            My Internship Notification Forms
           </Typography>
           <Typography variant="body2" color="text.secondary">
             Total: {infs.length} INFs
           </Typography>
         </Box>
-        <Button
-          variant="contained"
-          startIcon={<AddIcon />}
-          onClick={() => router.push("/inf/new")}
-          sx={{ background: "#C8922A", "&:hover": { background: "#A0721A" } }}
-        >
-          Post New Internship
-        </Button>
+          <Button
+            variant="contained"
+            startIcon={<AddIcon />}
+            onClick={() => router.push("/inf/new")}
+            sx={{ background: "#C8922A", "&:hover": { background: "#A0721A" } }}
+          >
+            Post New Internship
+          </Button>
       </Box>
 
       {/* Error Alert */}

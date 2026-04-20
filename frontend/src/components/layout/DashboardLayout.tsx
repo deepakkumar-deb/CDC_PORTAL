@@ -37,7 +37,7 @@ const DRAWER_WIDTH = 280; // Increased from 240
 const navItems = [
   { label: "Dashboard", href: "/dashboard", icon: <DashboardIcon /> },
   { label: "My JNFs", href: "/dashboard/jnfs", icon: <WorkIcon /> },
-  { label: "My INFs", href: "/dashboard/infs", icon: <SchoolIcon /> },
+  { label: "My Internships", href: "/dashboard/infs", icon: <SchoolIcon /> },
   {
     label: "Company Profile",
     href: "/dashboard/company",

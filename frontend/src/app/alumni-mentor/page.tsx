@@ -22,12 +22,14 @@ import PictureAsPdfIcon from "@mui/icons-material/PictureAsPdf";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import api from "@/lib/api";
 import { useRouter } from "next/navigation";
+import { STD_CODES } from "@/constants/countries";
 
 export default function AlumniMentorPage() {
   const router = useRouter();
   const [formData, setFormData] = useState({
     name: "",
     email: "",
+    std_code: "+91",
     phone: "",
     graduation_year: "",
     branch: "",
@@ -92,12 +94,12 @@ export default function AlumniMentorPage() {
 
         <Box sx={{ bgcolor: "white", p: 4, textAlign: "center", borderBottom: "1px solid #E0E0E0" }}>
           <SchoolIcon sx={{ fontSize: 48, color: "#660000", mb: 1 }} />
-          <Typography variant="h4" sx={{ fontWeight: 700, color: "#660000" }}>
-            Alumni Mentorship Application
+          <Typography variant="h4" sx={{ fontWeight: 800, color: "#660000", letterSpacing: -0.5 }}>
+            Alumni Mentorship Program
           </Typography>
-          <Typography variant="body1" color="text.secondary" sx={{ mt: 1, maxWidth: 600, mx: "auto" }}>
-            Thank you for volunteering to mentor current students and fellow alumni. 
-            Please fill out your details below. A copy of your application will be sent to the CDC Admin.
+          <Typography variant="body1" color="text.secondary" sx={{ mt: 1.5, maxWidth: 640, mx: "auto", fontWeight: 500, lineHeight: 1.6 }}>
+            Empower the next generation of professionals by sharing your experience. 
+            Once you submit your application, a formalized PDF summary will be generated and shared with the CDC administration for review.
           </Typography>
         </Box>
 
@@ -159,7 +161,24 @@ export default function AlumniMentorPage() {
                     required
                   />
                 </Grid>
-                <Grid item xs={12} sm={6}>
+                <Grid item xs={4} sm={3}>
+                  <FormControl fullWidth>
+                    <InputLabel>STD</InputLabel>
+                    <Select
+                      name="std_code"
+                      value={formData.std_code}
+                      label="STD"
+                      onChange={handleChange as any}
+                    >
+                      {STD_CODES.map((item) => (
+                        <MenuItem key={item.code + item.country} value={item.code}>
+                          {item.code} ({item.country})
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </Grid>
+                <Grid item xs={8} sm={9}>
                   <TextField
                     fullWidth
                     type="tel"

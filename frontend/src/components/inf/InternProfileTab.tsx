@@ -88,7 +88,7 @@ export default function InternProfileTab({
   return (
     <Box>
       <Typography variant="h6" sx={{ fontWeight: 600, mb: 3, color: '#660000' }}>
-        Internship Profile Details
+        Internship Details
       </Typography>
 
       <Grid container spacing={3}>
