@@ -52,7 +52,15 @@ class ExtractionController extends Controller
 
             if ($response->failed()) {
                 Log::error('Gemini API Error: ' . $response->body());
-                return response()->json(['success' => false, 'message' => 'AI Provider Error'], 500);
+                $errorData = $response->json();
+                $errorMessage = $errorData['error']['message'] ?? 'AI Provider Error';
+                
+                // Friendly message for overload
+                if ($response->status() === 503) {
+                    $errorMessage = "The AI service is temporarily overloaded. Please try again in a few seconds.";
+                }
+
+                return response()->json(['success' => false, 'message' => $errorMessage], $response->status());
             }
 
             $data = $response->json();
