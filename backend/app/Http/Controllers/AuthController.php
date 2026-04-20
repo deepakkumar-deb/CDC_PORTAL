@@ -45,7 +45,7 @@ class AuthController extends Controller
         ]);
 
         // Send OTP email
-        Mail::raw("Your CDC Portal OTP is: $otp\n\nThis OTP expires in 5 minutes.", function ($message) use ($email) {
+        Mail::send('emails.auth-otp', ['otp' => $otp, 'expires' => 5], function ($message) use ($email) {
             $message->to($email)
                     ->subject('CDC Portal — Email Verification OTP');
         });
@@ -128,6 +128,7 @@ class AuthController extends Controller
         // Send Registration Confirmation Email
         $portalUrl = env('FRONTEND_URL', 'http://localhost:3000');
         Mail::send('emails.registration', [
+            'name' => $user->name,
             'email' => $request->email,
             'portal_url' => $portalUrl
         ], function ($message) use ($request) {
@@ -246,7 +247,7 @@ class AuthController extends Controller
             'is_used'    => false,
         ]);
 
-        Mail::raw("Your CDC Portal Password Reset OTP is: $otp\n\nThis OTP expires in 10 minutes.", function ($message) use ($email) {
+        Mail::send('emails.auth-otp', ['otp' => $otp, 'expires' => 10], function ($message) use ($email) {
             $message->to($email)->subject('CDC Portal — Password Reset OTP');
         });
 
