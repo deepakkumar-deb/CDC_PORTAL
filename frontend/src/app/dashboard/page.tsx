@@ -126,7 +126,7 @@ export default function DashboardPage() {
           variant="h4"
           sx={{ fontWeight: 700, color: "#660000", mb: 0.5 }}
         >
-          Welcome back, {session?.user?.name?.split(" ")[0] || "Recruiter"}
+          Welcome back
         </Typography>
         <Typography variant="body2" color="text.secondary">
           Manage your Job and Internship Notification Forms from here.
