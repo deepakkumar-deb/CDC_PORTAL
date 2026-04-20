@@ -95,11 +95,15 @@ class AuthController extends Controller
             'email'                 => 'required|email|unique:users,email',
             'password'              => 'required|min:8|confirmed',
             'password_confirmation' => 'required',
+            'designation'           => 'nullable|string|max:255',
+            'std_code'              => 'nullable|string|max:5',
+            'phone'                 => 'nullable|string|max:15',
         ]);
 
         // Make sure email was OTP verified
         $verified = OtpVerification::where('email', $request->email)
             ->where('is_used', true)
+            ->latest()
             ->exists();
 
         if (!$verified) {
@@ -113,6 +117,9 @@ class AuthController extends Controller
             'name'               => $request->name,
             'email'              => $request->email,
             'role'               => 'recruiter',
+            'designation'        => $request->designation,
+            'std_code'           => $request->std_code,
+            'phone'              => $request->phone,
             'password_hash'      => Hash::make($request->password),
             'email_verified_at'  => Carbon::now(),
             'is_active'          => true,
@@ -135,10 +142,14 @@ class AuthController extends Controller
             'message' => 'Registration successful.',
             'token'   => $token,
             'user'    => [
-                'id'    => $user->id,
-                'name'  => $user->name,
-                'email' => $user->email,
-                'role'  => $user->role,
+                'id'          => $user->id,
+                'name'        => $user->name,
+                'email'       => $user->email,
+                'role'        => $user->role,
+                'designation' => $user->designation,
+                'std_code'    => $user->std_code,
+                'phone'       => $user->phone,
+                'profile_picture' => $user->profile_picture,
             ],
         ], 201);
     }
@@ -176,10 +187,14 @@ class AuthController extends Controller
             'message' => 'Login successful.',
             'token'   => $token,
             'user'    => [
-                'id'    => $user->id,
-                'name'  => $user->name,
-                'email' => $user->email,
-                'role'  => $user->role,
+                'id'          => $user->id,
+                'name'        => $user->name,
+                'email'       => $user->email,
+                'role'        => $user->role,
+                'designation' => $user->designation,
+                'std_code'    => $user->std_code,
+                'phone'       => $user->phone,
+                'profile_picture' => $user->profile_picture,
             ],
         ]);
     }
@@ -198,14 +213,138 @@ class AuthController extends Controller
     // ─── GET LOGGED IN USER ───────────────────────────────────
     public function me(Request $request)
     {
+        $user = $request->user();
         return response()->json([
             'success' => true,
             'user'    => [
-                'id'    => $request->user()->id,
-                'name'  => $request->user()->name,
-                'email' => $request->user()->email,
-                'role'  => $request->user()->role,
+                'id'          => $user->id,
+                'name'        => $user->name,
+                'email'       => $user->email,
+                'role'        => $user->role,
+                'designation' => $user->designation,
+                'std_code'    => $user->std_code,
+                'phone'       => $user->phone,
+                'profile_picture' => $user->profile_picture,
             ],
         ]);
+    }
+
+    // ─── FORGOT PASSWORD: SEND OTP ─────────────────────────────
+    public function sendResetOtp(Request $request)
+    {
+        $request->validate(['email' => 'required|email|exists:users,email']);
+
+        $email = $request->email;
+        $otp = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+
+        OtpVerification::where('email', $email)->where('is_used', false)->update(['is_used' => true]);
+
+        OtpVerification::create([
+            'email'      => $email,
+            'otp_code'   => $otp,
+            'expires_at' => Carbon::now()->addMinutes(10),
+            'is_used'    => false,
+        ]);
+
+        Mail::raw("Your CDC Portal Password Reset OTP is: $otp\n\nThis OTP expires in 10 minutes.", function ($message) use ($email) {
+            $message->to($email)->subject('CDC Portal — Password Reset OTP');
+        });
+
+        return response()->json(['success' => true, 'message' => 'OTP sent to your email.']);
+    }
+
+    // ─── FORGOT PASSWORD: RESET ────────────────────────────────
+    public function resetPassword(Request $request)
+    {
+        $request->validate([
+            'email'    => 'required|email',
+            'otp_code' => 'required|digits:6',
+            'password' => 'required|min:8|confirmed',
+        ]);
+
+        $otp = OtpVerification::where('email', $request->email)
+            ->where('otp_code', $request->otp_code)
+            ->where('is_used', false)
+            ->where('expires_at', '>', Carbon::now())
+            ->latest()
+            ->first();
+
+        if (!$otp) {
+            return response()->json(['success' => false, 'message' => 'Invalid or expired OTP.'], 422);
+        }
+
+        $user = User::where('email', $request->email)->first();
+        $user->update(['password_hash' => Hash::make($request->password)]);
+        $otp->update(['is_used' => true]);
+
+        return response()->json(['success' => true, 'message' => 'Password reset successfully.']);
+    }
+
+    // ─── UPDATE PROFILE ────────────────────────────────────────
+    public function updateProfile(Request $request)
+    {
+        $user = $request->user();
+        
+        $request->validate([
+            'name'        => 'required|string|max:255',
+            'designation' => 'nullable|string|max:255',
+            'std_code'    => 'nullable|string|max:5',
+            'phone'       => 'nullable|string|max:15',
+        ]);
+
+        $user->update([
+            'name'        => $request->name,
+            'designation' => $request->designation,
+            'std_code'    => $request->std_code,
+            'phone'       => $request->phone,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Profile updated successfully.',
+            'user'    => [
+                'id'          => $user->id,
+                'name'        => $user->name,
+                'email'       => $user->email,
+                'role'        => $user->role,
+                'designation' => $user->designation,
+                'std_code'    => $user->std_code,
+                'phone'       => $user->phone,
+                'profile_picture' => $user->profile_picture,
+            ],
+        ]);
+    }
+
+    // ─── UPLOAD PROFILE PICTURE ────────────────────────────────
+    public function uploadProfilePicture(Request $request)
+    {
+        $request->validate([
+            'image' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
+        ]);
+
+        $user = $request->user();
+
+        if ($request->hasFile('image')) {
+            $file = $request->file('image');
+            $filename = time() . '_' . $file->getClientOriginalName();
+            
+            // Create directory if not exists
+            if (!file_exists(public_path('storage/profiles'))) {
+                mkdir(public_path('storage/profiles'), 0777, true);
+            }
+
+            $file->move(public_path('storage/profiles'), $filename);
+            
+            $path = '/storage/profiles/' . $filename;
+            $user->update(['profile_picture' => $path]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Profile picture updated.',
+                'path'    => $path,
+            ]);
+        }
+
+        return response()->json(['success' => false, 'message' => 'No file uploaded.'], 400);
     }
 }

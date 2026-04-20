@@ -17,18 +17,22 @@ Route::post('/alumni-mentor', [AlumniMentorController::class, 'store']);
 Route::get('/metadata/programs', [MetadataController::class, 'programs']);
 
 Route::prefix('auth')->group(function () {
-    Route::post('/send-otp',  [AuthController::class, 'sendOtp']);
-    Route::post('/verify-otp', [AuthController::class, 'verifyOtp']);
-    Route::post('/register',  [AuthController::class, 'register']);
-    Route::post('/login',     [AuthController::class, 'login']);
+    Route::post('/send-otp',        [AuthController::class, 'sendOtp']);
+    Route::post('/verify-otp',      [AuthController::class, 'verifyOtp']);
+    Route::post('/register',        [AuthController::class, 'register']);
+    Route::post('/login',           [AuthController::class, 'login']);
+    Route::post('/forgot-password', [AuthController::class, 'sendResetOtp']);
+    Route::post('/reset-password',  [AuthController::class, 'resetPassword']);
 });
 
 // ── Protected routes (must be logged in) ─────────────────────
 Route::middleware('auth:sanctum')->group(function () {
 
     // ── Auth ──────────────────────────────────────────────────
-    Route::post('/auth/logout', [AuthController::class, 'logout']);
-    Route::get('/auth/me',      [AuthController::class, 'me']);
+    Route::post('/auth/logout',         [AuthController::class, 'logout']);
+    Route::get('/auth/me',              [AuthController::class, 'me']);
+    Route::post('/auth/update-profile', [AuthController::class, 'updateProfile']);
+    Route::post('/auth/upload-profile-picture', [AuthController::class, 'uploadProfilePicture']);
 
     // ── Company ───────────────────────────────────────────────
     Route::get('/company',        [CompanyController::class, 'show']);

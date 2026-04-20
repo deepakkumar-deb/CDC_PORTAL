@@ -9,7 +9,7 @@ class User extends Authenticatable
     use HasApiTokens;
 
     protected $fillable = [
-        'name', 'email', 'role',
+        'name', 'email', 'role', 'designation', 'std_code', 'phone', 'profile_picture',
         'password_hash', 'email_verified_at', 'is_active',
     ];
 

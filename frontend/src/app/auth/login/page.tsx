@@ -94,12 +94,17 @@ export default function LoginPage() {
             <Button
               type="submit" variant="contained" fullWidth
               size="large" disabled={loading}
-              sx={{ py: 1.5 }}
+              sx={{ py: 1.5, mb: 1.5 }}
             >
               {loading
                 ? <CircularProgress size={22} color="inherit" />
                 : 'Login'}
             </Button>
+            <Box sx={{ textAlign: 'right' }}>
+              <Link href="/auth/forgot-password" style={{ color: '#660000', fontSize: '0.875rem' }}>
+                Forgot Password?
+              </Link>
+            </Box>
           </Box>
 
           <Divider sx={{ my: 3 }} />

@@ -1,11 +1,14 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Box, Card, CardContent, TextField, Button,
   Typography, Alert, CircularProgress,
   Stepper, Step, StepLabel, Divider,
+  MenuItem, Select, InputLabel, FormControl, IconButton
 } from '@mui/material';
+import { ArrowBack } from '@mui/icons-material';
+import { STD_CODES } from '@/constants/countries';
 import axios from 'axios';
 import Link from 'next/link';
 
@@ -27,6 +30,7 @@ export default function RegisterPage() {
   // Step 2 state
   const [name, setName]               = useState('');
   const [designation, setDesignation] = useState('');
+  const [stdCode, setStdCode]         = useState('+91');
   const [phone, setPhone]             = useState('');
 
   // Step 3 state
@@ -37,6 +41,18 @@ export default function RegisterPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError]     = useState('');
   const [success, setSuccess] = useState('');
+  const [timer, setTimer] = useState(0);
+
+  // Timer Effect
+  useEffect(() => {
+    let interval: any;
+    if (timer > 0) {
+      interval = setInterval(() => {
+        setTimer((prev) => prev - 1);
+      }, 1000);
+    }
+    return () => clearInterval(interval);
+  }, [timer]);
 
   // ── Step 1A: Send OTP ──────────────────────────────────────
   const handleSendOtp = async () => {
@@ -49,6 +65,7 @@ export default function RegisterPage() {
         { headers: { Accept: 'application/json' } }
       );
       setOtpSent(true);
+      setTimer(30);
       setSuccess('OTP sent! Check your inbox.');
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to send OTP.');
@@ -79,6 +96,7 @@ export default function RegisterPage() {
   // ── Step 2: Save recruiter info ────────────────────────────
   const handleRecruiterInfo = () => {
     if (!name) return setError('Please enter your full name.');
+    if (phone && phone.length < 10) return setError('Please enter a valid 10-digit mobile number.');
     setError('');
     setActiveStep(2);
   };
@@ -98,6 +116,9 @@ export default function RegisterPage() {
         {
           name,
           email,
+          designation,
+          std_code: stdCode,
+          phone,
           password,
           password_confirmation: confirmPassword,
         },
@@ -118,11 +139,21 @@ export default function RegisterPage() {
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      bgcolor: '#800000',
+      backgroundImage: 'url("/background_img.jpg")',
+      backgroundSize: 'cover',
+      backgroundPosition: 'center',
       p: 2,
     }}>
-      <Card sx={{ width: '100%', maxWidth: 500, borderRadius: 3 }}>
+      <Card sx={{ width: '100%', maxWidth: 500, borderRadius: 3, position: 'relative' }}>
         <CardContent sx={{ p: 4 }}>
+          {(otpSent && activeStep === 0) && (
+            <IconButton 
+              onClick={() => { setOtpSent(false); setOtp(''); setError(''); setTimer(0); }}
+              sx={{ position: 'absolute', top: 12, left: 12, color: '#660000' }}
+            >
+              <ArrowBack />
+            </IconButton>
+          )}
 
           {/* Header */}
           <Box sx={{ textAlign: 'center', mb: 3 }}>
@@ -201,12 +232,17 @@ export default function RegisterPage() {
                       ? <CircularProgress size={22} color="inherit" />
                       : 'Verify OTP'}
                   </Button>
+
                   <Button
                     fullWidth size="small"
-                    onClick={() => { setOtpSent(false); setOtp(''); setError(''); }}
-                    sx={{ color: 'text.secondary' }}
+                    disabled={timer > 0}
+                    onClick={() => {
+                      if (timer > 0 || loading) return;
+                      handleSendOtp();
+                    }}
+                    sx={{ color: timer > 0 ? 'text.disabled' : '#660000', mt: 1, fontWeight: 600 }}
                   >
-                    Change email / Resend OTP
+                    {timer > 0 ? `Resend OTP in ${timer}s` : 'Resend OTP'}
                   </Button>
                 </Box>
               )}
@@ -229,12 +265,28 @@ export default function RegisterPage() {
                 onChange={(e) => setDesignation(e.target.value)}
                 sx={{ mb: 2 }}
               />
-              <TextField
-                fullWidth label="Mobile Number" value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                inputProps={{ maxLength: 10 }}
-                sx={{ mb: 3 }}
-              />
+
+              <Box sx={{ display: 'flex', gap: 1, mb: 3 }}>
+                <FormControl sx={{ minWidth: 100 }}>
+                  <InputLabel>STD</InputLabel>
+                  <Select
+                    label="STD"
+                    value={stdCode}
+                    onChange={(e) => setStdCode(e.target.value)}
+                  >
+                    {STD_CODES.map((item) => (
+                      <MenuItem key={item.code + item.country} value={item.code}>
+                        {item.code} ({item.country})
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+                <TextField
+                  fullWidth label="Mobile Number" value={phone}
+                  onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))}
+                  inputProps={{ maxLength: 10 }}
+                />
+              </Box>
               <Button
                 variant="contained" fullWidth size="large"
                 onClick={handleRecruiterInfo}

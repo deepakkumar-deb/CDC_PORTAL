@@ -28,6 +28,8 @@ import MenuIcon from "@mui/icons-material/Menu";
 import LogoutIcon from "@mui/icons-material/Logout";
 import AdminPanelSettingsIcon from "@mui/icons-material/AdminPanelSettings";
 
+import AccountCircleIcon from "@mui/icons-material/AccountCircle";
+
 const DRAWER_WIDTH = 280; // Increased from 240
 
 
@@ -41,6 +43,7 @@ const navItems = [
     href: "/dashboard/company",
     icon: <BusinessIcon />,
   },
+  { label: "My Profile", href: "/dashboard/profile", icon: <AccountCircleIcon /> },
 ];
 
 export default function DashboardLayout({
@@ -292,6 +295,7 @@ export default function DashboardLayout({
       <Box sx={{ p: 2.5, bgcolor: "rgba(0,0,0,0.02)" }}>
         <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 2 }}>
           <Avatar
+            src={session?.user?.profile_picture ? `${process.env.NEXT_PUBLIC_API_URL?.replace('/api', '')}${session.user.profile_picture}` : ''}
             sx={{
               width: 42,
               height: 42,

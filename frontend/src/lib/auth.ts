@@ -12,8 +12,9 @@ export const authOptions: AuthOptions = {
       },
       async authorize(credentials) {
         try {
+          const API_URL = process.env.NEXT_PUBLIC_API_URL;
           const res = await axios.post(
-            `http://127.0.0.1:8000/api/auth/login`,
+            `${API_URL}/auth/login`,
             {
               email:    credentials?.email,
               password: credentials?.password,
@@ -27,6 +28,7 @@ export const authOptions: AuthOptions = {
               name:  res.data.user.name,
               email: res.data.user.email,
               role:  res.data.user.role,
+              profile_picture: res.data.user.profile_picture,
               token: res.data.token,
             };
           }
@@ -40,11 +42,17 @@ export const authOptions: AuthOptions = {
   ],
 
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger, session }) {
       if (user) {
         token.id    = user.id;
         token.role  = user.role;
         token.token = user.token;
+        token.profile_picture = user.profile_picture;
+      }
+      // Handle Live Updates
+      if (trigger === "update" && session) {
+        if (session.name) token.name = session.name;
+        if (session.profile_picture) token.profile_picture = session.profile_picture;
       }
       return token;
     },
@@ -52,6 +60,9 @@ export const authOptions: AuthOptions = {
       if (session.user) {
         session.user.id   = token.id as string;
         session.user.role = token.role as string;
+        session.user.profile_picture = token.profile_picture as string;
+        // Ensure name is synced from token if it was updated
+        session.user.name = token.name as string;
       }
       session.token     = token.token as string;
       return session;
