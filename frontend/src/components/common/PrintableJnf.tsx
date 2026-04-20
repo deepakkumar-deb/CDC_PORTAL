@@ -513,12 +513,12 @@ const PrintableJnf = memo(({ form, showDownloadButton = true, checkedClauses: ex
                     </Typography>
                     <Typography
                       component="a"
-                      href="https://www.aipc.org.in/aipc-guidelines"
+                      href="/AIPC_Guidelines.pdf"
                       target="_blank"
                       rel="noopener noreferrer"
                       sx={{ fontSize: '0.75rem', color: '#1565C0', textDecoration: 'underline', wordBreak: 'break-all' }}
                     >
-                      https://www.aipc.org.in/aipc-guidelines
+                      Click here to view AIPC Guidelines
                     </Typography>
                     <Typography sx={{ fontSize: '0.75rem', color: 'text.secondary' }}>
                       (Read AIPC guidelines before signing)
