@@ -142,7 +142,7 @@ export default function DashboardPage() {
             value: jnfs.filter((j) => j.status === "approved").length,
             color: "#2e7d32",
           },
-          { label: "Total Internships", value: infs.length, color: "#C8922A" },
+          { label: "Total INFs", value: infs.length, color: "#C8922A" },
           {
             label: "Pending Review",
             value: [...jnfs, ...infs].filter((j) => j.status === "submitted")
@@ -286,7 +286,7 @@ export default function DashboardPage() {
                 gap: 1,
               }}
             >
-              <SchoolIcon sx={{ color: "#C8922A" }} /> Internship Notification Forms
+              <SchoolIcon sx={{ color: "#C8922A" }} /> Intern Notification Forms
             </Typography>
             <Button
               variant="contained"

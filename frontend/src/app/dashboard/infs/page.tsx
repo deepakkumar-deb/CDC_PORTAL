@@ -173,7 +173,7 @@ export default function MyInfsPage() {
       >
         <Box>
           <Typography variant="h5" sx={{ fontWeight: 700, color: "#660000" }}>
-            My Internship Notification Forms
+            My Intern Notification Forms
           </Typography>
           <Typography variant="body2" color="text.secondary">
             Total: {infs.length} INFs
