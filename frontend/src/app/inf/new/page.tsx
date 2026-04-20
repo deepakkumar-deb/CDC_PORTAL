@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense } from "react";
 import {
   Box,
   Card,
@@ -97,7 +98,7 @@ function ColorlibStepIcon(props: StepIconProps) {
   );
 }
 
-export default function NewInfPage() {
+function NewInfPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const editId = searchParams.get("edit");
@@ -406,5 +407,12 @@ export default function NewInfPage() {
         </CardContent>
       </Card>
     </DashboardLayout>
+  );
+}
+export default function NewInfPage() {
+  return (
+    <Suspense fallback={<Box sx={{ display: 'flex', justifyContent: 'center', mt: 10 }}><CircularProgress /></Box>}>
+      <NewInfPageContent />
+    </Suspense>
   );
 }
