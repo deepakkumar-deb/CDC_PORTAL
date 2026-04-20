@@ -530,13 +530,34 @@ const PrintableJnf = memo(({ form, showDownloadButton = true, checkedClauses: ex
                 <Grid container spacing={4} sx={{ mt: 3 }}>
                   <Grid item xs={6}>
                     <Box sx={{ borderTop: '1px solid #333', pt: 1, mt: 5 }}>
-                      <Typography sx={{ fontSize: '0.75rem', color: '#555' }}>Authorised Signatory</Typography>
+                      {(() => {
+                        const hrContact = form.company?.contacts?.find((c: any) => c.contact_type === 'hr_head') || 
+                                          form.company?.contacts?.[0];
+                        return (
+                          <>
+                            {hrContact && (
+                              <Typography sx={{ fontSize: '0.9rem', fontWeight: 700, color: '#333', mb: 0.2 }}>
+                                {hrContact.contact_name}
+                              </Typography>
+                            )}
+                            {hrContact && (
+                              <Typography sx={{ fontSize: '0.8rem', color: '#555', mb: 1 }}>
+                                {hrContact.designation}
+                              </Typography>
+                            )}
+                          </>
+                        );
+                      })()}
+                      <Typography sx={{ fontSize: '0.75rem', color: '#555', fontWeight: 600 }}>Authorised Signatory</Typography>
                       <Typography sx={{ fontSize: '0.7rem', color: '#888' }}>Name / Designation / Seal</Typography>
                     </Box>
                   </Grid>
                   <Grid item xs={6}>
                     <Box sx={{ borderTop: '1px solid #333', pt: 1, mt: 5, textAlign: 'right' }}>
-                      <Typography sx={{ fontSize: '0.75rem', color: '#555' }}>Date</Typography>
+                      <Typography sx={{ fontSize: '0.9rem', fontWeight: 700, color: '#333', mb: 0.2 }}>
+                        {new Date(form.submitted_at || Date.now()).toLocaleDateString('en-IN')}
+                      </Typography>
+                      <Typography sx={{ fontSize: '0.75rem', color: '#555', fontWeight: 600 }}>Date</Typography>
                     </Box>
                   </Grid>
                 </Grid>
