@@ -192,21 +192,21 @@ export default function SalaryTab({
           <Grid item xs={12} sm={3}>
             <TextField 
               fullWidth size="small" label="Global CTC *" 
-              type="number" value={globalVals.ctc_annual}
+              type="number" value={globalVals.ctc_annual || ''}
               onChange={e => setGlobalVals({...globalVals, ctc_annual: e.target.value})}
             />
           </Grid>
           <Grid item xs={12} sm={3}>
             <TextField 
               fullWidth size="small" label="Global Base *" 
-              type="number" value={globalVals.base_fixed}
+              type="number" value={globalVals.base_fixed || ''}
               onChange={e => setGlobalVals({...globalVals, base_fixed: e.target.value})}
             />
           </Grid>
           <Grid item xs={12} sm={3}>
             <TextField 
               fullWidth size="small" label="Global Take-home" 
-              type="number" value={globalVals.monthly_takehome}
+              type="number" value={globalVals.monthly_takehome || ''}
               onChange={e => setGlobalVals({...globalVals, monthly_takehome: e.target.value})}
             />
           </Grid>
@@ -255,7 +255,7 @@ export default function SalaryTab({
             <Grid item xs={12} sm={6} md={3}>
               <TextField
                 fullWidth size="small" label="CTC (Annual) *"
-                type="number" value={row.ctc_annual}
+                type="number" value={row.ctc_annual || ''}
                 onChange={e => setRow(i, 'ctc_annual', e.target.value)}
                 error={showErrors && !String(row.ctc_annual).trim()}
               />
@@ -263,7 +263,7 @@ export default function SalaryTab({
             <Grid item xs={12} sm={6} md={3}>
               <TextField
                 fullWidth size="small" label="Base / Fixed *"
-                type="number" value={row.base_fixed}
+                type="number" value={row.base_fixed || ''}
                 onChange={e => setRow(i, 'base_fixed', e.target.value)}
                 error={showErrors && !String(row.base_fixed).trim()}
               />
@@ -271,112 +271,112 @@ export default function SalaryTab({
             <Grid item xs={12} sm={6} md={3}>
               <TextField
                 fullWidth size="small" label="Monthly Take-home"
-                type="number" value={row.monthly_takehome}
+                type="number" value={row.monthly_takehome || ''}
                 onChange={e => setRow(i, 'monthly_takehome', e.target.value)}
               />
             </Grid>
             <Grid item xs={12} sm={6} md={3}>
               <TextField
                 fullWidth size="small" label="Gross Salary"
-                type="number" value={row.gross_salary}
+                type="number" value={row.gross_salary || ''}
                 onChange={e => setRow(i, 'gross_salary', e.target.value)}
               />
             </Grid>
             <Grid item xs={12} sm={6} md={3}>
               <TextField
                 fullWidth size="small" label="Joining Bonus"
-                type="number" value={row.joining_bonus}
+                type="number" value={row.joining_bonus || ''}
                 onChange={e => setRow(i, 'joining_bonus', e.target.value)}
               />
             </Grid>
             <Grid item xs={12} sm={6} md={3}>
               <TextField
                 fullWidth size="small" label="Relocation Allowance"
-                type="number" value={row.relocation_allowance}
+                type="number" value={row.relocation_allowance || ''}
                 onChange={e => setRow(i, 'relocation_allowance', e.target.value)}
               />
             </Grid>
             <Grid item xs={12} sm={6} md={3}>
               <TextField
                 fullWidth size="small" label="Medical Allowance"
-                type="number" value={row.medical_allowance}
+                type="number" value={row.medical_allowance || ''}
                 onChange={e => setRow(i, 'medical_allowance', e.target.value)}
               />
             </Grid>
             <Grid item xs={12} sm={6} md={3}>
               <TextField
                 fullWidth size="small" label="Retention Bonus"
-                type="number" value={row.retention_bonus}
+                type="number" value={row.retention_bonus || ''}
                 onChange={e => setRow(i, 'retention_bonus', e.target.value)}
               />
             </Grid>
             <Grid item xs={12} sm={6} md={3}>
               <TextField
                 fullWidth size="small" label="Variable / Perf. Bonus"
-                type="number" value={row.variable_performance_bonus}
+                type="number" value={row.variable_performance_bonus || ''}
                 onChange={e => setRow(i, 'variable_performance_bonus', e.target.value)}
               />
             </Grid>
             <Grid item xs={12} sm={6} md={3}>
               <TextField
                 fullWidth size="small" label="First Year CTC"
-                type="number" value={row.first_year_ctc}
+                type="number" value={row.first_year_ctc || ''}
                 onChange={e => setRow(i, 'first_year_ctc', e.target.value)}
               />
             </Grid>
             <Grid item xs={12} sm={6} md={3}>
               <TextField
                 fullWidth size="small" label="ESOP Value"
-                type="number" value={row.esop_value}
+                type="number" value={row.esop_value || ''}
                 onChange={e => setRow(i, 'esop_value', e.target.value)}
               />
             </Grid>
             <Grid item xs={12} sm={6} md={3}>
               <TextField
                 fullWidth size="small" label="Vest Period"
-                value={row.vest_period}
+                value={row.vest_period || ''}
                 onChange={e => setRow(i, 'vest_period', e.target.value)}
               />
             </Grid>
             <Grid item xs={12} sm={6} md={3}>
               <TextField
                 fullWidth size="small" label="Stocks/Options Details"
-                value={row.stocks_options}
+                value={row.stocks_options || ''}
                 onChange={e => setRow(i, 'stocks_options', e.target.value)}
               />
             </Grid>
             <Grid item xs={12} sm={6} md={3}>
               <TextField
                 fullWidth size="small" label="Bond Amount"
-                type="number" value={row.bond_amount}
+                type="number" value={row.bond_amount || ''}
                 onChange={e => setRow(i, 'bond_amount', e.target.value)}
               />
             </Grid>
             <Grid item xs={12} sm={6} md={3}>
               <TextField
                 fullWidth size="small" label="Bond Duration (months)"
-                type="number" value={row.bond_duration_months}
+                type="number" value={row.bond_duration_months || ''}
                 onChange={e => setRow(i, 'bond_duration_months', e.target.value)}
               />
             </Grid>
             <Grid item xs={12} md={6}>
               <TextField
                 fullWidth size="small" label="Bond Details"
-                value={row.bond_details}
+                value={row.bond_details || ''}
                 onChange={e => setRow(i, 'bond_details', e.target.value)}
               />
             </Grid>
             <Grid item xs={12} md={6}>
               <TextField
                 fullWidth size="small" label="Deductions"
-                value={row.deductions_text}
+                value={row.deductions_text || ''}
                 onChange={e => setRow(i, 'deductions_text', e.target.value)}
               />
             </Grid>
             <Grid item xs={12} md={12}>
               <TextField
                 fullWidth size="small" label="CTC Breakup Notes"
-                value={row.ctc_breakup_notes}
+                value={row.ctc_breakup_notes || ''}
                 onChange={e => setRow(i, 'ctc_breakup_notes', e.target.value)}
               />
             </Grid>

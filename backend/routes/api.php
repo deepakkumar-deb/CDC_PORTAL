@@ -15,6 +15,7 @@ use App\Http\Controllers\AlumniMentorController;
 // ── Public routes (no login needed) ──────────────────────────
 Route::post('/alumni-mentor', [AlumniMentorController::class, 'store']);
 Route::get('/metadata/programs', [MetadataController::class, 'programs']);
+Route::get('/metadata/recruitment-cycles', [MetadataController::class, 'recruitmentCycles']);
 
 Route::prefix('auth')->group(function () {
     Route::post('/send-otp',        [AuthController::class, 'sendOtp']);

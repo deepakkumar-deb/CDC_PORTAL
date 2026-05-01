@@ -35,7 +35,7 @@ class ExtractionController extends Controller
 
             $response = Http::withHeaders([
                 'Content-Type' => 'application/json'
-            ])->post("https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={$apiKey}", [
+            ])->post("https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash-lite:generateContent?key={$apiKey}", [
                 'contents' => [
                     [
                         'parts' => [
@@ -43,28 +43,19 @@ class ExtractionController extends Controller
                             ['text' => "Here is the raw text extracted from the PDF:\n\n" . substr($text, 0, 100000)]
                         ]
                     ]
-                ],
-                'generationConfig' => [
-                    'temperature' => 0.1,
-                    'responseMimeType' => 'application/json',
                 ]
             ]);
 
             if ($response->failed()) {
                 Log::error('Gemini API Error: ' . $response->body());
-                $errorData = $response->json();
-                $errorMessage = $errorData['error']['message'] ?? 'AI Provider Error';
-                
-                // Friendly message for overload
-                if ($response->status() === 503) {
-                    $errorMessage = "The AI service is temporarily overloaded. Please try again in a few seconds.";
-                }
-
-                return response()->json(['success' => false, 'message' => $errorMessage], $response->status());
+                return response()->json(['success' => false, 'message' => 'AI Provider Error'], 500);
             }
 
             $data = $response->json();
             $jsonText = $data['candidates'][0]['content']['parts'][0]['text'] ?? '{}';
+            
+            // Strip markdown code blocks if present
+            $jsonText = preg_replace('/^```json\s*|```\s*$/i', '', trim($jsonText));
 
             return response()->json([
                 'success' => true,

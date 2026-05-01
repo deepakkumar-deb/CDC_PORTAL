@@ -4,6 +4,7 @@ import {
   Box, TextField, Grid, MenuItem, Typography,
   Button, Chip, CircularProgress, Alert
 } from '@mui/material';
+import api from '@/lib/api';
 
 const locationTypes = ['onsite', 'remote', 'hybrid'];
 
@@ -20,7 +21,7 @@ export default function JobDetailsTab({
     location_type: 'onsite', location_text: '',
     openings_count: '', min_openings: '',
     registration_link: '', additional_info: '',
-    onboarding_procedure: '',
+    onboarding_procedure: '', recruitment_cycle: '',
   });
   const [skills, setSkills]    = useState<string[]>([]);
   const [skillInput, setSkill] = useState('');
@@ -28,6 +29,19 @@ export default function JobDetailsTab({
   const [locationInput, setLocationInput] = useState('');
   const [validationError, setValidationError] = useState('');
   const [showErrors, setShowErrors] = useState(false);
+  const [cycles, setCycles] = useState<string[]>([]);
+
+  // Fetch recruitment cycles
+  useEffect(() => {
+    api.get('/metadata/recruitment-cycles').then(res => {
+      if (res.data.success) {
+        setCycles(res.data.cycles);
+        if (!form.recruitment_cycle && !initialData?.recruitment_cycle) {
+          set('recruitment_cycle', res.data.current);
+        }
+      }
+    }).catch(err => console.error('Failed to fetch cycles', err));
+  }, []);
 
   // Pre-fill from initialData (e.g. from a duplicated JNF)
   useEffect(() => {
@@ -44,6 +58,7 @@ export default function JobDetailsTab({
       registration_link:  initialData.registration_link  || '',
       additional_info:    initialData.additional_info    || '',
       onboarding_procedure:initialData.onboarding_procedure|| '',
+      recruitment_cycle:  initialData.recruitment_cycle  || '',
     });
     if (initialData.location_text) {
       setLocations(initialData.location_text.split(',').map((l: string) => l.trim()).filter((l: string) => l));
@@ -71,7 +86,7 @@ export default function JobDetailsTab({
 
   const handleSave = () => {
     setShowErrors(true);
-    if (!form.designation.trim() || !form.job_description.trim() || !form.location_type || !String(form.openings_count).trim()) {
+    if (!form.designation.trim() || !form.job_description.trim() || !form.location_type || !String(form.openings_count).trim() || !form.recruitment_cycle) {
       setValidationError('Please fill out all required fields marked with *');
       return;
     }
@@ -87,6 +102,18 @@ export default function JobDetailsTab({
       </Typography>
 
       <Grid container spacing={3}>
+        <Grid item xs={12} md={12}>
+          <TextField
+             fullWidth select label="Recruitment Session (Year) *"
+             value={form.recruitment_cycle}
+             onChange={e => set('recruitment_cycle', e.target.value)}
+             helperText="Select the academic session for which you are recruiting"
+          >
+            {cycles.map(c => (
+              <MenuItem key={c} value={c}>{c}</MenuItem>
+            ))}
+          </TextField>
+        </Grid>
         <Grid item xs={12} md={6}>
           <TextField
             fullWidth label="Job Designation / Title *"

@@ -69,10 +69,11 @@ class AdminController extends Controller
         }
 
         $jnf->update([
-            'status'      => 'approved',
-            'approved_by' => $request->user()->id,
-            'approved_at' => now(),
-            'admin_notes' => $request->admin_notes,
+            'status'            => 'approved',
+            'is_edit_requested' => false,
+            'approved_by'       => $request->user()->id,
+            'approved_at'       => now(),
+            'admin_notes'       => $request->admin_notes,
         ]);
 
         ApprovalHistory::create([
@@ -123,9 +124,10 @@ class AdminController extends Controller
         }
 
         $jnf->update([
-            'status'           => 'rejected',
-            'rejection_reason' => $request->rejection_reason,
-            'admin_notes'      => $request->admin_notes,
+            'status'            => 'rejected',
+            'is_edit_requested' => false,
+            'rejection_reason'  => $request->rejection_reason,
+            'admin_notes'       => $request->admin_notes,
         ]);
 
         ApprovalHistory::create([

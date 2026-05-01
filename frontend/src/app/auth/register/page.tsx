@@ -5,9 +5,10 @@ import {
   Box, Card, CardContent, TextField, Button,
   Typography, Alert, CircularProgress,
   Stepper, Step, StepLabel, Divider,
-  MenuItem, Select, InputLabel, FormControl, IconButton
+  MenuItem, Select, InputLabel, FormControl, IconButton,
+  InputAdornment
 } from '@mui/material';
-import { ArrowBack } from '@mui/icons-material';
+import { ArrowBack, Visibility, VisibilityOff } from '@mui/icons-material';
 import { STD_CODES } from '@/constants/countries';
 import axios from 'axios';
 import Link from 'next/link';
@@ -36,6 +37,8 @@ export default function RegisterPage() {
   // Step 3 state
   const [password, setPassword]     = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword]               = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   // UI state
   const [loading, setLoading] = useState(false);
@@ -310,17 +313,45 @@ export default function RegisterPage() {
                 Set a strong password for your account.
               </Typography>
               <TextField
-                fullWidth label="Password" type="password"
+                fullWidth label="Password" 
+                type={showPassword ? 'text' : 'password'}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 helperText="Minimum 8 characters"
                 sx={{ mb: 2 }}
+                InputProps={{
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton
+                        onClick={() => setShowPassword(!showPassword)}
+                        onMouseDown={(e) => e.preventDefault()}
+                        edge="end"
+                      >
+                        {showPassword ? <VisibilityOff /> : <Visibility />}
+                      </IconButton>
+                    </InputAdornment>
+                  ),
+                }}
               />
               <TextField
-                fullWidth label="Confirm Password" type="password"
+                fullWidth label="Confirm Password" 
+                type={showConfirmPassword ? 'text' : 'password'}
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 sx={{ mb: 3 }}
+                InputProps={{
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton
+                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                        onMouseDown={(e) => e.preventDefault()}
+                        edge="end"
+                      >
+                        {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
+                      </IconButton>
+                    </InputAdornment>
+                  ),
+                }}
               />
               <Button
                 variant="contained" fullWidth size="large"

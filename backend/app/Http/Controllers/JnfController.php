@@ -146,13 +146,15 @@ class JnfController extends Controller
         if (!$jnf) return $this->notFound();
 
         $request->validate([
-            'designation'    => 'required|string',
-            'location_type'  => 'required|in:onsite,remote,hybrid',
-            'openings_count' => 'required|integer|min:1',
+            'designation'       => 'required|string',
+            'location_type'     => 'required|in:onsite,remote,hybrid',
+            'openings_count'    => 'required|integer|min:1',
+            'recruitment_cycle' => 'nullable|string',
         ]);
 
         $jnf->update([
             'designation'            => $request->designation,
+            'recruitment_cycle'      => $request->recruitment_cycle,
             'department_function'    => $request->department_function,
             'job_description'        => $request->job_description,
             'responsibilities'       => $request->responsibilities,

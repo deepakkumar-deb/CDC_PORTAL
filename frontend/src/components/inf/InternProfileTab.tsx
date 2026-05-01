@@ -4,6 +4,7 @@ import {
   Box, TextField, Grid, MenuItem, Typography,
   Button, Chip, CircularProgress, Switch, FormControlLabel, Alert
 } from '@mui/material';
+import api from '@/lib/api';
 
 const locationTypes   = ['onsite', 'remote', 'hybrid'];
 const internshipTypes = ['summer', 'winter', 'year-long'];
@@ -28,12 +29,26 @@ export default function InternProfileTab({
     accommodation_provided: false, travel_allowance: false,
     certificate_provided: true, work_from_home_allowed: false,
     additional_info: '', responsibilities: '',
+    recruitment_cycle: '',
   });
 
   const [skills, setSkills]    = useState<string[]>([]);
   const [skillInput, setSkill] = useState('');
   const [validationError, setValidationError] = useState('');
   const [showErrors, setShowErrors] = useState(false);
+  const [cycles, setCycles] = useState<string[]>([]);
+
+  // Fetch recruitment cycles
+  useEffect(() => {
+    api.get('/metadata/recruitment-cycles').then((res: any) => {
+      if (res.data.success) {
+        setCycles(res.data.cycles);
+        if (!form.recruitment_cycle && !initialData?.recruitment_cycle) {
+          set('recruitment_cycle', res.data.current);
+        }
+      }
+    }).catch((err: any) => console.error('Failed to fetch cycles', err));
+  }, []);
 
   // Pre-fill from initialData (e.g. from a PDF Autofill or saved draft)
   useEffect(() => {
@@ -60,6 +75,7 @@ export default function InternProfileTab({
       certificate_provided:       initialData.inf_detail?.certificate_provided   ?? f.certificate_provided,
       work_from_home_allowed:    initialData.inf_detail?.work_from_home_allowed || f.work_from_home_allowed,
       additional_info:            initialData.additional_info            || f.additional_info,
+      recruitment_cycle:          initialData.recruitment_cycle          || f.recruitment_cycle,
     }));
     if (initialData.skills?.length) {
       setSkills(initialData.skills.map((s: any) => s.skill_name));
@@ -77,7 +93,7 @@ export default function InternProfileTab({
 
   const handleSave = () => {
     setShowErrors(true);
-    if (!form.internship_title.trim() || !form.job_description.trim() || !String(form.openings_count).trim()) {
+    if (!form.internship_title.trim() || !form.job_description.trim() || !String(form.openings_count).trim() || !form.recruitment_cycle) {
       setValidationError('Please fill out all required fields marked with *');
       return;
     }
@@ -92,6 +108,18 @@ export default function InternProfileTab({
       </Typography>
 
       <Grid container spacing={3}>
+        <Grid item xs={12} md={12}>
+          <TextField
+             fullWidth select label="Recruitment Session (Year) *"
+             value={form.recruitment_cycle}
+             onChange={e => set('recruitment_cycle', e.target.value)}
+             helperText="Select the academic session for which you are recruiting"
+          >
+            {cycles.map(c => (
+              <MenuItem key={c} value={c}>{c}</MenuItem>
+            ))}
+          </TextField>
+        </Grid>
         <Grid item xs={12} md={6}>
           <TextField
             fullWidth label="Internship Title *"

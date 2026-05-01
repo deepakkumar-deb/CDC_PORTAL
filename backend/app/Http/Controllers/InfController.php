@@ -124,13 +124,15 @@ class InfController extends Controller
         if (!$jnf) return $this->notFound();
 
         $request->validate([
-            'internship_title' => 'required|string',
-            'location_type'    => 'required|in:onsite,remote,hybrid',
-            'openings_count'   => 'required|integer|min:1',
+            'internship_title'  => 'required|string',
+            'location_type'     => 'required|in:onsite,remote,hybrid',
+            'openings_count'    => 'required|integer|min:1',
+            'recruitment_cycle' => 'nullable|string',
         ]);
 
         $jnf->update([
             'internship_title'           => $request->internship_title,
+            'recruitment_cycle'          => $request->recruitment_cycle,
             'designation'                => $request->designation,
             'department_function'        => $request->department_function,
             'job_description'            => $request->job_description,

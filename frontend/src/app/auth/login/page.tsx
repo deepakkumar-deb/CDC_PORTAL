@@ -5,7 +5,10 @@ import { useRouter } from 'next/navigation';
 import {
   Box, Card, CardContent, TextField, Button,
   Typography, Alert, CircularProgress, Divider,
+  InputAdornment, IconButton,
 } from '@mui/material';
+import Visibility from '@mui/icons-material/Visibility';
+import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import Link from 'next/link';
 
 export default function LoginPage() {
@@ -14,6 +17,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -87,9 +91,23 @@ export default function LoginPage() {
               required sx={{ mb: 2 }}
             />
             <TextField
-              fullWidth label="Password" type="password"
+              fullWidth label="Password" 
+              type={showPassword ? 'text' : 'password'}
               value={password} onChange={(e) => setPassword(e.target.value)}
               required sx={{ mb: 3 }}
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton
+                      onClick={() => setShowPassword(!showPassword)}
+                      onMouseDown={(e) => e.preventDefault()}
+                      edge="end"
+                    >
+                      {showPassword ? <VisibilityOff /> : <Visibility />}
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              }}
             />
             <Button
               type="submit" variant="contained" fullWidth
