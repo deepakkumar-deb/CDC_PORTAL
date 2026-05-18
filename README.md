@@ -17,7 +17,6 @@
 - [Environment Variables](#environment-variables)
 - [API Overview](#api-overview)
 - [Database Schema](#database-schema)
-- [Team](#team)
 
 ---
 
@@ -256,14 +255,6 @@ The application uses **39 migrations** covering:
 - `alumni_mentors` — Alumni mentor registrations
 - `otp_verifications` — Email OTP records
 - `notifications` — In-app notifications
-
----
-
-## Team
-
-**Group No. 4** — IIT (ISM) Dhanbad
-
-Built as part of the Career Development Centre (CDC) Portal project.
 
 ---
 
