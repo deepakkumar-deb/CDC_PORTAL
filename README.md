@@ -26,7 +26,7 @@
 The **CDC Portal** is a modern recruitment management system built for the Career Development Centre at IIT (ISM) Dhanbad. It streamlines the end-to-end recruitment process — from company onboarding and form submission to admin approval workflows and placement slot scheduling.
 
 Key highlights:
-- 🤖 **AI-powered PDF extraction** using Ollama (Mistral) for auto-filling JNF/INF forms
+- 🤖 **AI-powered PDF extraction** using Gemini API for auto-filling JNF/INF forms
 - 🔐 **Role-based access control** — Admin, Company (Recruiter), and Alumni roles
 - 📄 **JNF & INF management** with multi-stage approval workflows
 - 📬 **Email notifications** at every stage of the recruitment process
@@ -77,7 +77,7 @@ Key highlights:
 | **Database** | SQLite (dev) / MySQL (prod) |
 | **PDF Generation** | Laravel DomPDF |
 | **PDF Parsing** | smalot/pdfparser |
-| **AI Extraction** | Ollama (Mistral model) |
+| **AI Extraction** | Google Gemini API |
 | **Mail** | Laravel Mail (SMTP) |
 
 ---
@@ -130,7 +130,7 @@ cdc_portal/
 - **Node.js** >= 18
 - **npm**
 - **SQLite** (for development) or **MySQL** (for production)
-- **Ollama** (optional, for AI PDF extraction) — [ollama.com](https://ollama.com)
+- **Gemini API Key** (optional, for AI PDF extraction) — [aistudio.google.com](https://aistudio.google.com/apikey)
 
 ---
 
@@ -158,11 +158,11 @@ php artisan serve
 
 The backend API will be available at `http://localhost:8000`.
 
-> **Optional — AI Extraction**: Install and run Ollama with the Mistral model for PDF autofill:
-> ```bash
-> ollama pull mistral
-> ollama serve
+> **Optional — AI Extraction**: Add your Gemini API key to `backend/.env` to enable PDF autofill:
+> ```env
+> GEMINI_API_KEY=your_gemini_api_key_here
 > ```
+> Get a free key at [aistudio.google.com](https://aistudio.google.com/apikey)
 
 ---
 
