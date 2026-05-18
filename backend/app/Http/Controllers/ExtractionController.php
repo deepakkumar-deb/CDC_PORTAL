@@ -29,13 +29,13 @@ class ExtractionController extends Controller
             if (empty($apiKey)) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'GEMINI_API_KEY is missing in the backend .env file. Auto-filling requires the Free Gemini API to analyze the PDF documents.'
+                    'message' => 'GEMINI_API_KEY is missing in the backend .env file. Auto-filling requires a Gemini API key to analyze PDF documents.'
                 ], 500);
             }
 
             $response = Http::withHeaders([
                 'Content-Type' => 'application/json'
-            ])->post("https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash-lite:generateContent?key={$apiKey}", [
+            ])->post("https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={$apiKey}", [
                 'contents' => [
                     [
                         'parts' => [
